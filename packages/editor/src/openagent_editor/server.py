@@ -76,12 +76,19 @@ class EditorServer:
         ),
     )
 
-    def __init__(self, cwd: str | Path | None = None):
+    def __init__(self, cwd: str | Path | None = None, *, allowed_roots: list[str | Path] | None = None):
         self.cwd = Path(cwd or Path.cwd()).expanduser().resolve()
+        self.allowed_roots = None if allowed_roots is None else tuple(Path(root).expanduser().resolve() for root in allowed_roots)
+
+    def _allowed(self, path: Path) -> bool:
+        return self.allowed_roots is None or any(path.resolve().is_relative_to(root) for root in self.allowed_roots)
 
     def _path(self, raw: str) -> Path:
         path = Path(raw).expanduser()
-        return path.resolve() if path.is_absolute() else (self.cwd / path).resolve()
+        resolved = path.resolve() if path.is_absolute() else (self.cwd / path).resolve()
+        if not self._allowed(resolved):
+            raise HostError("path_not_allowed", "Path is outside the configured roots")
+        return resolved
 
     async def call(self, tool: str, args: dict[str, Any]) -> ToolResult:
         handler = getattr(self, f"_tool_{tool}", None)
@@ -136,7 +143,7 @@ class EditorServer:
         for file in files:
             if len(matches) >= limit:
                 break
-            if not file.is_file():
+            if not file.is_file() or not self._allowed(file):
                 continue
             try:
                 relative = file.relative_to(root).as_posix() if root.is_dir() else file.name
@@ -179,7 +186,7 @@ class EditorServer:
         root = self._path(str(args.get("path", ".")))
         limit = integer_arg(args, "max_results", 200, minimum=1, maximum=500)
         try:
-            candidates = [item for item in root.glob(pattern) if item.is_file()]
+            candidates = [item for item in root.glob(pattern) if item.is_file() and self._allowed(item)]
         except (OSError, ValueError) as exc:
             raise HostError("editor_error", f"cannot glob {root}: {exc}") from exc
         values: list[dict[str, Any]] = []
