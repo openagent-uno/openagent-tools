@@ -29,10 +29,11 @@ manifests. Do not mix earlier integration wheelhouses that contain packages with
 the same beta version but different builds.
 
 For this migration, the qualified independent Python wheel set is recorded in
-`../.migration/openagent-v1/artifacts/tools-final/manifest.json` relative to this
+`../.migration/openagent-v1/artifacts/tools-final-2/manifest.json` relative to this
 repository. It contains exactly six wheels (protocol, filesystem, editor, shell,
 device-tools and execution), with SHA-256, byte size and the implementation commit
-`14802da`. Earlier `artifacts/tools` files remain diagnostic evidence and include
+`c348e6c` (editor workspace bounds); five unchanged wheels retain the hashes
+from `tools-final`. Earlier `artifacts/tools` files remain diagnostic evidence and include
 obsolete core/product builds; they are not a release wheelhouse. The separate web
 search archive remains in the earlier evidence directory with its own package
 version and verification results.
