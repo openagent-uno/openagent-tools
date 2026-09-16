@@ -1,29 +1,4 @@
-"""Exec backends for the shell tool — where a command actually spawns.
-
-WHY THIS MODULE EXISTS
-----------------------
-``BackgroundShell.start()`` used to build the spawn arguments inline:
-``_pick_shell()`` + ``os.environ.copy()`` + ``create_subprocess_exec`` on the
-host. That is fine for a trusted operator's own machine, but this framework
-runs LIVE customer-support agents, and an operator may want shell/code
-execution confined to a throwaway, network-denied container instead of the
-host. This module factors the "how do I turn a command string into an argv +
-env + cwd" decision behind an :class:`ExecBackend` so the container variant is
-a drop-in, opt-in swap and the host variant stays byte-for-byte what it was.
-
-OFF BY DEFAULT, AND THAT IS LOAD-BEARING
-----------------------------------------
-:func:`select_backend` returns :class:`LocalBackend` unless
-``OPENAGENT_SANDBOX_BACKEND`` names an opt-in backend (``docker`` or ``ssh``);
-any unrecognised value reads as local, the same fail-safe as
-``safety.approvals``. ``LocalBackend`` reproduces the exact spawn tuple
-``start()`` built before this module existed, so with no config the code path is
-unchanged. An opt-in path never activates implicitly — misconfiguration fails
-*closed* (an unavailable daemon/image raises in :meth:`DockerBackend.prepare`;
-an unreachable host raises in :meth:`SSHBackend.prepare`) rather than silently
-falling back to running on the host, which would defeat the whole point of
-turning it on.
-"""
+"""Explicit per-instance process backends; no engine dependency or global selection."""
 from __future__ import annotations
 
 import asyncio
@@ -34,21 +9,17 @@ import os
 import shlex
 import shutil
 import tempfile
-from collections.abc import Callable
+from collections.abc import Mapping
+from types import MappingProxyType
 from dataclasses import dataclass
 from typing import Protocol, runtime_checkable
 
-from src.core.logging import elog
+from openagent_shell.shell_core import pick_shell
+
+def elog(event, **fields):
+    logging.getLogger(__name__).debug("%s %s", event, fields)
 
 logger = logging.getLogger(__name__)
-
-# Env vars written by ``server.py`` from the ``sandbox`` config stanza and read
-# here. Mirrors the ``safety.approvals`` plumbing: a subprocess-hosted reader
-# could only ever see policy through the environment, so the in-process reader
-# uses the same channel for consistency.
-_BACKEND_ENV = "OPENAGENT_SANDBOX_BACKEND"
-_DOCKER_CFG_ENV = "OPENAGENT_SANDBOX_DOCKER"
-_SSH_CFG_ENV = "OPENAGENT_SANDBOX_SSH"
 
 # Label stamped on every sandbox container so orphans (a crashed process that
 # never reached cleanup) can be reaped with ``docker rm -f $(docker ps -aq
@@ -84,7 +55,7 @@ class ExecBackend(Protocol):
 
     ``prepare`` runs once before the first spawn (idempotent), ``build_spawn``
     per command, ``cleanup`` once at shutdown. ``name`` is the stable identifier
-    used by :func:`select_backend` routing and by the docker-only branches.
+    selected explicitly by the composing host.
     """
 
     name: str
@@ -102,17 +73,19 @@ class ExecBackend(Protocol):
 
 
 class LocalBackend:
-    """Host execution — byte-identical to pre-sandbox ``start()``.
+    """Host execution with an explicit, immutable environment.
 
     ``prepare``/``cleanup`` are no-ops. ``build_spawn`` reproduces exactly the
-    ``[_pick_shell()..., command]`` argv, ``os.environ.copy()`` env (updated
+    ``[_pick_shell()..., command]`` argv, ``dict(self.environment)`` env (updated
     with any per-command ``env``), the caller's ``cwd``, and
     ``start_new_session=True`` that the inline code produced. This equivalence
-    is what makes "no config ⇒ nothing changed" true, and it is pinned by the
-    ``sandbox`` test suite.
+    does not consult ambient process configuration.
     """
 
     name = "local"
+
+    def __init__(self, *, environment: Mapping[str, str]) -> None:
+        self.environment = MappingProxyType(dict(environment))
 
     async def prepare(self) -> None:
         return None
@@ -120,12 +93,8 @@ class LocalBackend:
     def build_spawn(
         self, *, command: str, cwd: str | None, env: dict[str, str] | None
     ) -> SpawnSpec:
-        # Imported here, not at module top, to avoid the shells<->backends
-        # import cycle (shells.py imports get_exec_backend at its top).
-        from src.mcp.servers.shell.shells import _pick_shell
-
-        shell, flag = _pick_shell()
-        proc_env = os.environ.copy()
+        shell, flag = pick_shell(dict(self.environment))
+        proc_env = dict(self.environment)
         if env:
             proc_env.update(env)
         return SpawnSpec(
@@ -159,29 +128,6 @@ class DockerConfig:
     persistent: bool = False       # False → workdir is a non-persistent tmpfs
 
 
-def load_sandbox_config() -> DockerConfig:
-    """Build a :class:`DockerConfig` from ``OPENAGENT_SANDBOX_DOCKER`` (JSON).
-
-    Only consulted for the docker backend (opt-in), so malformed JSON here
-    raises rather than falling back — a broken opt-in config must fail closed,
-    not silently run on the host.
-    """
-    raw = os.environ.get(_DOCKER_CFG_ENV)
-    if not raw:
-        return DockerConfig()
-    data = json.loads(raw)
-    return DockerConfig(
-        image=str(data.get("image") or DockerConfig.image),
-        network=bool(data.get("network", False)),
-        cpus=float(data.get("cpus", DockerConfig.cpus)),
-        memory_mb=int(data.get("memory_mb", DockerConfig.memory_mb)),
-        pids_limit=int(data.get("pids_limit", DockerConfig.pids_limit)),
-        workdir=str(data.get("workdir") or DockerConfig.workdir),
-        forward_env=tuple(data.get("forward_env") or ()),
-        persistent=bool(data.get("persistent", False)),
-    )
-
-
 class DockerBackend:
     """Run each command as ``docker exec`` inside one hardened, long-lived
     container (``sleep infinity``) created on first use.
@@ -194,12 +140,13 @@ class DockerBackend:
 
     name = "docker"
 
-    def __init__(self, cfg: DockerConfig) -> None:
+    def __init__(self, cfg: DockerConfig, *, environment: Mapping[str, str]) -> None:
         self.cfg = cfg
+        self.environment = MappingProxyType(dict(environment))
         # Resolve now so build_spawn stays pure (no daemon needed to build the
         # argv). Falls back to the bare name if docker isn't on PATH; prepare()
         # is where an actually-missing docker fails loudly.
-        self.docker_exe = shutil.which("docker") or "docker"
+        self.docker_exe = shutil.which("docker", path=self.environment.get("PATH", "")) or "docker"
         self._cid: str | None = None
 
     def _run_argv(self) -> list[str]:
@@ -236,6 +183,7 @@ class DockerBackend:
                 *argv,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                env=dict(self.environment),
             )
         except FileNotFoundError as e:
             raise SandboxUnavailableError(
@@ -264,7 +212,7 @@ class DockerBackend:
         # Container env = allowlist ∩ host env, plus explicit per-command env.
         # The host environment is NOT inherited: only these keys cross in.
         forwarded: dict[str, str] = {
-            k: os.environ[k] for k in self.cfg.forward_env if k in os.environ
+            k: self.environment[k] for k in self.cfg.forward_env if k in self.environment
         }
         if env:
             forwarded.update(env)
@@ -279,7 +227,7 @@ class DockerBackend:
         # reach the process tree inside the container (see kill() limitation).
         return SpawnSpec(
             argv=argv,
-            env=os.environ.copy(),   # env for the host docker CLIENT, not the container
+            env=dict(self.environment),   # env for the host docker CLIENT, not the container
             cwd=None,
             start_new_session=False,
         )
@@ -292,6 +240,7 @@ class DockerBackend:
             self.docker_exe, "rm", "-f", cid,
             stdout=asyncio.subprocess.DEVNULL,
             stderr=asyncio.subprocess.PIPE,
+                env=dict(self.environment),
         )
         _, err = await proc.communicate()
         if proc.returncode != 0:
@@ -333,6 +282,7 @@ class DockerBackend:
             stdin=asyncio.subprocess.PIPE if stdin is not None else asyncio.subprocess.DEVNULL,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
+                env=dict(self.environment),
         )
         out, err = await proc.communicate(stdin)
         return proc.returncode, out, err
@@ -397,25 +347,6 @@ class SSHConfig:
     workdir: str | None = None      # remote cwd to ``cd`` into before each command
 
 
-def load_ssh_config() -> SSHConfig:
-    """Build an :class:`SSHConfig` from ``OPENAGENT_SANDBOX_SSH`` (JSON).
-
-    Mirrors :func:`load_sandbox_config`: only consulted for the ssh backend
-    (opt-in), so malformed JSON raises rather than falling back — a broken
-    opt-in config must fail closed, not silently run on the host.
-    """
-    raw = os.environ.get(_SSH_CFG_ENV)
-    data = json.loads(raw) if raw else {}
-    return SSHConfig(
-        host=str(data.get("host") or ""),
-        user=str(data.get("user") or ""),
-        port=int(data.get("port", SSHConfig.port)),
-        key_path=(str(data["key_path"]) if data.get("key_path") else None),
-        login_shell=bool(data.get("login_shell", True)),
-        workdir=(str(data["workdir"]) if data.get("workdir") else None),
-    )
-
-
 class SSHBackend:
     """Run each command on a REMOTE host over ``ssh``, multiplexed through one
     long-lived ControlMaster connection opened on first use.
@@ -431,12 +362,13 @@ class SSHBackend:
 
     name = "ssh"
 
-    def __init__(self, cfg: SSHConfig) -> None:
+    def __init__(self, cfg: SSHConfig, *, environment: Mapping[str, str]) -> None:
         self.cfg = cfg
+        self.environment = MappingProxyType(dict(environment))
         # Resolve now so build_spawn stays pure (no connection needed to build
         # the argv). Falls back to the bare name if ssh isn't on PATH; prepare()
         # is where an actually-missing ssh fails loudly.
-        self.ssh_exe = shutil.which("ssh") or "ssh"
+        self.ssh_exe = shutil.which("ssh", path=self.environment.get("PATH", "")) or "ssh"
         self._ctl_dir: str | None = None
         self._ctl_path: str | None = None
 
@@ -480,6 +412,7 @@ class SSHBackend:
                 *argv,
                 stdout=asyncio.subprocess.PIPE,
                 stderr=asyncio.subprocess.PIPE,
+                env=dict(self.environment),
             )
         except FileNotFoundError as e:
             shutil.rmtree(ctl_dir, ignore_errors=True)
@@ -532,7 +465,7 @@ class SSHBackend:
         # remote process tree (carried over from the docker-exec client; see
         # kill() limitation). A per-command ``env`` is merged into the client env
         # for parity with the other backends.
-        proc_env = os.environ.copy()
+        proc_env = dict(self.environment)
         if env:
             proc_env.update(env)
         return SpawnSpec(
@@ -558,6 +491,7 @@ class SSHBackend:
             *argv,
             stdout=asyncio.subprocess.DEVNULL,
             stderr=asyncio.subprocess.PIPE,
+                env=dict(self.environment),
         )
         _, err = await proc.communicate()
         if proc.returncode != 0:
@@ -571,65 +505,3 @@ class SSHBackend:
             elog("sandbox.ssh.removed", host=self.cfg.host, user=self.cfg.user)
         if ctl_dir:
             shutil.rmtree(ctl_dir, ignore_errors=True)
-
-
-# ── Selection + process-wide memoization ─────────────────────────────────
-
-# Also the test seam: tests monkeypatch ``_BACKENDS["docker"] = FakeDocker`` to
-# exercise routing without a daemon. Any non-local class here is constructed
-# with its config object (see select_backend / _CONFIG_LOADERS), so a fake must
-# accept one.
-_BACKENDS: dict[str, type] = {
-    "local": LocalBackend,
-    "docker": DockerBackend,
-    "ssh": SSHBackend,
-}
-
-# Per-backend config loader, keyed the same as ``_BACKENDS``. A backend WITHOUT
-# an entry here is constructed with no argument. Keeping this a table (rather
-# than an ``if name == "docker"``) is what lets ``select_backend`` stay generic
-# as backends are added, while preserving the fake-docker test seam: a fake
-# injected under ``"docker"``/``"ssh"`` is still handed the parsed config.
-_CONFIG_LOADERS: dict[str, Callable[[], object]] = {
-    "docker": load_sandbox_config,
-    "ssh": load_ssh_config,
-}
-
-
-def select_backend() -> ExecBackend:
-    """Construct the backend named by ``OPENAGENT_SANDBOX_BACKEND``.
-
-    Unset / unknown / ``local`` all yield :class:`LocalBackend` — the same
-    fail-safe default as ``safety.approvals`` (a typo must never silently route
-    live traffic into a half-configured sandbox, nor break exec entirely).
-    """
-    name = (os.environ.get(_BACKEND_ENV) or "").strip().lower()
-    cls = _BACKENDS.get(name)
-    if cls is None or cls is LocalBackend:
-        return LocalBackend()
-    # Non-local (docker / ssh / a test-injected fake): hand it the parsed config
-    # for its backend name. A backend without a registered loader takes none.
-    loader = _CONFIG_LOADERS.get(name)
-    return cls(loader()) if loader else cls()
-
-
-_backend_singleton: ExecBackend | None = None
-
-
-def get_exec_backend() -> ExecBackend:
-    """Return the process-wide backend singleton, creating on demand.
-
-    Memoized like ``handlers.get_hub()`` so a docker container is created once
-    and reused, and so ``prepare``/``cleanup`` bracket the same instance.
-    """
-    global _backend_singleton
-    if _backend_singleton is None:
-        _backend_singleton = select_backend()
-    return _backend_singleton
-
-
-def _reset_backend_for_tests() -> None:
-    """Test-only: drop the memoized backend so the next ``get_exec_backend``
-    re-reads the environment (mirrors ``handlers._reset_hub_for_tests``)."""
-    global _backend_singleton
-    _backend_singleton = None

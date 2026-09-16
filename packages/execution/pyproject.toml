@@ -1,0 +1,14 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "openagent-execution"
+version = "1.0.0b1"
+description = "Explicit process and sandbox execution without an agent engine"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = ["openagent-shell==1.0.0b1"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/openagent_execution"]

@@ -10,7 +10,7 @@ def main():
     root = Path(__file__).resolve().parents[1]
     destination = args.out.resolve()
     destination.mkdir(parents=True, exist_ok=True)
-    for name in ("tool-protocol", "filesystem", "editor", "shell", "device-tools"):
+    for name in ("tool-protocol", "filesystem", "editor", "shell", "device-tools", "execution"):
         subprocess.run(["uv", "build", "--wheel", "--out-dir", str(destination)], cwd=root / "packages" / name, check=True)
     web = root / "packages/web-search"
     subprocess.run(["npm", "ci", "--ignore-scripts"], cwd=web, check=True)

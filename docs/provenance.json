@@ -10,5 +10,12 @@
     "source_path": "src/mcp/servers/web-search",
     "split_commit": "1645b0664e10a992378e42cd79428b0ae4517e65",
     "history": "non-squash subtree import of filtered path history"
+  },
+  "execution": {
+    "source_repository": "openagent-server",
+    "source_commit": "1842ce6a82f93bdf34783da3b9d10515439fb49e",
+    "source_path": "src/mcp/servers/shell",
+    "split_commit": "738861e5d0e845d66851aa37a58d345861864871",
+    "history": "Non-squash subtree import through isolated core history clone; concrete backends retained and adapted to explicit environment. Shared process implementation remains in openagent-shell."
   }
 }

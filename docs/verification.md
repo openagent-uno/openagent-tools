@@ -23,7 +23,7 @@ MCP stdio subprocesses using the official MCP client. Two shell instances receiv
 separate environment snapshots. Reusing a principal and idempotency key in two
 capability hosts does not share state; closing one leaves the other functional.
 
-`packaging/build.py --out DIR` builds five Python tool wheels and the web-search
+`packaging/build.py --out DIR` builds six Python tool wheels and the web-search
 npm archive. Native source inclusion uses an explicit file list so generated
 `target`, `node_modules` and `__pycache__` trees cannot enter the device wheel.
 The product owns host-tools installers, signing and updater scripts; they consume
@@ -34,3 +34,13 @@ and signed cross-platform bundles, updater chains, real display capture/control,
 and provider-backed web search have not been qualified by these checks. The
 inherited web-search lockfile reports 10 npm audit findings (1 low, 3 moderate,
 6 high); no dependency upgrade was mixed into this source-preserving extraction.
+
+The independent `openagent-execution` wheel adds explicit local/Docker/SSH process
+backends without global factories or engine imports. Three installed-wheel tests
+exercise independent environment snapshots, real cancellation preventing a later
+filesystem effect, and rejection of unsupported remote RPC routing. Five core
+interop tests execute real Python through Unix and file RPC, verifying opaque
+tool references, full results, current authorization, dry-run, call budgets,
+missing-executor/isolation refusal, timeout and per-run cleanup. File transport
+was qualified using a local fixture, not a running Docker container. Real Docker
+and SSH execution and native Windows process behavior remain unqualified.
