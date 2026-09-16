@@ -6,8 +6,8 @@ import sys
 
 import pytest
 
-from openagent_host_tools import shell_core
-from openagent_host_tools.shell_core import BackgroundShell
+from openagent_shell import shell_core
+from openagent_shell.shell_core import BackgroundShell
 
 
 @pytest.mark.skipif(os.name != "nt", reason="real Windows COMSPEC regression")

@@ -1,0 +1,7 @@
+{
+  "source_repository": "openagent-host-tools",
+  "source_commit": "af6ad6871d4d1208874bf79735710d089f59b959",
+  "history": "Full original Git history retained; source paths moved in extraction commit.",
+  "host_destination": "openagent-core/packages/capability-host",
+  "product_destination": "openagent/packages/host-tools"
+}

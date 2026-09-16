@@ -1,0 +1,14 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "openagent-tool-protocol"
+version = "1.0.0b1"
+description = "Independent OpenAgent capability package"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = ["mcp>=1.27,<2"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/openagent_tool_protocol"]

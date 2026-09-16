@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "openagent-device-tools"
+version = "1.0.0b1"
+description = "Independent OpenAgent capability package"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = ["openagent-tool-protocol==1.0.0b1"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/openagent_device_tools"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"../../sidecars" = "openagent_device_tools/sidecars"
+"../../THIRD_PARTY_NOTICES.md" = "openagent_device_tools/THIRD_PARTY_NOTICES.md"
