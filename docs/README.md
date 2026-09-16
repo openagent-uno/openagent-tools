@@ -21,3 +21,18 @@ No package chooses local, Docker or SSH from process-global environment variable
 The host supplies environment, interpreter, transport and isolation policy and
 closes the instance it owns. Remote PTC requires an explicit filesystem bridge;
 SSH process support alone does not enable PTC over SSH.
+
+Use a dedicated empty output directory for tool artifacts. A product image must
+select the required tool wheels explicitly and obtain `openagent-core`, modules,
+capability-host and standalone composition packages from their own release
+manifests. Do not mix earlier integration wheelhouses that contain packages with
+the same beta version but different builds.
+
+For this migration, the qualified independent Python wheel set is recorded in
+`../.migration/openagent-v1/artifacts/tools-final/manifest.json` relative to this
+repository. It contains exactly six wheels (protocol, filesystem, editor, shell,
+device-tools and execution), with SHA-256, byte size and the implementation commit
+`14802da`. Earlier `artifacts/tools` files remain diagnostic evidence and include
+obsolete core/product builds; they are not a release wheelhouse. The separate web
+search archive remains in the earlier evidence directory with its own package
+version and verification results.
