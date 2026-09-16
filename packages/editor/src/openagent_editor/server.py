@@ -22,6 +22,8 @@ def _schema(properties: dict[str, Any], required: list[str]) -> dict[str, Any]:
 
 
 class EditorServer:
+    # Cancelling an await does not stop a running filesystem thread.
+    cancellation_requires_drain = True
     manifest = ServerManifest(
         name="editor",
         version="1.0.0",

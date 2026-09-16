@@ -32,6 +32,8 @@ def _schema(properties: dict[str, Any], required: list[str] | None = None) -> di
 
 
 class FilesystemServer:
+    # Thread-backed filesystem writes must finish before releasing mutation leases.
+    cancellation_requires_drain = True
     manifest = ServerManifest(
         name="filesystem",
         version="1.0.0",
