@@ -14,5 +14,22 @@ dependencies = ["openagent-tool-protocol==1.0.0b1"]
 packages = ["src/openagent_device_tools"]
 
 [tool.hatch.build.targets.wheel.force-include]
-"../../sidecars" = "openagent_device_tools/sidecars"
 "../../THIRD_PARTY_NOTICES.md" = "openagent_device_tools/THIRD_PARTY_NOTICES.md"
+"../../sidecars/agent-in-chrome/README.md" = "openagent_device_tools/sidecars/agent-in-chrome/README.md"
+"../../sidecars/agent-in-chrome/host/browser.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/browser.js"
+"../../sidecars/agent-in-chrome/host/cdp.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/cdp.js"
+"../../sidecars/agent-in-chrome/host/mcp-server.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/mcp-server.js"
+"../../sidecars/agent-in-chrome/host/package-lock.json" = "openagent_device_tools/sidecars/agent-in-chrome/host/package-lock.json"
+"../../sidecars/agent-in-chrome/host/package.json" = "openagent_device_tools/sidecars/agent-in-chrome/host/package.json"
+"../../sidecars/agent-in-chrome/host/page-script.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/page-script.js"
+"../../sidecars/agent-in-chrome/tab-group-extension/background.js" = "openagent_device_tools/sidecars/agent-in-chrome/tab-group-extension/background.js"
+"../../sidecars/agent-in-chrome/tab-group-extension/manifest.json" = "openagent_device_tools/sidecars/agent-in-chrome/tab-group-extension/manifest.json"
+"../../sidecars/computer-control/Cargo.lock" = "openagent_device_tools/sidecars/computer-control/Cargo.lock"
+"../../sidecars/computer-control/Cargo.toml" = "openagent_device_tools/sidecars/computer-control/Cargo.toml"
+"../../sidecars/computer-control/src/capture.rs" = "openagent_device_tools/sidecars/computer-control/src/capture.rs"
+"../../sidecars/computer-control/src/input.rs" = "openagent_device_tools/sidecars/computer-control/src/input.rs"
+"../../sidecars/computer-control/src/keys.rs" = "openagent_device_tools/sidecars/computer-control/src/keys.rs"
+"../../sidecars/computer-control/src/main.rs" = "openagent_device_tools/sidecars/computer-control/src/main.rs"
+"../../sidecars/computer-control/src/record.rs" = "openagent_device_tools/sidecars/computer-control/src/record.rs"
+"../../sidecars/computer-control/src/scaling.rs" = "openagent_device_tools/sidecars/computer-control/src/scaling.rs"
+"../../sidecars/computer-control/src/tool.rs" = "openagent_device_tools/sidecars/computer-control/src/tool.rs"

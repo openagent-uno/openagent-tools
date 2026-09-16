@@ -21,13 +21,14 @@ FINALISE_TIMEOUT = 5.0
 SignalName = Literal["TERM", "INT", "KILL"]
 
 
-def pick_shell() -> tuple[str, str]:
+def pick_shell(environment: dict[str, str] | None = None) -> tuple[str, str]:
+    environment = os.environ if environment is None else environment
     system = platform.system().lower()
     if system == "windows":
-        return (os.environ.get("COMSPEC", "cmd.exe"), "/c")
+        return (environment.get("COMSPEC", "cmd.exe"), "/c")
     if system == "darwin":
-        return (os.environ.get("SHELL", "/bin/zsh"), "-c")
-    return (os.environ.get("SHELL", "/bin/bash"), "-c")
+        return (environment.get("SHELL", "/bin/zsh"), "-c")
+    return (environment.get("SHELL", "/bin/bash"), "-c")
 
 
 @dataclass
@@ -52,11 +53,12 @@ class BackgroundShell:
         command: str,
         cwd: str | None,
         env: dict[str, str] | None,
+        base_environment: dict[str, str] | None = None,
     ) -> None:
         self.shell_id = shell_id
         self.command = command
         self.cwd = cwd
-        self.env = env
+        self.env = {**(os.environ if base_environment is None else base_environment), **(env or {})}
         self._proc: asyncio.subprocess.Process | None = None
         self._stdout_buf = bytearray()
         self._stderr_buf = bytearray()
@@ -77,7 +79,7 @@ class BackgroundShell:
             "stdout": asyncio.subprocess.PIPE,
             "stderr": asyncio.subprocess.PIPE,
             "cwd": self.cwd,
-            "env": {**os.environ, **(self.env or {})},
+            "env": dict(self.env),
         }
         if platform.system().lower() == "windows":
             # ``cmd.exe`` is not a Microsoft C-runtime argv consumer. Passing
@@ -95,7 +97,7 @@ class BackgroundShell:
                 self.command,
                 **common,
             )
-        shell, flag = pick_shell()
+        shell, flag = pick_shell(self.env)
         return await asyncio.create_subprocess_exec(
             shell,
             flag,

@@ -9,7 +9,7 @@ def sidecar_source(name: str) -> Path:
     packaged = Path(__file__).resolve().parent / "sidecars" / name
     if packaged.is_dir():
         return packaged
-    # Editable checkout: ``src/openagent_host_tools`` and repo ``sidecars``.
+    # Editable checkout: ``packages/device-tools/src/openagent_device_tools``.
     checkout = Path(__file__).resolve().parents[4] / "sidecars" / name
     if checkout.is_dir():
         return checkout

@@ -318,19 +318,20 @@ class SidecarCandidate:
     reason: str | None = None
 
 
-def discover_sidecars() -> list[SidecarCandidate]:
+def discover_sidecars(*, bundle_version: str = __version__) -> list[SidecarCandidate]:
     return [
         _discover(
             "computer-control",
             "OPENAGENT_COMPUTER_CONTROL_COMMAND",
             "openagent-computer-control",
             COMPUTER_CONTROL_MANIFEST,
+            bundle_version=bundle_version,
         ),
-        _discover_agent_in_chrome(),
+        _discover_agent_in_chrome(bundle_version=bundle_version),
     ]
 
 
-def _discover_agent_in_chrome() -> SidecarCandidate:
+def _discover_agent_in_chrome(*, bundle_version: str = __version__) -> SidecarCandidate:
     configured = os.environ.get("OPENAGENT_AGENT_IN_CHROME_COMMAND")
     if configured:
         try:
@@ -365,7 +366,7 @@ def _discover_agent_in_chrome() -> SidecarCandidate:
         bundled_node = root / node_name
         node = str(bundled_node) if bundled_node.is_file() else shutil.which("node")
         if node:
-            integrity_error = _bundle_integrity_error(root)
+            integrity_error = _bundle_integrity_error(root, bundle_version=bundle_version)
             if integrity_error:
                 return SidecarCandidate(
                     "agent-in-chrome",
@@ -391,11 +392,13 @@ def _discover_agent_in_chrome() -> SidecarCandidate:
         "OPENAGENT_AGENT_IN_CHROME_COMMAND",
         "openagent-agent-in-chrome",
         AGENT_IN_CHROME_MANIFEST,
+        bundle_version=bundle_version,
     )
 
 
 def _discover(
-    name: str, env_name: str, executable: str, placeholder: ServerManifest
+    name: str, env_name: str, executable: str, placeholder: ServerManifest,
+    *, bundle_version: str = __version__
 ) -> SidecarCandidate:
     configured = os.environ.get(env_name)
     if configured:
@@ -425,14 +428,14 @@ def _discover(
     add_root(Path(__file__).resolve().parent / "bin")
     for candidate, bundle_root in candidates:
         if candidate.is_file() and os.access(candidate, os.X_OK):
-            integrity_error = _bundle_integrity_error(bundle_root)
+            integrity_error = _bundle_integrity_error(bundle_root, bundle_version=bundle_version)
             if integrity_error:
                 return SidecarCandidate(name, None, placeholder, integrity_error)
             return SidecarCandidate(name, (str(candidate),), placeholder)
     found = shutil.which(executable)
     if found:
         if getattr(sys, "frozen", False):
-            integrity_error = _bundle_integrity_error(Path(found).resolve().parent)
+            integrity_error = _bundle_integrity_error(Path(found).resolve().parent, bundle_version=bundle_version)
             if integrity_error:
                 return SidecarCandidate(name, None, placeholder, integrity_error)
         return SidecarCandidate(name, (found,), placeholder)
@@ -456,7 +459,7 @@ def _parse_command(raw: str) -> tuple[str, ...]:
     return command
 
 
-def _bundle_integrity_error(root: Path) -> str | None:
+def _bundle_integrity_error(root: Path, *, bundle_version: str = __version__) -> str | None:
     """Verify every staged runtime/asset before a frozen host may spawn it."""
     root = root.resolve()
     manifest_path = root / "bundle-manifest.json"
@@ -468,7 +471,7 @@ def _bundle_integrity_error(root: Path) -> str | None:
         )
     try:
         value = json.loads(manifest_path.read_text(encoding="utf-8"))
-        if value.get("manifest_version") != 1 or value.get("version") != _HOST_TOOLS_VERSION:
+        if value.get("manifest_version") != 1 or value.get("version") != bundle_version:
             raise ValueError("unsupported host-tools bundle version")
         files = value.get("files")
         if not isinstance(files, dict) or not files:

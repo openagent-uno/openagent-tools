@@ -3,5 +3,12 @@
   "source_commit": "af6ad6871d4d1208874bf79735710d089f59b959",
   "history": "Full original Git history retained; source paths moved in extraction commit.",
   "host_destination": "openagent-core/packages/capability-host",
-  "product_destination": "openagent/packages/host-tools"
+  "product_destination": "openagent/packages/host-tools",
+  "web_search": {
+    "source_repository": "openagent-server",
+    "source_commit": "1842ce6a82f93bdf34783da3b9d10515439fb49e",
+    "source_path": "src/mcp/servers/web-search",
+    "split_commit": "1645b0664e10a992378e42cd79428b0ae4517e65",
+    "history": "non-squash subtree import of filtered path history"
+  }
 }

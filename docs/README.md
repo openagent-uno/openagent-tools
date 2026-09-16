@@ -9,3 +9,7 @@ composes these packages through its `openagent-host-tools` compatibility facade.
 
 See [extraction provenance](provenance.json). MCP names and result envelopes,
 shell completion events, sidecar sources and signing identifiers are preserved.
+
+See [verification](verification.md) for package installation checks and the
+explicit limits of native/platform qualification. Build wheels with
+`python packaging/build.py --out /absolute/artifact-directory`.

@@ -144,7 +144,8 @@ class ShellServer:
         ),
     )
 
-    def __init__(self, cwd: str | Path | None = None, *, event_sink=None):
+    def __init__(self, cwd: str | Path | None = None, *, event_sink=None, environment: dict[str, str] | None = None):
+        self.environment = dict(os.environ if environment is None else environment)
         self.cwd = Path(cwd or Path.cwd()).expanduser().resolve()
         self._background: dict[str, _Background] = {}
         self._guard = asyncio.Lock()
@@ -198,6 +199,7 @@ class ShellServer:
             command=command,
             cwd=str(cwd),
             env=env_arg,
+            base_environment=self.environment,
         )
         if bool(args.get("run_in_background", False)):
             description = args.get("description")
