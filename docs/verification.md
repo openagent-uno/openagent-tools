@@ -24,7 +24,9 @@ separate environment snapshots. Reusing a principal and idempotency key in two
 capability hosts does not share state; closing one leaves the other functional.
 
 `packaging/build.py --out DIR` builds six Python tool wheels and the web-search
-npm archive. Native source inclusion uses an explicit file list so generated
+npm archive from one temporary source snapshot. It rejects a nonempty output
+directory and writes `manifest.json` with the exact commit, dirty flag, source
+digest and SHA-256/size of every artifact. Native source inclusion uses an explicit file list so generated
 `target`, `node_modules` and `__pycache__` trees cannot enter the device wheel.
 The product owns host-tools installers, signing and updater scripts; they consume
 native sources through the installed device package's `sidecar_source()` API.
