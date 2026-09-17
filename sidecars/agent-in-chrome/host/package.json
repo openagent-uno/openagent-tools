@@ -8,5 +8,10 @@
     "@modelcontextprotocol/sdk": "^1.30.0",
     "ws": "^8.21.3",
     "zod": "^3.23.0"
+  },
+  "overrides": {
+    "@hono/node-server": "2.1.1",
+    "hono": "4.13.8",
+    "qs": "6.16.0"
   }
 }
