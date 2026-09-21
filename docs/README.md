@@ -1,5 +1,9 @@
 # Independent OpenAgent tools
 
+The public capability guide is at
+[openagent.uno](https://openagent.uno/guide/mcp); this repository remains the
+canonical source for package contracts, provenance and verification evidence.
+
 Each package can run as an MCP server or be called as a Python capability without
 installing the agent engine. Filesystem, editor and shell import only the neutral
 `openagent-tool-protocol`; native sidecars are owned here. The optional generic
