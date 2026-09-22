@@ -4,6 +4,10 @@ The single-writer lease, idempotency, and audit chokepoint design in this
 package was adapted from the architectural patterns in AgenticRemoteControl
 (ARC).
 
+`packages/meta-ads-mcp-server` is derived from
+`hashcott/meta-ads-mcp-server` 1.5.1, copyright (c) 2026 Scott Hanlin, under
+the MIT License. Its complete license is retained beside the package source.
+
 ARC is Copyright (c) Alessandro Gerelli and is licensed under the MIT License:
 
 > Permission is hereby granted, free of charge, to any person obtaining a copy

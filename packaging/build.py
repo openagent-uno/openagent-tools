@@ -7,7 +7,8 @@ import shutil
 import subprocess
 import tempfile
 
-PACKAGES = ("tool-protocol", "filesystem", "editor", "shell", "device-tools", "execution")
+PYTHON_PACKAGES = ("tool-protocol", "filesystem", "editor", "shell", "device-tools", "execution")
+NODE_PACKAGES = ("web-search", "meta-ads-mcp-server")
 
 
 def command(*args, cwd):
@@ -47,20 +48,24 @@ def main():
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(data)
             shutil.copymode(source, target)
-        for name in PACKAGES:
+        for name in PYTHON_PACKAGES:
             subprocess.run(
                 ["uv", "build", "--wheel", "--out-dir", str(destination)],
                 cwd=snapshot / "packages" / name,
                 check=True,
             )
-        web = snapshot / "packages/web-search"
-        subprocess.run(["npm", "ci", "--ignore-scripts"], cwd=web, check=True)
-        subprocess.run(["npm", "run", "build"], cwd=web, check=True)
-        subprocess.run(["npm", "pack", "--pack-destination", str(destination)], cwd=web, check=True)
+        for name in NODE_PACKAGES:
+            package = snapshot / "packages" / name
+            subprocess.run(["npm", "ci", "--ignore-scripts"], cwd=package, check=True)
+            if name == "meta-ads-mcp-server":
+                subprocess.run(["npm", "test"], cwd=package, check=True)
+            else:
+                subprocess.run(["npm", "run", "build"], cwd=package, check=True)
+            subprocess.run(["npm", "pack", "--pack-destination", str(destination)], cwd=package, check=True)
 
     files = {}
     for artifact in sorted(destination.iterdir()):
-        if artifact.is_file():
+        if artifact.is_file() and not artifact.name.startswith("."):
             files[artifact.name] = {
                 "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(),
                 "size_bytes": artifact.stat().st_size,
@@ -69,7 +74,7 @@ def main():
         "format": 1,
         "repository": "openagent-tools",
         "source_commit": revision,
-        "version": "1.0.0b1",
+        "version": "1.0.0b2",
         "dirty_snapshot": dirty,
         "source_sha256": hashlib.sha256(
             json.dumps(sources, sort_keys=True, separators=(",", ":")).encode()

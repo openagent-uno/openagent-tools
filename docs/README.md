@@ -26,6 +26,13 @@ The host supplies environment, interpreter, transport and isolation policy and
 closes the instance it owns. Remote PTC requires an explicit filesystem bridge;
 SSH process support alone does not enable PTC over SSH.
 
+`@openagent-uno/meta-ads-mcp-server` is an independently runnable MCP server,
+derived from the MIT-licensed `hashcott/meta-ads-mcp-server` 1.5.1. It preserves
+the upstream catalog and adds `meta_ads_upload_ad_video`. Public Google Drive
+sharing links are converted to direct downloads before Meta fetches the video.
+The tool remains gated by `META_ADS_ENABLE_WRITE_TOOLS=true`; installing the
+archive does not register it in a runtime.
+
 Use a dedicated empty output directory for tool artifacts. A product image must
 select the required tool wheels explicitly and obtain `openagent-core`, modules,
 capability-host and standalone composition packages from their own release
@@ -41,3 +48,7 @@ from `tools-final`. Earlier `artifacts/tools` files remain diagnostic evidence a
 obsolete core/product builds; they are not a release wheelhouse. The separate web
 search archive remains in the earlier evidence directory with its own package
 version and verification results.
+
+Release `v1.0.0-beta.2` adds the independently installable Meta Ads archive.
+Its manifest covers the six Python wheels and both npm archives from the same
+source snapshot.
