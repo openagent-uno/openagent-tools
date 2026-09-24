@@ -18,6 +18,14 @@ See [verification](verification.md) for package installation checks and the
 explicit limits of native/platform qualification. Build wheels with
 `python packaging/build.py --out /absolute/artifact-directory`.
 
+Device-tools `1.0.0b2` adds `computer_list_windows` and
+`computer_capture_window` to the local computer-control sidecar. The first
+returns current window ID, process ID, app/title, bounds and focus state; the
+second re-resolves that exact ID/process pair and returns a downsampled PNG or
+a stale-target error. They require the same verified client registration and
+OS screen-capture permission as the existing computer tool. The package still
+does not provide an accessibility tree or element-targeted native actions.
+
 `openagent-execution` supplies process execution when a host explicitly enables
 code execution. It depends on `openagent-shell`, not the core. The core defines
 its structural `CodeExecutor` protocol and accepts an instance from the product.

@@ -273,7 +273,7 @@ extern "C" {
 }
 
 #[cfg(target_os = "macos")]
-fn require_screen_recording_permission() -> Result<()> {
+pub(crate) fn require_screen_recording_permission() -> Result<()> {
     // SAFETY: both zero-argument CoreGraphics functions are process-wide TCC
     // queries available on every supported macOS version (10.15+).
     if unsafe { CGPreflightScreenCaptureAccess() } {

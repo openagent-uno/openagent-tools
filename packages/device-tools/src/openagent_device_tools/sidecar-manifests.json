@@ -676,8 +676,44 @@
           "type": "object"
         },
         "name": "computer"
+      },
+      {
+        "classification": "read_only",
+        "description": "Capture a PNG of one window on this verified client computer. Use the exact window_id and pid returned by computer_list_windows; the call fails if the pair no longer exists. The image is downsampled to model limits. Requires Screen Recording permission where the OS does.",
+        "input_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "description": "Re-resolve an exact window from the current OS inventory. Both identifiers\nmust match, so a recycled window ID cannot silently select another app.",
+          "properties": {
+            "pid": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "window_id": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "window_id",
+            "pid"
+          ],
+          "title": "WindowArgs",
+          "type": "object"
+        },
+        "name": "computer_capture_window"
+      },
+      {
+        "classification": "read_only",
+        "description": "List the current desktop windows on this verified client computer. Returns exact window_id and pid pairs, app name, title, bounds, and focus/minimized state. A window can disappear or be replaced; re-list after a stale-target error. Requires Screen Recording permission where the OS does.",
+        "input_schema": {
+          "properties": {},
+          "type": "object"
+        },
+        "name": "computer_list_windows"
       }
     ],
-    "version": "0.1.0"
+    "version": "0.1.1"
   }
 }

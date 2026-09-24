@@ -96,6 +96,14 @@ pub struct ComputerArgs {
     pub max_duration_seconds: Option<u32>,
 }
 
+/// Re-resolve an exact window from the current OS inventory. Both identifiers
+/// must match, so a recycled window ID cannot silently select another app.
+#[derive(Debug, Deserialize, schemars::JsonSchema)]
+pub struct WindowArgs {
+    pub window_id: u32,
+    pub pid: u32,
+}
+
 // NOTE: The tool description is inlined directly in the #[tool(description = "...")] attribute
 // below because the rmcp #[tool] macro only accepts string literals (not const paths).
 // Do NOT edit the wording without discussion — it shapes Claude's prompting.
@@ -136,6 +144,24 @@ impl ComputerControlServer {
             Err(e) => CallToolResult::error(vec![Content::text(format!("{e:#}"))]),
         }
     }
+
+    /// Inspect visible desktop windows without initializing keyboard control.
+    #[tool(description = "List the current desktop windows on this verified client computer. Returns exact window_id and pid pairs, app name, title, bounds, and focus/minimized state. A window can disappear or be replaced; re-list after a stale-target error. Requires Screen Recording permission where the OS does.")]
+    pub async fn computer_list_windows(&self) -> CallToolResult {
+        match Self::list_windows() {
+            Ok(result) => result,
+            Err(error) => CallToolResult::error(vec![Content::text(format!("{error:#}"))]),
+        }
+    }
+
+    /// Capture an exact window rather than guessing screen coordinates.
+    #[tool(description = "Capture a PNG of one window on this verified client computer. Use the exact window_id and pid returned by computer_list_windows; the call fails if the pair no longer exists. The image is downsampled to model limits. Requires Screen Recording permission where the OS does.")]
+    pub async fn computer_capture_window(&self, params: Parameters<WindowArgs>) -> CallToolResult {
+        match Self::capture_window(params.0) {
+            Ok(result) => result,
+            Err(error) => CallToolResult::error(vec![Content::text(format!("{error:#}"))]),
+        }
+    }
 }
 
 #[tool_handler(router = self.tool_router)]
@@ -153,6 +179,49 @@ impl ServerHandler for ComputerControlServer {
 }
 
 impl ComputerControlServer {
+    fn windows() -> Result<Vec<xcap::Window>> {
+        #[cfg(target_os = "macos")]
+        capture::require_screen_recording_permission()?;
+        xcap::Window::all().context("list desktop windows")
+    }
+
+    fn list_windows() -> Result<CallToolResult> {
+        let windows = Self::windows()?;
+        let truncated = windows.len() > 200;
+        let mut rows = Vec::new();
+        for window in windows.into_iter().take(200) {
+            // Some OS windows disappear between enumeration and inspection.
+            let (Ok(window_id), Ok(pid)) = (window.id(), window.pid()) else { continue };
+            rows.push(serde_json::json!({
+                "window_id": window_id, "pid": pid,
+                "app_name": window.app_name().unwrap_or_default(),
+                "title": window.title().unwrap_or_default(),
+                "bounds": {"x": window.x().ok(), "y": window.y().ok(),
+                           "width": window.width().ok(), "height": window.height().ok()},
+                "focused": window.is_focused().ok(),
+                "minimized": window.is_minimized().ok(),
+            }));
+        }
+        Ok(CallToolResult::success(vec![Content::text(
+            serde_json::to_string(&serde_json::json!({"windows": rows, "truncated": truncated}))?,
+        )]))
+    }
+
+    fn capture_window(args: WindowArgs) -> Result<CallToolResult> {
+        let window = Self::windows()?.into_iter().find(|window|
+            window.id().ok() == Some(args.window_id) && window.pid().ok() == Some(args.pid))
+            .ok_or_else(|| anyhow!("window target is stale or unavailable; list windows again"))?;
+        let image = window.capture_image().context("capture selected window")?;
+        let (bytes, width, height) = capture::downsample_and_encode(image)?;
+        Ok(CallToolResult::success(vec![
+            Content::text(serde_json::to_string(&serde_json::json!({
+                "window_id": args.window_id, "pid": args.pid,
+                "image_width": width, "image_height": height,
+            }))?),
+            Content::image(base64_encode(&bytes), "image/png"),
+        ]))
+    }
+
     async fn dispatch(&self, args: ComputerArgs) -> Result<CallToolResult> {
         // Recording actions don't touch the input controller (no mouse /
         // keyboard involvement), so dispatch them before we grab the input

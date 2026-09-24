@@ -61,3 +61,13 @@ wheel discovered and called both tools, then rejected a new process call after
 consent revocation. Product host-tools source tests passed with the updated
 manifest lock. Signed native bundles, Windows/Linux process listing and a
 deployed App/CLI/server remain to be qualified for this version.
+
+Device-tools `1.0.0b2` adds two read-only window tools to the local
+computer-control sidecar. On macOS arm64, the `0.1.1` binary passed 37 Rust
+tests (two real-display tests ignored). An MCP stdio client discovered the
+three computer tools, listed 29 live windows and captured a focused window as
+PNG without printing its pixels. Standalone host-tools composition discovered
+and called `computer_list_windows`, then removed the tool and denied further
+calls after consent revocation. The repository Python suite passed 23 tests
+with one Windows-only skip. These observations establish this Mac's path only;
+signed App bundles and Windows/Linux desktop behavior remain separate gates.

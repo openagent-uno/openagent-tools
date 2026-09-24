@@ -22,6 +22,11 @@ def test_agent_in_chrome_sources_and_manifest_ship_with_device_tools() -> None:
         "read_page",
     }
     assert COMPUTER_CONTROL_MANIFEST.name == "computer-control"
+    window_tools = {tool.name: tool for tool in COMPUTER_CONTROL_MANIFEST.tools}
+    assert {"computer_list_windows", "computer_capture_window"} <= window_tools.keys()
+    assert window_tools["computer_list_windows"].classification.value == "read_only"
+    assert window_tools["computer_capture_window"].classification.value == "read_only"
+    assert set(window_tools["computer_capture_window"].input_schema["required"]) == {"window_id", "pid"}
 
 
 def test_agent_in_chrome_lock_excludes_known_moderate_advisories() -> None:
