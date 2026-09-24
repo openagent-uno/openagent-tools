@@ -77,6 +77,7 @@ Release `v1.0.0-beta.2` adds the independently installable Meta Ads archive.
 Its manifest covers the six Python wheels and both npm archives from the same
 source snapshot.
 
-The next repository release is `v1.0.0-beta.3`. Its three updated Python wheels
-(filesystem, editor and shell) are `1.0.0b2`; the neutral protocol, device and
-execution wheels stay at their existing pinned versions.
+The next repository release is `v1.0.0-beta.3`. Its filesystem, editor and
+shell wheels are `1.0.0b2`, device-tools is `1.0.0b3`, and execution is
+`1.0.0b2` so it depends on the same shell version as host-tools. The neutral
+protocol remains at its existing pinned version.
