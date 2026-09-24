@@ -71,3 +71,12 @@ and called `computer_list_windows`, then removed the tool and denied further
 calls after consent revocation. The repository Python suite passed 23 tests
 with one Windows-only skip. These observations establish this Mac's path only;
 signed App bundles and Windows/Linux desktop behavior remain separate gates.
+
+Device-tools `1.0.0b3` adds display discovery and explicit display targeting
+for screenshots and pointer actions. The native Rust suite passed 38 tests
+(two real-display tests ignored). An MCP stdio client listed the Mac's display,
+captured it with its exact ID, and confirmed a stale ID fails without falling
+back to another screen. Undiscovered IDs and clicks without coordinates on an
+explicit display were rejected. Coordinate mapping with a negative display origin is
+unit-tested. A real multiple-monitor setup and signed cross-platform bundles
+remain unqualified.

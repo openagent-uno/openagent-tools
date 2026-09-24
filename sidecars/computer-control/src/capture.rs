@@ -52,6 +52,26 @@ pub fn capture_primary_display_region(region: Option<LogicalRegion>) -> Result<C
     Ok(image)
 }
 
+/// Capture an explicitly selected display. Never fall back to the primary
+/// display when an ID has gone stale: that could expose a different screen.
+pub fn capture_display_region(monitor: xcap::Monitor, region: Option<LogicalRegion>) -> Result<CaptureResult> {
+    #[cfg(target_os = "macos")]
+    require_screen_recording_permission()?;
+    let rgba = monitor.capture_image().context("capture selected display")?;
+    let logical_width = rgba.width();
+    let logical_height = rgba.height();
+    let cropped = match region { None => rgba, Some(value) => crop_rgba(&rgba, value)? };
+    let (png_bytes, reported_width, reported_height) = downsample_and_encode(cropped)?;
+    Ok(CaptureResult { png_bytes, reported_width, reported_height,
+        logical_width, logical_height })
+}
+
+pub fn monitor_by_id(display_id: u32) -> Result<xcap::Monitor> {
+    xcap::Monitor::all().context("list desktop displays")?.into_iter()
+        .find(|monitor| monitor.id().ok() == Some(display_id))
+        .ok_or_else(|| anyhow!("display target is stale or unavailable; list displays again"))
+}
+
 /// Capture the primary display into a raw RGBA image, cropped to `region` if
 /// given. Used by the recording pipeline (which needs raw frames, not PNGs).
 ///

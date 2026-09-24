@@ -68,6 +68,7 @@ COMPUTER_CONTROL_MANIFEST = ServerManifest(
                         ],
                     },
                     "coordinate": {"type": "array", "items": {"type": "integer"}},
+                    "display_id": {"type": "integer", "minimum": 0},
                     "text": {"type": "string"},
                     "scroll_direction": {"type": "string"},
                     "scroll_amount": {"type": "integer"},
@@ -80,6 +81,12 @@ COMPUTER_CONTROL_MANIFEST = ServerManifest(
             ),
             ToolClassification.MUTATING,
             classification_by_argument=_COMPUTER_ACTION_CLASSIFICATIONS,
+        ),
+        ToolManifest(
+            "computer_list_displays",
+            "List current displays with exact IDs and desktop bounds.",
+            _object({}),
+            ToolClassification.READ_ONLY,
         ),
         ToolManifest(
             "computer_list_windows",

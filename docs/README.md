@@ -25,6 +25,12 @@ second re-resolves that exact ID/process pair and returns a downsampled PNG or
 a stale-target error. They require the same verified client registration and
 OS screen-capture permission as the existing computer tool. The package still
 does not provide an accessibility tree or element-targeted native actions.
+Device-tools `1.0.0b3` also adds `computer_list_displays`. The `computer` tool
+accepts an exact `display_id` for pointer coordinates, cursor position and
+screenshots; call `computer_list_displays` first. Coordinates are relative to
+that display and changed or undiscovered IDs fail.
+Keyboard focus and screen recording cannot be bound to a display, so the tool
+rejects `display_id` for those actions. The default remains the primary display.
 
 `openagent-execution` supplies process execution when a host explicitly enables
 code execution. It depends on `openagent-shell`, not the core. The core defines

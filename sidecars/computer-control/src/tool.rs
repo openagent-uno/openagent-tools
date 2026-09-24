@@ -13,6 +13,7 @@ use rmcp::{
     tool, tool_handler, tool_router,
 };
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
@@ -71,6 +72,10 @@ pub struct ComputerArgs {
     /// `(x, y)`: The x (pixels from the left edge) and y (pixels from the top edge) coordinates in API image space; scaled to logical screen by the server.
     #[serde(default)]
     pub coordinate: Option<[i32; 2]>,
+    /// Exact display ID from computer_list_displays. Coordinates and screenshot
+    /// ROI are relative to this display. Omit to retain primary-display behavior.
+    #[serde(default)]
+    pub display_id: Option<u32>,
     /// Text to type or key command to execute.
     #[serde(default)]
     pub text: Option<String>,
@@ -104,6 +109,22 @@ pub struct WindowArgs {
     pub pid: u32,
 }
 
+#[derive(Clone, Debug, PartialEq, Eq)]
+struct DisplayIdentity {
+    name: String,
+    x: i32,
+    y: i32,
+    width: u32,
+    height: u32,
+}
+
+impl DisplayIdentity {
+    fn from_monitor(monitor: &xcap::Monitor) -> Result<Self> {
+        Ok(Self { name: monitor.name()?, x: monitor.x()?, y: monitor.y()?,
+            width: monitor.width()?, height: monitor.height()? })
+    }
+}
+
 // NOTE: The tool description is inlined directly in the #[tool(description = "...")] attribute
 // below because the rmcp #[tool] macro only accepts string literals (not const paths).
 // Do NOT edit the wording without discussion — it shapes Claude's prompting.
@@ -122,6 +143,8 @@ pub struct ComputerControlServer {
     /// we hold the `RecordingSession` here so `stop_screen_recording` can
     /// reclaim it. `None` means no recording is active.
     recording: Arc<Mutex<Option<record::RecordingSession>>>,
+    /// Exact display identities last returned by computer_list_displays.
+    discovered_displays: Arc<std::sync::Mutex<HashMap<u32, DisplayIdentity>>>,
 }
 
 #[tool_router(router = tool_router)]
@@ -132,11 +155,12 @@ impl ComputerControlServer {
             tool_router: Self::tool_router(),
             input: Arc::new(Mutex::new(None)),
             recording: Arc::new(Mutex::new(None)),
+            discovered_displays: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
 
     /// The single computer tool — dispatches all actions, including screen recording.
-    #[tool(description = "Use a mouse and keyboard to interact with a computer, take screenshots, and record the screen.\n* This is an interface to a desktop GUI. You do not have access to a terminal or applications menu. You must click on desktop icons to start applications.\n* Always prefer using keyboard shortcuts rather than clicking, where possible.\n* If you see boxes with two letters in them, typing these letters will click that element. Use this instead of other shortcuts or clicking, where possible.\n* Some applications may take time to start or process actions, so you may need to wait and take successive screenshots to see the results of your actions. E.g. if you click on Firefox and a window doesn't open, try taking another screenshot.\n* Whenever you intend to move the cursor to click on an element like an icon, you should consult a screenshot to determine the coordinates of the element before moving the cursor.\n* If you tried clicking on a program or link but it failed to load, even after waiting, try adjusting your cursor position so that the tip of the cursor visually falls on the element that you want to click.\n* Make sure to click any buttons, links, icons, etc with the cursor tip in the center of the element. Don't click boxes on their edges unless asked.\n\nUsing the crosshair:\n* Screenshots show a red crosshair at the current cursor position.\n* After clicking, check where the crosshair appears vs your target. If it missed, adjust coordinates proportionally to the distance - start with large adjustments and refine. Avoid small incremental changes when the crosshair is far from the target (distances are often further than you expect).\n* Consider display dimensions when estimating positions. E.g. if it's 90% to the bottom of the screen, the coordinates should reflect this.\n\nRegion-of-interest (ROI):\n* `get_screenshot` and `start_screen_recording` accept an optional `region: [x, y, width, height]` in API image space. When set, the captured image/video is cropped to that rectangle before being downsampled, letting you focus the model on one pane or an animating element without capturing the whole screen.\n\nScreen recording:\n* `start_screen_recording` begins capturing the primary display to an `.mp4` file and returns immediately with the output path. Optional params: `fps` (1-60, default 30), `region` (ROI), `path` (defaults to a timestamped file in the OS temp dir), `max_duration_seconds` (auto-stop after N seconds).\n* `stop_screen_recording` stops the active recording and returns the final file path, frame count, and duration. Only one recording can be active at a time; starting a second before stopping the first returns an error.\n* Use recording to review animations, transitions, video playback, or any behavior that a single screenshot can't capture. Prefer a small `region` when possible — it keeps file size down and focuses the recording on the element under test.")]
+    #[tool(description = "Use a mouse and keyboard to interact with a computer, take screenshots, and record the screen.\n* This is an interface to a desktop GUI. You do not have access to a terminal or applications menu. You must click on desktop icons to start applications.\n* Always prefer using keyboard shortcuts rather than clicking, where possible.\n* If you see boxes with two letters in them, typing these letters will click that element. Use this instead of other shortcuts or clicking, where possible.\n* Some applications may take time to start or process actions, so you may need to wait and take successive screenshots to see the results of your actions. E.g. if you click on Firefox and a window doesn't open, try taking another screenshot.\n* Whenever you intend to move the cursor to click on an element like an icon, you should consult a screenshot to determine the coordinates of the element before moving the cursor.\n* If you tried clicking on a program or link but it failed to load, even after waiting, try adjusting your cursor position so that the tip of the cursor visually falls on the element that you want to click.\n* Make sure to click any buttons, links, icons, etc with the cursor tip in the center of the element. Don't click boxes on their edges unless asked.\n\nUsing the crosshair:\n* Screenshots show a red crosshair at the current cursor position.\n* After clicking, check where the crosshair appears vs your target. If it missed, adjust coordinates proportionally to the distance - start with large adjustments and refine. Avoid small incremental changes when the crosshair is far from the target (distances are often further than you expect).\n* Consider display dimensions when estimating positions. E.g. if it's 90% to the bottom of the screen, the coordinates should reflect this.\n* For another display, call computer_list_displays and pass its exact display_id. Coordinates and screenshot regions are relative to that display. Keyboard focus and recording cannot be bound to a display.\n\nRegion-of-interest (ROI):\n* `get_screenshot` and `start_screen_recording` accept an optional `region: [x, y, width, height]` in API image space. When set, the captured image/video is cropped to that rectangle before being downsampled, letting you focus the model on one pane or an animating element without capturing the whole screen.\n\nScreen recording:\n* `start_screen_recording` begins capturing the primary display to an `.mp4` file and returns immediately with the output path. Optional params: `fps` (1-60, default 30), `region` (ROI), `path` (defaults to a timestamped file in the OS temp dir), `max_duration_seconds` (auto-stop after N seconds).\n* `stop_screen_recording` stops the active recording and returns the final file path, frame count, and duration. Only one recording can be active at a time; starting a second before stopping the first returns an error.\n* Use recording to review animations, transitions, video playback, or any behavior that a single screenshot can't capture. Prefer a small `region` when possible — it keeps file size down and focuses the recording on the element under test.")]
     pub async fn computer(&self, params: Parameters<ComputerArgs>) -> CallToolResult {
         let args = params.0;
         match self.dispatch(args).await {
@@ -146,7 +170,7 @@ impl ComputerControlServer {
     }
 
     /// Inspect visible desktop windows without initializing keyboard control.
-    #[tool(description = "List the current desktop windows on this verified client computer. Returns exact window_id and pid pairs, app name, title, bounds, and focus/minimized state. A window can disappear or be replaced; re-list after a stale-target error. Requires Screen Recording permission where the OS does.")]
+    #[tool(annotations(read_only_hint = true), description = "List the current desktop windows on this verified client computer. Returns exact window_id and pid pairs, app name, title, bounds, and focus/minimized state. A window can disappear or be replaced; re-list after a stale-target error. Requires Screen Recording permission where the OS does.")]
     pub async fn computer_list_windows(&self) -> CallToolResult {
         match Self::list_windows() {
             Ok(result) => result,
@@ -154,8 +178,17 @@ impl ComputerControlServer {
         }
     }
 
+    /// Discover destinations before targeting a non-primary display.
+    #[tool(annotations(read_only_hint = true), description = "List current displays on this verified client computer, including exact display_id, name, desktop origin, size and primary flag. A display can disappear; re-list after a stale-target error.")]
+    pub async fn computer_list_displays(&self) -> CallToolResult {
+        match self.list_displays() {
+            Ok(result) => result,
+            Err(error) => CallToolResult::error(vec![Content::text(format!("{error:#}"))]),
+        }
+    }
+
     /// Capture an exact window rather than guessing screen coordinates.
-    #[tool(description = "Capture a PNG of one window on this verified client computer. Use the exact window_id and pid returned by computer_list_windows; the call fails if the pair no longer exists. The image is downsampled to model limits. Requires Screen Recording permission where the OS does.")]
+    #[tool(annotations(read_only_hint = true), description = "Capture a PNG of one window on this verified client computer. Use the exact window_id and pid returned by computer_list_windows; the call fails if the pair no longer exists. The image is downsampled to model limits. Requires Screen Recording permission where the OS does.")]
     pub async fn computer_capture_window(&self, params: Parameters<WindowArgs>) -> CallToolResult {
         match Self::capture_window(params.0) {
             Ok(result) => result,
@@ -179,6 +212,28 @@ impl ServerHandler for ComputerControlServer {
 }
 
 impl ComputerControlServer {
+    fn list_displays(&self) -> Result<CallToolResult> {
+        let monitors = xcap::Monitor::all().context("list desktop displays")?;
+        let mut rows = Vec::new();
+        let mut discovered = HashMap::new();
+        for monitor in monitors {
+            let (Ok(display_id), Ok(identity)) =
+                (monitor.id(), DisplayIdentity::from_monitor(&monitor))
+            else { continue };
+            discovered.insert(display_id, identity.clone());
+            rows.push(serde_json::json!({
+                "display_id": display_id, "name": identity.name,
+                "bounds": {"x": identity.x, "y": identity.y,
+                           "width": identity.width, "height": identity.height},
+                "primary": monitor.is_primary().unwrap_or(false),
+            }));
+        }
+        *self.discovered_displays.lock().map_err(|_| anyhow!("display inventory lock poisoned"))? = discovered;
+        Ok(CallToolResult::success(vec![Content::text(
+            serde_json::to_string(&serde_json::json!({"displays": rows}))?,
+        )]))
+    }
+
     fn windows() -> Result<Vec<xcap::Window>> {
         #[cfg(target_os = "macos")]
         capture::require_screen_recording_permission()?;
@@ -228,6 +283,10 @@ impl ComputerControlServer {
         // lock — this keeps recording responsive even if Accessibility
         // permission is missing and prevents a recording from holding up
         // other tool calls.
+        if args.display_id.is_some() && matches!(args.action, Action::Key | Action::Type |
+            Action::StartScreenRecording | Action::StopScreenRecording) {
+            return Err(anyhow!("display_id is only valid for pointer, cursor and screenshot actions; keyboard focus and recording cannot be bound to a display"));
+        }
         match args.action {
             Action::StartScreenRecording => return self.dispatch_start_recording(args).await,
             Action::StopScreenRecording => return self.dispatch_stop_recording().await,
@@ -238,16 +297,16 @@ impl ComputerControlServer {
         let logical_coord: Option<(i32, i32)> = match args.coordinate {
             None => None,
             Some([ax, ay]) => {
-                let (lw, lh) = self.logical_display_size()?;
-                let (lx, ly) = scaling::api_to_logical(ax, ay, lw, lh);
-                if lx < 0 || lx >= lw as i32 || ly < 0 || ly >= lh as i32 {
-                    return Err(anyhow!(
-                        "Coordinates ({lx}, {ly}) are outside display bounds of {lw}x{lh}"
-                    ));
-                }
-                Some((lx, ly))
+                let (lw, lh) = self.logical_display_size(args.display_id)?;
+                let (origin_x, origin_y) = self.display_origin(args.display_id)?;
+                Some(scaling::api_to_display_global(ax, ay, lw, lh, origin_x, origin_y)
+                    .map_err(|error| anyhow!(error))?)
             }
         };
+        if args.display_id.is_some() && logical_coord.is_none() && matches!(args.action,
+            Action::LeftClick | Action::RightClick | Action::MiddleClick | Action::DoubleClick) {
+            return Err(anyhow!("A click on an explicit display requires a coordinate on that display"));
+        }
 
         let mut input_guard = self.input.lock().await;
         // Lazily initialize the InputController on first use (enigo requires
@@ -307,13 +366,16 @@ impl ComputerControlServer {
             }
             Action::GetCursorPosition => {
                 let (lx, ly) = input.cursor_position()?;
-                let (lw, lh) = self.logical_display_size()?;
+                let (lw, lh) = self.logical_display_size(args.display_id)?;
+                let (origin_x, origin_y) = self.display_origin(args.display_id)?;
                 // Convert logical → API image space (inverse of the scaling we apply).
                 let scale = 1.0 / scaling::api_to_logical_scale(lw, lh);
-                let ax = (lx as f64 * scale).round() as i32;
-                let ay = (ly as f64 * scale).round() as i32;
+                let ax = ((lx - origin_x) as f64 * scale).round() as i32;
+                let ay = ((ly - origin_y) as f64 * scale).round() as i32;
                 Ok(CallToolResult::success(vec![Content::text(
-                    serde_json::to_string(&serde_json::json!({ "x": ax, "y": ay }))
+                    serde_json::to_string(&serde_json::json!({ "x": ax, "y": ay,
+                        "on_display": lx >= origin_x && ly >= origin_y &&
+                            lx < origin_x + lw as i32 && ly < origin_y + lh as i32 }))
                         .context("serialize cursor position")?,
                 )]))
             }
@@ -338,7 +400,7 @@ impl ComputerControlServer {
                 // Resolve optional ROI to logical coords. We need the full
                 // display size first so scaling::api_region_to_logical can
                 // convert from API image space.
-                let (disp_w, disp_h) = self.logical_display_size()?;
+                let (disp_w, disp_h) = self.logical_display_size(args.display_id)?;
                 let logical_region = match args.region {
                     None => None,
                     Some(r) => Some(
@@ -347,7 +409,14 @@ impl ComputerControlServer {
                     ),
                 };
 
-                let cap = capture::capture_primary_display_region(logical_region)?;
+                let cap = match args.display_id {
+                    Some(display_id) => capture::capture_display_region(
+                        self.display(Some(display_id))?, logical_region)?,
+                    None => capture::capture_primary_display_region(logical_region)?,
+                };
+                let (origin_x, origin_y) = self.display_origin(args.display_id)?;
+                let cx_logical = cx_logical - origin_x;
+                let cy_logical = cy_logical - origin_y;
 
                 // Compute crosshair position in the (possibly cropped)
                 // output image. When an ROI was requested, we shift the
@@ -369,7 +438,8 @@ impl ComputerControlServer {
                         )
                     }
                     Some(r) => {
-                        let inside = (cx_logical as u32) >= r.x
+                        let inside = cx_logical >= 0 && cy_logical >= 0
+                            && (cx_logical as u32) >= r.x
                             && (cx_logical as u32) < r.x + r.w
                             && (cy_logical as u32) >= r.y
                             && (cy_logical as u32) < r.y + r.h;
@@ -458,7 +528,7 @@ impl ComputerControlServer {
         let region = match args.region {
             None => None,
             Some(r) => {
-                let (lw, lh) = self.logical_display_size()?;
+                let (lw, lh) = self.logical_display_size(None)?;
                 Some(scaling::api_region_to_logical(r, lw, lh).map_err(|e| anyhow!(e))?)
             }
         };
@@ -493,9 +563,30 @@ impl ComputerControlServer {
         )]))
     }
 
-    fn logical_display_size(&self) -> Result<(u32, u32)> {
-        let primary = crate::capture::primary_or_first_monitor()?;
-        Ok((primary.width()?, primary.height()?))
+    fn display(&self, display_id: Option<u32>) -> Result<xcap::Monitor> {
+        match display_id {
+            Some(display_id) => {
+                let monitor = capture::monitor_by_id(display_id)?;
+                let identity = DisplayIdentity::from_monitor(&monitor)?;
+                let inventory = self.discovered_displays.lock()
+                    .map_err(|_| anyhow!("display inventory lock poisoned"))?;
+                if inventory.get(&display_id) != Some(&identity) {
+                    return Err(anyhow!("display target is stale or was not discovered; list displays again"));
+                }
+                Ok(monitor)
+            }
+            None => capture::primary_or_first_monitor(),
+        }
+    }
+
+    fn logical_display_size(&self, display_id: Option<u32>) -> Result<(u32, u32)> {
+        let display = self.display(display_id)?;
+        Ok((display.width()?, display.height()?))
+    }
+
+    fn display_origin(&self, display_id: Option<u32>) -> Result<(i32, i32)> {
+        let display = self.display(display_id)?;
+        Ok((display.x()?, display.y()?))
     }
 }
 

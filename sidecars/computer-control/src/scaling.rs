@@ -35,6 +35,19 @@ pub fn api_to_logical(x: i32, y: i32, logical_w: u32, logical_h: u32) -> (i32, i
     ((x as f64 * s).round() as i32, (y as f64 * s).round() as i32)
 }
 
+/// Map image-relative coordinates onto a selected display in global desktop
+/// space. The origin may be negative when a display sits left or above another.
+pub fn api_to_display_global(
+    x: i32, y: i32, width: u32, height: u32, origin_x: i32, origin_y: i32,
+) -> Result<(i32, i32), String> {
+    let (local_x, local_y) = api_to_logical(x, y, width, height);
+    if local_x < 0 || local_y < 0 || local_x as u32 >= width || local_y as u32 >= height {
+        return Err(format!("Coordinates ({local_x}, {local_y}) are outside display bounds of {width}x{height}"));
+    }
+    Ok((origin_x.checked_add(local_x).ok_or("display x coordinate overflow")?,
+        origin_y.checked_add(local_y).ok_or("display y coordinate overflow")?))
+}
+
 /// A cropping rectangle in logical screen pixels. Used for both screenshot
 /// and screen-recording ROI. Produced by [`api_region_to_logical`].
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -123,6 +136,12 @@ mod tests {
         // (100 * 2.8553).round() = 286.
         let (lx, ly) = api_to_logical(100, 100, 3840, 2560);
         assert_eq!((lx, ly), (286, 286));
+    }
+
+    #[test]
+    fn explicit_display_coordinates_use_its_origin_and_reject_outside() {
+        assert_eq!(api_to_display_global(10, 20, 800, 600, -800, 100).unwrap(), (-790, 120));
+        assert!(api_to_display_global(800, 20, 800, 600, -800, 100).is_err());
     }
 
     #[test]
