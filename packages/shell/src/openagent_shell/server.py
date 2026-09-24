@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+import csv
 import inspect
 import os
 import re
@@ -51,7 +52,7 @@ class _Background:
 
 
 class ShellServer:
-    """Run the six canonical shell tools in the current process.
+    """Run shell and read-only process inspection tools on the current host.
 
     Background resource visibility is additionally scoped to the authenticated
     local principal. ``session_id`` remains in the shared public contract for
@@ -60,7 +61,7 @@ class ShellServer:
 
     manifest = ServerManifest(
         name="shell",
-        version="1.0.0",
+        version="1.1.0",
         instructions=(
             "Execute commands on the current host. In a client capability host these are "
             "client-local; in the server adapter they are server-local. Timeout is in milliseconds."
@@ -140,6 +141,15 @@ class ShellServer:
                 "shell_which",
                 "Check whether a command is available on PATH.",
                 _schema({"command": {"type": "string"}}, ["command"]),
+            ),
+            ToolManifest(
+                "shell_processes",
+                "List operating-system processes on this host without exposing command arguments or environment variables.",
+                _schema({
+                    "name": {"type": "string", "description": "Optional case-insensitive executable-name filter."},
+                    "pid": {"type": "integer", "minimum": 1},
+                    "limit": {"type": "integer", "minimum": 1, "maximum": 500, "default": 100},
+                }),
             ),
         ),
     )
@@ -355,8 +365,81 @@ class ShellServer:
             raise HostError(
                 "invalid_arguments", "command must be a bare program name (no path separator)"
             )
-        path = shutil.which(command)
+        path = shutil.which(command, path=self.environment.get("PATH", os.defpath))
         return json_result({"available": path is not None, **({"path": path} if path else {})})
+
+    async def _tool_shell_processes(self, args: dict[str, Any]) -> ToolResult:
+        """Inspect the current host without handing model input to a command shell.
+
+        In particular, command lines and environments are intentionally absent:
+        both commonly contain provider keys and other unrelated credentials.
+        """
+        limit = integer_arg(args, "limit", 100, minimum=1, maximum=500)
+        name = args.get("name")
+        if name is not None and not isinstance(name, str):
+            raise HostError("invalid_arguments", "name must be a string")
+        pid = args.get("pid")
+        if pid is not None and (isinstance(pid, bool) or not isinstance(pid, int) or pid < 1):
+            raise HostError("invalid_arguments", "pid must be a positive integer")
+        program = "tasklist" if os.name == "nt" else "ps"
+        executable = shutil.which(program, path=self.environment.get("PATH", os.defpath))
+        if executable is None:
+            raise HostError("process_inspection_unavailable", f"{program} is not available")
+        argv = [executable, "/fo", "csv", "/nh"] if os.name == "nt" else [
+            executable, "-A", "-o", "pid=", "-o", "comm=",
+        ]
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                *argv, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE,
+                env=self.environment,
+            )
+            stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=10)
+        except asyncio.TimeoutError as exc:
+            proc.kill()
+            await proc.wait()
+            raise HostError("process_inspection_timeout", "process listing timed out") from exc
+        except asyncio.CancelledError:
+            proc.kill()
+            await proc.wait()
+            raise
+        except OSError as exc:
+            raise HostError("process_inspection_unavailable", str(exc)) from exc
+        if proc.returncode != 0:
+            raise HostError(
+                "process_inspection_failed",
+                stderr.decode("utf-8", errors="replace")[:300],
+            )
+
+        processes: list[dict[str, Any]] = []
+        output = stdout.decode("utf-8", errors="replace")
+        if os.name == "nt":
+            for row in csv.reader(output.splitlines()):
+                if len(row) < 2:
+                    continue
+                try:
+                    processes.append({"pid": int(row[1]), "name": row[0]})
+                except ValueError:
+                    continue
+        else:
+            for line in output.splitlines():
+                parts = line.strip().split(maxsplit=1)
+                if len(parts) != 2:
+                    continue
+                try:
+                    processes.append({"pid": int(parts[0]), "name": Path(parts[1]).name})
+                except ValueError:
+                    continue
+        if pid is not None:
+            processes = [item for item in processes if item["pid"] == pid]
+        if name:
+            query = name.casefold()
+            processes = [item for item in processes if query in item["name"].casefold()]
+        processes.sort(key=lambda item: item["pid"])
+        return json_result({
+            "processes": processes[:limit],
+            "total_matches": len(processes),
+            "truncated": len(processes) > limit,
+        })
 
     async def _pump(self, job: _Background) -> None:
         process = job.shell.process

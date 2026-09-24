@@ -47,3 +47,17 @@ tool references, full results, current authorization, dry-run, call budgets,
 missing-executor/isolation refusal, timeout and per-run cleanup. File transport
 was qualified using a local fixture, not a running Docker container. Real Docker
 and SSH execution and native Windows process behavior remain unqualified.
+
+## Native capability expansion (unreleased source)
+
+Filesystem, editor and shell wheels `1.0.0b2` correct destination instructions
+and add `apply_patch` and `shell_processes`.
+The editor refuses stale unified-diff context and paths outside configured
+roots; the process reader returns only PID and executable name. On macOS arm64,
+the repository suite passed with 23 tests and one Windows-only skip. Installed
+wheel MCP stdio clients called both new tools from a temporary directory
+outside every repository. A separately installed standalone capability-host
+wheel discovered and called both tools, then rejected a new process call after
+consent revocation. Product host-tools source tests passed with the updated
+manifest lock. Signed native bundles, Windows/Linux process listing and a
+deployed App/CLI/server remain to be qualified for this version.

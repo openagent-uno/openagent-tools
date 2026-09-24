@@ -36,10 +36,11 @@ class FilesystemServer:
     cancellation_requires_drain = True
     manifest = ServerManifest(
         name="filesystem",
-        version="1.0.0",
+        version="1.0.1",
         instructions=(
-            "Operate on the current client computer's filesystem. Paths are local to the "
-            "client, not the OpenAgent server. Device consent grants unrestricted paths."
+            "Operate on the filesystem at this capability's registered destination. "
+            "A client registration means the verified user's computer; a server "
+            "registration means the agent's server environment. Paths cannot select another destination."
         ),
         tools=(
             ToolManifest(

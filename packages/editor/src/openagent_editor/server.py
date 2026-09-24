@@ -1,15 +1,18 @@
-"""Surgical edit, grep, and glob tools for the current client computer."""
+"""Surgical editing and search at the registered capability destination."""
 
 from __future__ import annotations
 
 import asyncio
 import fnmatch
+import os
 import re
+import tempfile
 from pathlib import Path
 from typing import Any
 
 from openagent_tool_protocol.types import HostError, ServerManifest, ToolClassification, ToolManifest, ToolResult
 from openagent_tool_protocol.util import integer_arg, json_result, require_string
+from .unified_patch import PatchError, apply_unified_patch
 
 
 def _schema(properties: dict[str, Any], required: list[str]) -> dict[str, Any]:
@@ -26,10 +29,11 @@ class EditorServer:
     cancellation_requires_drain = True
     manifest = ServerManifest(
         name="editor",
-        version="1.0.0",
+        version="1.1.0",
         instructions=(
-            "Search and surgically edit files on the current client computer. All paths "
-            "resolve on that client, not on the OpenAgent server."
+            "Search and edit files at this capability's registered destination. "
+            "A client registration means the verified user's computer; a server "
+            "registration means the agent's server environment. Paths cannot select another destination."
         ),
         tools=(
             ToolManifest(
@@ -43,6 +47,18 @@ class EditorServer:
                         "replace_all": {"type": "boolean", "default": False},
                     },
                     ["file_path", "old_string", "new_string"],
+                ),
+                ToolClassification.MUTATING,
+            ),
+            ToolManifest(
+                "apply_patch",
+                "Apply unified-diff hunks to one existing text file, checking every context line before writing.",
+                _schema(
+                    {
+                        "file_path": {"type": "string"},
+                        "patch": {"type": "string", "description": "Unified diff with @@ hunk headers; file headers are optional."},
+                    },
+                    ["file_path", "patch"],
                 ),
                 ToolClassification.MUTATING,
             ),
@@ -124,6 +140,37 @@ class EditorServer:
                 "total_occurrences": count,
             }
         )
+
+    def _tool_apply_patch(self, args: dict[str, Any]) -> ToolResult:
+        path = self._path(require_string(args, "file_path"))
+        patch = require_string(args, "patch")
+        try:
+            original = path.read_bytes()
+            content = original.decode("utf-8")
+            mode = path.stat().st_mode
+        except (OSError, UnicodeError) as exc:
+            raise HostError("editor_error", f"cannot read text file {path}: {exc}") from exc
+        try:
+            updated, hunks = apply_unified_patch(content, patch)
+        except PatchError as exc:
+            raise HostError("patch_conflict", str(exc)) from exc
+        if updated == content:
+            return json_result({"ok": True, "file": str(path), "hunks": hunks, "changed": False})
+        temporary: Path | None = None
+        try:
+            with tempfile.NamedTemporaryFile(dir=path.parent, prefix=f".{path.name}.", delete=False) as output:
+                temporary = Path(output.name)
+                output.write(updated.encode("utf-8"))
+            os.chmod(temporary, mode)
+            if path.read_bytes() != original:
+                raise HostError("patch_conflict", "file changed while applying patch")
+            os.replace(temporary, path)
+        except OSError as exc:
+            raise HostError("editor_error", f"cannot write {path}: {exc}") from exc
+        finally:
+            if temporary is not None:
+                temporary.unlink(missing_ok=True)
+        return json_result({"ok": True, "file": str(path), "hunks": hunks, "changed": True})
 
     def _tool_grep(self, args: dict[str, Any]) -> ToolResult:
         pattern = require_string(args, "pattern")
