@@ -32,8 +32,10 @@ same surface the extension wrapped, minus every failure mode above.
   OS-installed Chrome/Chromium/Brave/Edge. Browser binaries must come from the
   user's normal signed package/software-update channel; mutable Chromium
   snapshots such as `LAST_CHANGE` are never fetched or executed.
-- **No automation fingerprint** — we launch the browser ourselves without
-  `--enable-automation`, so `navigator.webdriver` stays `false`.
+- **No explicit WebDriver flag** — we launch the browser ourselves without
+  `--enable-automation`. This does not make a CDP-controlled browser
+  indistinguishable from a human-operated browser, and sites may still require
+  interactive verification.
 - **Clean shutdown** — the process that launched the browser terminates it on
   exit; a reused browser is left alone.
 
@@ -96,3 +98,13 @@ scroll/screenshot/drag/hover/zoom), `find`, `read_page`, `get_page_text`,
 Token discipline: prefer `find` + `read_page` + `get_page_text` (structured,
 cheap) to locate and read; take a `computer` screenshot only when you need to
 see pixels.
+
+## Site verification
+
+A site's CAPTCHA or bot challenge is an access decision made by that site, not
+an MCP connectivity failure. Let a person complete any required verification
+in the same dedicated browser profile, then retry the requested tool action.
+Do not claim that disabling the WebDriver flag guarantees access, impersonate
+another browser through client-hint or hardware overrides, or move clearance
+cookies between devices. Automated challenge completion is not a supported
+browser capability.

@@ -13,8 +13,8 @@
 //   * Supply-chain safe — use an explicitly configured or OS-installed
 //     Chrome/Chromium/Brave/Edge binary. Never fetch mutable browser binaries
 //     at runtime.
-//   * No automation fingerprint — we launch the browser ourselves without
-//     --enable-automation, so navigator.webdriver stays false.
+//   * No explicit WebDriver flag — we omit --enable-automation. This does not
+//     guarantee that a site will treat the CDP-controlled browser as human.
 
 import fs from "node:fs";
 import os from "node:os";
