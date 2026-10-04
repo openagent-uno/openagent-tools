@@ -694,9 +694,12 @@ async function callTool(name, args) {
   }
 }
 
-const MCP_INSTRUCTIONS =
-  "Control OpenAgent's dedicated Chromium profile on the current client. " +
-  "Call tabs_context_mcp before tab-specific tools. This is not the server's browser.";
+const MCP_INSTRUCTIONS = process.env.OPENAGENT_BROWSER_LOCATION === "server"
+  ? "Control the OpenAgent server's dedicated Chromium profile. " +
+    "This browser belongs to the agent host and can be used from channels and automation. " +
+    "Call tabs_context_mcp before tab-specific tools."
+  : "Control OpenAgent's dedicated Chromium profile on the current client. " +
+    "Call tabs_context_mcp before tab-specific tools. This is not the server's browser.";
 const server = new McpServer(
   { name: "agent-in-chrome", version: "2.0.0" },
   { instructions: MCP_INSTRUCTIONS },

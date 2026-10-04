@@ -343,6 +343,13 @@ export async function closeDedicatedBrowser(
     timeoutMs = 1800,
   } = {},
 ) {
+  // A server may attach to an operator-supervised browser after the operator
+  // records its exact profile/endpoint identity. Stopping the MCP must not
+  // stop that independent systemd service or its active human handoff.
+  if (process.env.OPENAGENT_BROWSER_EXTERNAL === "1" && !ownsBrowser) {
+    try { if (connection) connection.close(); } catch {}
+    return true;
+  }
   if (connection && !connection.closed) {
     try {
       const closeRequest = Promise.resolve(connection.send("Browser.close"))

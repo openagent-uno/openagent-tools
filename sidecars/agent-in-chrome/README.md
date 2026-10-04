@@ -52,6 +52,13 @@ same surface the extension wrapped, minus every failure mode above.
 
 - `OPENAGENT_CHROME_BINARY` — explicit browser executable path.
 - `OPENAGENT_CHROME_CDP_PORT` — CDP remote-debugging port (default `18800`).
+- `OPENAGENT_BROWSER_LOCATION=server` — describe this sidecar as a server-host
+  browser when a product explicitly registers it as a durable host capability.
+  Omitted for the normal App/CLI device capability. The flag changes only MCP
+  instructions; it does not alter profile ownership or grant remote access.
+- `OPENAGENT_BROWSER_EXTERNAL=1` — when the server attaches to an independently
+  supervised Chrome using a verified profile marker, disconnect the MCP without
+  closing that browser. The normal sidecar-owned browser still closes on exit.
 - `OPENAGENT_CHROME_PROXY` — egress proxy for page traffic, a Chrome
   `--proxy-server` string (e.g. `socks5://127.0.0.1:1080`). Loopback is always
   bypassed. NB: Chromium can't authenticate to SOCKS5 directly — front an

@@ -74,7 +74,7 @@ def main():
         "format": 1,
         "repository": "openagent-tools",
         "source_commit": revision,
-        "version": "1.0.0b3",
+        "version": "1.0.0b4",
         "dirty_snapshot": dirty,
         "source_sha256": hashlib.sha256(
             json.dumps(sources, sort_keys=True, separators=(",", ":")).encode()
