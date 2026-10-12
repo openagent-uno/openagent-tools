@@ -20,6 +20,12 @@ This is a bootstrap and development qualification, not authorization to enable c
 - Bootstrap CPU request 10m: live control-plane node already reserved 1969m of 2000m. Capacity/load testing and a production request budget are prerequisites to enrollment.
 - No provider secrets copied or existing GlassPalace OAuth registrations changed. Host opt-in flags remain disabled. Tailscale primary `spicysparks.com` profile restored after operations.
 
+## Public identity and Google preparation
+
+- The docs-only [product PR #3](https://github.com/openagent-uno/openagent/pull/3) merged as `d0b286a3c697aa35df7a6e9e62e7813139172e08`. [Pages deployment](https://github.com/openagent-uno/openagent/actions/runs/38259240807) succeeded. `/privacy` and `/guide/connectors` are public, linked from the homepage, and visually checked in Chrome. Service commercial name: AI Agent; support/privacy contact: `geroale2000@gmail.com`.
+- Google project `openagent-connectors` now has app branding OpenAgent, the existing OpenAgent logo, the public homepage/privacy URLs, authorized domain `openagent.uno`, and the requested support/developer contact. External audience remains in Testing. User confirmed acceptance of Google's API Services User Data Policy. This is not Google verification or a security-assessment receipt.
+- A web OAuth client form named OpenAgent Shared Connectors is prepared with the three broker callback URLs and Google's AI-agent designation. Its creation awaits action-time confirmation; no new client secret has been generated, copied or activated.
+
 ## Host implementation checks
 
 - GlassPalace and ICS gateways tested using the published module with `GOWORK=off`, no sibling replacement; all normal gateway packages passed. Control-plane server/operations/HTTP/collaboration packages passed.
