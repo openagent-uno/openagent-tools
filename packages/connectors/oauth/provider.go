@@ -15,6 +15,7 @@ import (
 	"net/url"
 	"os"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -43,6 +44,7 @@ type Token struct {
 	Scopes           []string   `json:"scopes"`
 	AppID            string     `json:"app_id"`
 	ExternalID       string     `json:"external_id,omitempty"`
+	ShopID           uint64     `json:"shop_id,omitempty"`
 	Version          uint64     `json:"version,omitempty"`
 	AuthorizedAt     *time.Time `json:"authorized_at,omitempty"`
 }
@@ -187,7 +189,63 @@ func (e Engine) Exchange(ctx context.Context, p Provider, code, verifier, shop s
 	if p.ID == "shopify" {
 		fields.Set("expiring", "1")
 	}
-	return e.request(ctx, p, shop, fields, scopes, "")
+	token, err := e.request(ctx, p, shop, fields, scopes, "")
+	if err == nil && p.ID == "shopify" {
+		token.ShopID, err = e.shopIdentity(ctx, p, shop, token.AccessToken)
+	}
+	if err != nil {
+		return Token{}, ErrAuthentication
+	}
+	return token, nil
+}
+
+// shopIdentity binds privacy webhooks to a provider-verified numeric shop ID.
+// This is an authentication-only identity check, never a general API proxy.
+func (e Engine) shopIdentity(ctx context.Context, p Provider, shop, access string) (uint64, error) {
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	target, err := e.target(p, p.TokenURL, shop)
+	if err != nil {
+		return 0, ErrAuthentication
+	}
+	target.Path, target.RawQuery = "/admin/api/2026-07/graphql.json", ""
+	body := `{"query":"query OpenAgentConsentIdentity { shop { id myshopifyDomain } }"}`
+	req, err := http.NewRequestWithContext(ctx, "POST", target.String(), strings.NewReader(body))
+	if err != nil {
+		return 0, ErrAuthentication
+	}
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Shopify-Access-Token", access)
+	client := e.Client
+	if client == nil {
+		client = &http.Client{Timeout: 20 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
+	}
+	res, err := client.Do(req)
+	if err != nil {
+		return 0, ErrAuthentication
+	}
+	defer res.Body.Close()
+	data, err := io.ReadAll(io.LimitReader(res.Body, (64<<10)+1))
+	if err != nil || res.StatusCode != 200 || len(data) > 64<<10 {
+		return 0, ErrAuthentication
+	}
+	var result struct {
+		Data struct {
+			Shop struct {
+				ID     string `json:"id"`
+				Domain string `json:"myshopifyDomain"`
+			} `json:"shop"`
+		} `json:"data"`
+		Errors []json.RawMessage `json:"errors"`
+	}
+	if json.Unmarshal(data, &result) != nil || len(result.Errors) != 0 || result.Data.Shop.Domain != shop || !strings.HasPrefix(result.Data.Shop.ID, "gid://shopify/Shop/") {
+		return 0, ErrAuthentication
+	}
+	id, err := strconv.ParseUint(strings.TrimPrefix(result.Data.Shop.ID, "gid://shopify/Shop/"), 10, 64)
+	if err != nil || id == 0 {
+		return 0, ErrAuthentication
+	}
+	return id, nil
 }
 func (e Engine) Refresh(ctx context.Context, p Provider, refresh, shop string, scopes []string) (Token, error) {
 	if refresh == "" || len(refresh) > 65536 || !approvedScopes(p, scopes) {

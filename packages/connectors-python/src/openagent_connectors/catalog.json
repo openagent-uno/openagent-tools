@@ -1,0 +1,323 @@
+{
+  "version": "0.1.1",
+  "connectors": [
+    {
+      "id": "google-drive",
+      "name": "Google Drive",
+      "description": "Search, read and manage files in Google Drive.",
+      "category": "Productivity",
+      "auth": "oauth",
+      "icon": "hard-drive",
+      "capability": "files",
+      "provider": "google_drive",
+      "readTools": [
+        "files.drive.search",
+        "files.drive.files.get",
+        "files.drive.files.download"
+      ],
+      "agentTools": [
+        "files.drive.files.content.create",
+        "files.drive.files.content.update"
+      ],
+      "available": true
+    },
+    {
+      "id": "github",
+      "name": "GitHub",
+      "description": "Browse repositories, issues and pull requests.",
+      "category": "Developer",
+      "auth": "oauth",
+      "icon": "github",
+      "capability": "files",
+      "provider": "github",
+      "readTools": [],
+      "agentTools": [],
+      "available": false,
+      "unavailableReason": "No reviewed tool implementation"
+    },
+    {
+      "id": "slack-import",
+      "name": "Slack import",
+      "description": "Bring selected Slack conversations into a workspace.",
+      "category": "Communication",
+      "auth": "oauth",
+      "icon": "message-square",
+      "capability": "social",
+      "provider": "slack_import",
+      "readTools": [],
+      "agentTools": [],
+      "available": false,
+      "unavailableReason": "No reviewed tool implementation"
+    },
+    {
+      "id": "gmail",
+      "name": "Gmail",
+      "description": "Read email and let authorized agents prepare drafts or send messages.",
+      "category": "Communication",
+      "auth": "oauth",
+      "icon": "mail",
+      "capability": "outreach",
+      "provider": "gmail",
+      "readTools": [
+        "outreach.gmail.messages.list",
+        "outreach.gmail.messages.get",
+        "outreach.gmail.threads.get",
+        "outreach.gmail.attachments.get"
+      ],
+      "agentTools": [
+        "outreach.gmail.drafts.create",
+        "outreach.gmail.drafts.send",
+        "outreach.gmail.messages.send"
+      ],
+      "available": true
+    },
+    {
+      "id": "postiz",
+      "name": "Postiz",
+      "description": "Read social channels and analytics, and prepare or schedule social posts.",
+      "category": "Social",
+      "auth": "oauth",
+      "icon": "share-2",
+      "capability": "social",
+      "provider": "postiz",
+      "readTools": [
+        "social.postiz.integrations.list",
+        "social.postiz.posts.list",
+        "social.postiz.analytics.posts"
+      ],
+      "agentTools": [
+        "social.postiz.drafts.create",
+        "social.postiz.posts.create",
+        "social.postiz.media.upload"
+      ],
+      "available": true
+    },
+    {
+      "id": "pipeboard",
+      "name": "Pipeboard Ads",
+      "description": "Read Meta and Google Ads campaigns and reports, with agent access to pause campaigns.",
+      "category": "Ads",
+      "auth": "token",
+      "icon": "bar-chart-2",
+      "capability": "ads",
+      "provider": "pipeboard",
+      "readTools": [
+        "ads.pipeboard.accounts.list",
+        "ads.pipeboard.campaigns.list",
+        "ads.pipeboard.campaigns.get",
+        "ads.pipeboard.reports.run"
+      ],
+      "agentTools": [
+        "ads.pipeboard.campaigns.pause"
+      ],
+      "available": true
+    },
+    {
+      "id": "shopify",
+      "name": "Shopify",
+      "description": "Read and manage products, orders and store operations.",
+      "category": "Commerce",
+      "auth": "oauth",
+      "icon": "shopping-bag",
+      "capability": "commerce",
+      "provider": "shopify",
+      "readTools": [
+        "commerce.shopify.products.list",
+        "commerce.shopify.orders.list"
+      ],
+      "agentTools": [
+        "commerce.shopify.products.update",
+        "commerce.shopify.orders.cancel"
+      ],
+      "available": true
+    },
+    {
+      "id": "replio",
+      "name": "Replio",
+      "description": "Read your organization's apps, conversations and support statistics.",
+      "category": "Communication",
+      "auth": "token",
+      "icon": "message-circle",
+      "capability": "outreach",
+      "provider": "replio",
+      "readTools": [
+        "outreach.replio.apps.list",
+        "outreach.replio.threads.list",
+        "outreach.replio.threads.get",
+        "outreach.replio.stats.overview"
+      ],
+      "agentTools": [],
+      "available": true
+    },
+    {
+      "id": "billingbear",
+      "name": "BillingBear",
+      "description": "Read project revenue and customer billing statistics and history.",
+      "category": "Commerce",
+      "auth": "token",
+      "icon": "credit-card",
+      "capability": "commerce",
+      "provider": "billingbear",
+      "readTools": [
+        "commerce.billingbear.project.stats",
+        "commerce.billingbear.customers.stats",
+        "commerce.billingbear.customers.history"
+      ],
+      "agentTools": [],
+      "available": true
+    },
+    {
+      "id": "google-analytics",
+      "name": "Google Analytics",
+      "description": "Explore GA4 properties, reports and realtime analytics with read-only Google access.",
+      "category": "Data",
+      "auth": "oauth",
+      "icon": "trending-up",
+      "capability": "ads",
+      "provider": "google_analytics",
+      "readTools": [
+        "ads.google_analytics.account_summaries.list",
+        "ads.google_analytics.reports.run",
+        "ads.google_analytics.realtime.run",
+        "ads.google_analytics.metadata.get"
+      ],
+      "agentTools": [],
+      "available": true
+    },
+    {
+      "id": "clickup",
+      "name": "ClickUp",
+      "description": "Read and manage tasks, Lists, Folders, Spaces, comments, Docs, Goals and time tracking in your ClickUp Workspaces.",
+      "category": "Productivity",
+      "auth": "oauth",
+      "icon": "check-square",
+      "capability": "files",
+      "provider": "clickup",
+      "readTools": [
+        "files.clickup.user.get",
+        "files.clickup.workspaces.list",
+        "files.clickup.spaces.list",
+        "files.clickup.spaces.get",
+        "files.clickup.folders.list",
+        "files.clickup.folders.get",
+        "files.clickup.lists.list",
+        "files.clickup.lists.list_folderless",
+        "files.clickup.lists.get",
+        "files.clickup.shared_hierarchy.get",
+        "files.clickup.custom_task_types.list",
+        "files.clickup.groups.list",
+        "files.clickup.tasks.list",
+        "files.clickup.tasks.search",
+        "files.clickup.tasks.get",
+        "files.clickup.task_templates.list",
+        "files.clickup.task_members.list",
+        "files.clickup.list_members.list",
+        "files.clickup.view_tasks.list",
+        "files.clickup.views.list",
+        "files.clickup.list_views.list",
+        "files.clickup.comments.list",
+        "files.clickup.list_comments.list",
+        "files.clickup.comment_replies.list",
+        "files.clickup.tags.list",
+        "files.clickup.custom_fields.list",
+        "files.clickup.goals.list",
+        "files.clickup.goals.get",
+        "files.clickup.time_entries.list",
+        "files.clickup.time_entries.get",
+        "files.clickup.time_entries.current",
+        "files.clickup.docs.list",
+        "files.clickup.docs.get",
+        "files.clickup.doc_pages.list",
+        "files.clickup.doc_pages.get",
+        "files.clickup.chat_channels.list",
+        "files.clickup.chat_messages.list",
+        "files.clickup.webhooks.list"
+      ],
+      "agentTools": [
+        "files.clickup.tasks.create",
+        "files.clickup.tasks.update",
+        "files.clickup.tasks.delete",
+        "files.clickup.tasks.create_from_template",
+        "files.clickup.comments.create",
+        "files.clickup.list_comments.create",
+        "files.clickup.comment_replies.create",
+        "files.clickup.comments.update",
+        "files.clickup.comments.delete",
+        "files.clickup.tags.create",
+        "files.clickup.tags.add",
+        "files.clickup.tags.remove",
+        "files.clickup.custom_fields.set",
+        "files.clickup.custom_fields.remove",
+        "files.clickup.checklists.create",
+        "files.clickup.checklists.update",
+        "files.clickup.checklists.delete",
+        "files.clickup.checklist_items.create",
+        "files.clickup.checklist_items.update",
+        "files.clickup.checklist_items.delete",
+        "files.clickup.dependencies.add",
+        "files.clickup.dependencies.remove",
+        "files.clickup.links.add",
+        "files.clickup.links.remove",
+        "files.clickup.lists.create",
+        "files.clickup.lists.create_folderless",
+        "files.clickup.lists.update",
+        "files.clickup.lists.delete",
+        "files.clickup.folders.create",
+        "files.clickup.folders.update",
+        "files.clickup.folders.delete",
+        "files.clickup.spaces.create",
+        "files.clickup.spaces.update",
+        "files.clickup.spaces.delete",
+        "files.clickup.goals.create",
+        "files.clickup.goals.update",
+        "files.clickup.goals.delete",
+        "files.clickup.key_results.create",
+        "files.clickup.key_results.update",
+        "files.clickup.key_results.delete",
+        "files.clickup.time_entries.create",
+        "files.clickup.time_entries.update",
+        "files.clickup.time_entries.delete",
+        "files.clickup.time_entries.start",
+        "files.clickup.time_entries.stop",
+        "files.clickup.docs.create",
+        "files.clickup.doc_pages.create",
+        "files.clickup.doc_pages.update",
+        "files.clickup.chat_messages.create"
+      ],
+      "available": true
+    },
+    {
+      "id": "imap_smtp",
+      "name": "IMAP Email",
+      "description": "Read email on demand and send via SMTP over TLS, with explicit agent permissions.",
+      "category": "Communication",
+      "auth": "credentials",
+      "icon": "inbox",
+      "capability": "outreach",
+      "provider": "imap_smtp",
+      "readTools": [
+        "outreach.imap.mailboxes.list",
+        "outreach.imap.messages.list",
+        "outreach.imap.messages.get"
+      ],
+      "agentTools": [
+        "outreach.imap.messages.send"
+      ],
+      "available": true
+    },
+    {
+      "id": "custom-mcp",
+      "name": "Custom MCP",
+      "description": "Connect a reviewed public HTTPS MCP endpoint.",
+      "category": "Custom",
+      "auth": "custom_mcp",
+      "icon": "tool",
+      "capability": "files",
+      "provider": "custom_mcp",
+      "readTools": [],
+      "agentTools": [],
+      "available": true,
+      "nativeKind": "custom_mcp"
+    }
+  ]
+}

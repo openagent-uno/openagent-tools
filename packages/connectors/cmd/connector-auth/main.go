@@ -23,6 +23,7 @@ func main() {
 	statePath := flag.String("state", "", "Single-writer durable metadata path")
 	providersPath := flag.String("providers", "", "Reviewed provider configuration JSON")
 	keyPath := flag.String("event-key", "", "File containing a 32-byte hex encryption key for webhook storage")
+	legacyPath := flag.String("legacy-shopify-webhooks", "", "Reviewed topic-to-HTTPS-product webhook routes for existing installations")
 	flag.Parse()
 	if *statePath == "" || *providersPath == "" || *keyPath == "" {
 		fmt.Fprintln(os.Stderr, "state, providers and event-key are required")
@@ -52,6 +53,13 @@ func main() {
 	if err != nil {
 		fatal()
 	}
+	if *legacyPath != "" {
+		data, err := os.ReadFile(*legacyPath)
+		var routes map[string]string
+		if err != nil || json.Unmarshal(data, &routes) != nil || handler.ConfigureLegacyShopifyWebhooks(routes) != nil {
+			fatal()
+		}
+	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
@@ -65,6 +73,7 @@ func main() {
 	server := &http.Server{Addr: *listen, Handler: mux, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 30 * time.Second, WriteTimeout: 35 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
+	go handler.RunLegacyShopifyDeliveries(ctx)
 	go func() {
 		<-ctx.Done()
 		shutdown, cancel := context.WithTimeout(context.Background(), 10*time.Second)

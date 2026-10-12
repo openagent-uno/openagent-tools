@@ -39,6 +39,10 @@ func newFixture(t *testing.T) *fixture {
 		t.Fatal(err)
 	}
 	f.provider = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/admin/api/2026-07/graphql.json" {
+			writeJSON(w, 200, map[string]any{"data": map[string]any{"shop": map[string]any{"id": "gid://shopify/Shop/123", "myshopifyDomain": "example.myshopify.com"}}})
+			return
+		}
 		n := f.calls.Add(1)
 		writeJSON(w, 200, map[string]any{"access_token": "user-access-" + strconv.FormatInt(n, 10), "refresh_token": "user-refresh-" + strconv.FormatInt(n, 10), "expires_in": 3600, "refresh_token_expires_in": 7776000, "scope": "read_products,read_inventory"})
 	}))

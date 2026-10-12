@@ -2,7 +2,7 @@ package connectors
 
 import "encoding/json"
 
-const Version = "0.1.0"
+const Version = "0.1.1"
 
 type Item struct {
 	ID                string   `json:"id"`

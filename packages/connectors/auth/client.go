@@ -186,6 +186,7 @@ func (c *Client) Recover(ctx context.Context, group string) (RecoveryResult, err
 
 // GroupInfo is authoritative broker metadata; it contains no usable credentials.
 type GroupInfo struct {
+	ShopID           uint64    `json:"shop_id,omitempty"`
 	ID               string    `json:"id"`
 	AppID            string    `json:"app_id"`
 	Shop             string    `json:"shop"`
@@ -200,7 +201,7 @@ func tokenDigest(token oauth.Token) string {
 	return hex.EncodeToString(digest[:])
 }
 func (g GroupInfo) Validates(token oauth.Token) bool {
-	return g.AppID == token.AppID && g.Shop == token.ExternalID && g.Version == token.Version &&
+	return g.AppID == token.AppID && g.Shop == token.ExternalID && g.ShopID != 0 && g.ShopID == token.ShopID && g.Version == token.Version &&
 		token.AuthorizedAt != nil && g.AuthorizedAt.Equal(*token.AuthorizedAt) && sameScopes(g.Scopes, token.Scopes) &&
 		g.CredentialDigest != "" && g.CredentialDigest == tokenDigest(token)
 }

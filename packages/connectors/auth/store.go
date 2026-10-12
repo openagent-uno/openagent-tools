@@ -29,6 +29,7 @@ type Group struct {
 	ID                   string            `json:"id"`
 	AppID                string            `json:"app_id"`
 	Shop                 string            `json:"shop"`
+	ShopID               uint64            `json:"shop_id,omitempty"`
 	Version              uint64            `json:"version"`
 	Members              map[string]uint64 `json:"members"`
 	Pending              string            `json:"pending,omitempty"`
@@ -40,6 +41,7 @@ type Group struct {
 	PrivacyRecipients    map[string]bool   `json:"privacy_recipients"`
 }
 type Event struct {
+	Legacy       *LegacyDelivery `json:"legacy_delivery,omitempty"`
 	ID           string          `json:"id"`
 	Group        string          `json:"group"`
 	Topic        string          `json:"topic"`

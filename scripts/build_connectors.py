@@ -6,6 +6,7 @@ import hashlib
 import io
 import json
 import os
+import re
 import shutil
 from pathlib import Path
 import subprocess
@@ -36,6 +37,11 @@ def main():
         parser.error("Commit the source snapshot before publishing artifacts")
     destination.mkdir(parents=True, exist_ok=True)
     commit = run("git", "rev-parse", "HEAD")
+    version_match = re.search(r'const Version = "(\d+\.\d+\.\d+)"', (MODULE / "catalog.go").read_text())
+    python_match = re.search(r'^version = "(\d+\.\d+\.\d+)"', (ROOT / "packages/connectors-python/pyproject.toml").read_text(), re.MULTILINE)
+    if not version_match or not python_match or version_match[1] != python_match[1]:
+        parser.error("Go and Python connector versions must match")
+    version = version_match[1]
     sources = {}
     with tempfile.TemporaryDirectory(prefix="openagent-connectors-build-") as temporary:
         scratch = Path(temporary)
@@ -61,6 +67,8 @@ def main():
         reply = subprocess.check_output([str(local)], input=b'{"id":"catalog","method":"catalog"}\n')
         catalog = json.loads(reply)["result"]
         (destination / "catalog.json").write_text(json.dumps(catalog, indent=2) + "\n")
+        (snapshot / "packages/connectors-python/src/openagent_connectors/catalog.json").write_text(
+            json.dumps({"version": version, "connectors": catalog}, indent=2) + "\n")
         for platform, (goos, goarch) in PLATFORMS.items():
             files = {}
             for program in ("connector-runner", "connector-auth"):
@@ -69,10 +77,10 @@ def main():
                 subprocess.run(["go", "build", "-trimpath", "-ldflags=-s -w", "-o", str(binary), f"./cmd/{program}"],
                                cwd=module, env=dict(environment, GOOS=goos, GOARCH=goarch), check=True)
                 files[f"bin/{filename}"] = binary.read_bytes()
-            manifest = {"format": 1, "version": "0.1.0", "platform": platform, "source_commit": commit, "source_sha256": source_digest,
+            manifest = {"format": 1, "version": version, "platform": platform, "source_commit": commit, "source_sha256": source_digest,
                         "dirty_snapshot": dirty, "files": {name: {"sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data)} for name, data in files.items()}}
             files["manifest.json"] = (json.dumps(manifest, indent=2) + "\n").encode()
-            name = f"openagent-connectors-0.1.0-{platform}.tar.gz"
+            name = f"openagent-connectors-{version}-{platform}.tar.gz"
             with (destination / name).open("wb") as stream:
                 with gzip.GzipFile(filename="", fileobj=stream, mode="wb", mtime=0) as compressed:
                     with tarfile.open(fileobj=compressed, mode="w") as archive:
@@ -84,7 +92,7 @@ def main():
         subprocess.run(["uv", "build", "--wheel", "--out-dir", str(destination), str(snapshot / "packages/connectors-python")], check=True)
     files = {file.name: {"sha256": hashlib.sha256(file.read_bytes()).hexdigest(), "bytes": file.stat().st_size}
              for file in sorted(destination.iterdir()) if file.is_file()}
-    (destination / "manifest.json").write_text(json.dumps({"format": 1, "version": "0.1.0", "source_commit": commit, "source_sha256": source_digest,
+    (destination / "manifest.json").write_text(json.dumps({"format": 1, "version": version, "source_commit": commit, "source_sha256": source_digest,
         "dirty_snapshot": dirty, "release_status": "development-unqualified", "files": files}, indent=2) + "\n")
     files["manifest.json"] = {"sha256": hashlib.sha256((destination / "manifest.json").read_bytes()).hexdigest()}
     (destination / "SHA256SUMS").write_text("".join(f'{data["sha256"]}  {name}\n' for name, data in files.items()))

@@ -51,18 +51,19 @@ type Rotation struct {
 	Recipients []Installation `json:"recipients,omitempty"`
 }
 type Server struct {
-	Store        *Store
-	Engine       oauth.Engine
-	Providers    map[string]oauth.Provider
-	Origin       string
-	EventKey     []byte
-	mu           sync.Mutex
-	transactions map[string]*Transaction
-	nonces       map[string]time.Time
-	rates        map[string][]time.Time
-	mail         map[string][]Envelope
-	recoveries   map[string][]Recovery
-	now          func() time.Time
+	Store                 *Store
+	Engine                oauth.Engine
+	Providers             map[string]oauth.Provider
+	Origin                string
+	EventKey              []byte
+	legacyShopifyWebhooks map[string]string
+	mu                    sync.Mutex
+	transactions          map[string]*Transaction
+	nonces                map[string]time.Time
+	rates                 map[string][]time.Time
+	mail                  map[string][]Envelope
+	recoveries            map[string][]Recovery
+	now                   func() time.Time
 }
 
 func NewServer(store *Store, engine oauth.Engine, providers []oauth.Provider, origin string, eventKey []byte) (*Server, error) {
@@ -497,6 +498,10 @@ func (s *Server) finishRotation(id, operation, installation string, token *oauth
 		if group == nil || group.Pending != operation || !s.now().Before(group.PendingUntil) {
 			return ErrConflict
 		}
+		if token.ShopID == 0 || group.ShopID != 0 && group.ShopID != token.ShopID {
+			return ErrDenied
+		}
+		group.ShopID = token.ShopID
 		group.Version++
 		group.RefreshHash = s.tokenHash(group.AppID, "shopify", token.RefreshToken)
 		group.CredentialDigest = tokenDigest(*token)
@@ -635,6 +640,9 @@ func (s *Server) refresh(w http.ResponseWriter, r *http.Request, installation In
 		}
 		fail(w, 502, "provider_refresh_failed")
 		return
+	}
+	if p.ID == "shopify" {
+		token.ShopID = s.Store.snapshot().Groups[id].ShopID
 	}
 	result := Rotation{Token: token, Group: id}
 	if id != "" {
@@ -804,7 +812,7 @@ func (s *Server) receiveMail(w http.ResponseWriter, installation Installation) {
 			if _, ok := group.Members[installation.ID]; ok {
 				result = append(result, e)
 				publicKeys[e.Sender] = state.Installations[e.Sender]
-				groups[group.ID] = GroupInfo{ID: group.ID, AppID: group.AppID, Shop: group.Shop, Version: group.Version, Scopes: group.Scopes, AuthorizedAt: group.AuthorizedAt, CredentialDigest: group.CredentialDigest}
+				groups[group.ID] = GroupInfo{ID: group.ID, AppID: group.AppID, Shop: group.Shop, ShopID: group.ShopID, Version: group.Version, Scopes: group.Scopes, AuthorizedAt: group.AuthorizedAt, CredentialDigest: group.CredentialDigest}
 			}
 		}
 	}
@@ -876,6 +884,29 @@ func (s *Server) webhook(w http.ResponseWriter, r *http.Request) {
 		fail(w, 400, "invalid_webhook")
 		return
 	}
+	// Shopify signs the body, not these routing headers. Bind the signed
+	// numeric identity to the shop verified during confidential OAuth exchange.
+	var signedShopID uint64
+	idField := "shop_id"
+	if topic == "app/uninstalled" {
+		idField = "id"
+	}
+	if json.Unmarshal(payload[idField], &signedShopID) != nil || signedShopID == 0 {
+		fail(w, 400, "missing_signed_shop_identity")
+		return
+	}
+	if raw, exists := payload["shop_domain"]; exists {
+		var signedDomain string
+		if json.Unmarshal(raw, &signedDomain) != nil || signedDomain != shop {
+			fail(w, 400, "shop_identity_mismatch")
+			return
+		}
+	}
+	group := groupID(p.AppID, shop)
+	if g := s.Store.snapshot().Groups[group]; g != nil && (g.ShopID == 0 || g.ShopID != signedShopID) {
+		fail(w, 400, "shop_identity_mismatch")
+		return
+	}
 	minimal := map[string]json.RawMessage{}
 	for _, key := range []string{"id", "shop_id", "shop_domain", "customer", "orders_requested", "orders_to_redact", "data_request"} {
 		if v, ok := payload[key]; ok {
@@ -904,7 +935,6 @@ func (s *Server) webhook(w http.ResponseWriter, r *http.Request) {
 	data, _ := json.Marshal(minimal)
 	minimal["shop_domain"], _ = json.Marshal(shop)
 	data, _ = json.Marshal(minimal)
-	group := groupID(p.AppID, shop)
 	deliveryID := r.Header.Get("X-Shopify-Webhook-Id")
 	if deliveryID == "" {
 		if !s.Engine.AllowLoopback {
@@ -946,15 +976,21 @@ func (s *Server) webhook(w http.ResponseWriter, r *http.Request) {
 			return nil
 		}
 		g := state.Groups[group]
-		if g == nil {
+		legacyURL := s.legacyShopifyWebhooks[topic]
+		if g == nil && legacyURL == "" {
 			return nil
 		}
 		acks := map[string]bool{}
-		for member := range g.PrivacyRecipients {
-			acks[member] = false
+		if g != nil {
+			for member := range g.PrivacyRecipients {
+				acks[member] = false
+			}
 		}
 		state.Events[eventID] = &Event{ID: eventID, Group: group, Topic: topic, Ciphertext: encrypted, Nonce: nonce, CreatedAt: s.now(), OccurredAt: occurredAt, BodySHA256: hex.EncodeToString(bodyHash[:]), Acknowledged: acks}
-		if (topic == "app/uninstalled" || topic == "shop/redact") && !occurredAt.Before(g.AuthorizedAt) {
+		if legacyURL != "" {
+			state.Events[eventID].Legacy = &LegacyDelivery{URL: legacyURL, Shop: shop, WebhookID: deliveryID}
+		}
+		if g != nil && (topic == "app/uninstalled" || topic == "shop/redact") && !occurredAt.Before(g.AuthorizedAt) {
 			g.Revoked = true
 			g.Pending = ""
 			g.Reconnect = true
@@ -996,7 +1032,7 @@ func (s *Server) ack(w http.ResponseWriter, installation Installation, id string
 			return ErrDenied
 		}
 		event.Acknowledged[installation.ID] = true
-		all := true
+		all := event.Legacy == nil || event.Legacy.Acknowledged
 		for _, ack := range event.Acknowledged {
 			all = all && ack
 		}

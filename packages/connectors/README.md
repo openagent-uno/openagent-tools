@@ -1,6 +1,6 @@
 # OpenAgent official connectors
 
-Shared Go module `github.com/openagent-uno/openagent-tools/packages/connectors`, version 0.1.0. GlassPalace and ICS link this module into their local gateways. The standalone server invokes the same adapters through `openagent-connector-runner` and the `openagent-connectors` Python package. OpenAgent Core receives managed capability sources through its public catalog APIs; it does not import product accounts, OAuth or storage code.
+Shared Go module `github.com/openagent-uno/openagent-tools/packages/connectors`, version 0.1.1. GlassPalace and ICS link this module into their local gateways. The standalone server invokes the same adapters through `openagent-connector-runner` and the `openagent-connectors` Python package. OpenAgent Core receives managed capability sources through its public catalog APIs; it does not import product accounts, OAuth or storage code.
 
 ## Ownership and compatibility
 
@@ -43,7 +43,11 @@ Privacy recipients remain in the durable delivery set after product disconnectio
 
 ## Build and release
 
-Run `go test -race ./...` inside this module. Build artifacts with `python3 scripts/build_connectors.py --out <empty-directory>` at the Tools repository root. The builder snapshots all tracked/nonignored sources once, records source digests, cross-compiles runner and broker for macOS/Linux/Windows arm64/x64 and creates the Python wheel, catalog, manifest and `SHA256SUMS`. Dirty sources require explicit `--allow-dirty` and produce unqualified artifacts. The Go module tag is `packages/connectors/v0.1.0`; binaries use the matching version. Verify both archive and extracted binary checksums. Cross-compilation is not native OS qualification.
+Version 0.1.1 binds Shopify grants to their numeric shop ID with a fixed, minimal GraphQL identity query during confidential OAuth exchange. Only ID/domain authorization metadata are retained; no shop contents are archived centrally. Signed webhook IDs must match this identity before acting on a group, since the body's HMAC does not authenticate routing headers. Peers verify the same identity during recovery.
+
+Reviewed `--legacy-shopify-webhooks` routes preserve the existing app's product privacy processor through a durable encrypted outbox, including shops not yet enrolled in a broker group. Notifications are minimized, signed for the same app, keep their webhook ID/time, and retry offline recipients after restart without following redirects. A native recipient's acknowledgment cannot remove a payload still owed to the legacy processor. Qualify this compatibility path before replacing provider webhook URLs. Version 0.1.0 artifacts remain immutable.
+
+Run `go test -race ./...` inside this module. Build artifacts with `python3 scripts/build_connectors.py --out <empty-directory>` at the Tools repository root. The builder snapshots all tracked/nonignored sources once, records source digests, cross-compiles runner and broker for macOS/Linux/Windows arm64/x64 and creates the Python wheel, catalog, manifest and `SHA256SUMS`. Dirty sources require explicit `--allow-dirty` and produce unqualified artifacts. The Go module tag is `packages/connectors/v0.1.1`; binaries use the matching version. Verify both archive and extracted binary checksums. Cross-compilation is not native OS qualification.
 
 ## Optional own apps
 
