@@ -1,0 +1,13 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: openagent-connectors
+resources:
+  - resources.yaml
+configMapGenerator:
+  - name: connector-auth-config
+    literals:
+      - 'providers.json=[]'
+images:
+  - name: openagent-connector-auth
+    newName: localhost:5000/openagent-connector-auth
+    newTag: 0.1.0-bootstrap

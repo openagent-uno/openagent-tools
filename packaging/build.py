@@ -7,7 +7,7 @@ import shutil
 import subprocess
 import tempfile
 
-PYTHON_PACKAGES = ("tool-protocol", "filesystem", "editor", "shell", "device-tools", "execution")
+PYTHON_PACKAGES = ("tool-protocol", "filesystem", "editor", "shell", "device-tools", "execution", "connectors-python")
 NODE_PACKAGES = ("web-search", "meta-ads-mcp-server")
 
 

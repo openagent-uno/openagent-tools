@@ -1,0 +1,112 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openagent-connectors
+  labels:
+    app.kubernetes.io/part-of: openagent
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: connector-auth-metadata
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: connector-auth
+spec:
+  replicas: 1
+  # File-backed coordination requires exactly one process, also during upgrades.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: connector-auth
+  template:
+    metadata:
+      labels:
+        app: connector-auth
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        runAsGroup: 65532
+        fsGroup: 65532
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: broker
+          image: openagent-connector-auth
+          args:
+            - --listen=0.0.0.0:8094
+            - --origin=https://auth.openagent.uno
+            - --state=/state/metadata.json
+            - --providers=/config/providers.json
+            - --event-key=/secrets/event-key
+          ports:
+            - name: http
+              containerPort: 8094
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: '1', memory: 512Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          livenessProbe:
+            httpGet: {path: /healthz, port: http}
+          # Bootstrap health is distinct from /readyz (provider activation).
+          # Replace this path with /readyz after provider approval and QA.
+          readinessProbe:
+            httpGet: {path: /healthz, port: http}
+          volumeMounts:
+            - {name: metadata, mountPath: /state}
+            - {name: configuration, mountPath: /config, readOnly: true}
+            - {name: secrets, mountPath: /secrets, readOnly: true}
+      volumes:
+        - name: metadata
+          persistentVolumeClaim: {claimName: connector-auth-metadata}
+        - name: configuration
+          configMap: {name: connector-auth-config}
+        - name: secrets
+          secret: {secretName: connector-auth-secrets, defaultMode: 288}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: connector-auth
+spec:
+  selector: {app: connector-auth}
+  ports:
+    - {name: http, port: 8094, targetPort: http}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: connector-auth
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts: [auth.openagent.uno]
+      secretName: connector-auth-tls
+  rules:
+    - host: auth.openagent.uno
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: connector-auth
+                port: {name: http}
