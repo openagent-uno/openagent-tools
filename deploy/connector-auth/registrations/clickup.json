@@ -4,8 +4,13 @@
   "source_product": "GlassPalace",
   "reported_registration_owner": "geroale2000@gmail.com",
   "client_id": "UD5K7XJRRR6Z8BV2SIXSDUPI19P4G9HM",
-  "required_additional_redirect_uri": "https://auth.openagent.uno/v1/oauth/clickup/callback",
-  "keep_existing_redirect_uris": true,
+  "requested_redirect_uri": "https://auth.openagent.uno/v1/oauth/clickup/callback",
+  "registered_redirect_uris": ["https://auth.openagent.uno"],
+  "provider_normalized_to_origin": true,
+  "registration_verified_after_reload": true,
+  "keep_existing_redirect_uris": false,
+  "removed_legacy_redirect_uri": "https://api.glasspalace.uno",
+  "legacy_redirect_removal_authorized_by_user": true,
   "secret_reference": {
     "namespace": "openagent-connectors",
     "name": "connector-auth-secrets",
@@ -15,8 +20,8 @@
   "source_credentials_rotated": false,
   "broker_enabled": false,
   "qualification_pending": [
-    "provider-console access to the existing registered app",
-    "additional broker callback registration and public identity review",
+    "full callback path acceptance in a real OAuth flow",
+    "public identity review",
     "production secret storage encryption at rest",
     "real end-to-end acceptance in the receiving products"
   ]
