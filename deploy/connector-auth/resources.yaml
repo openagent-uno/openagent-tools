@@ -33,6 +33,9 @@ spec:
       labels:
         app: connector-auth
     spec:
+      # The registry and durable bootstrap metadata live on this Mixout node.
+      nodeSelector:
+        kubernetes.io/hostname: mixout-server
       automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
@@ -53,7 +56,8 @@ spec:
             - name: http
               containerPort: 8094
           resources:
-            requests: {cpu: 100m, memory: 128Mi}
+            # Bootstrap has no providers. Requalify capacity before enrollment.
+            requests: {cpu: 10m, memory: 128Mi}
             limits: {cpu: '1', memory: 512Mi}
           securityContext:
             allowPrivilegeEscalation: false

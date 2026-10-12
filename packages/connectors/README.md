@@ -39,7 +39,7 @@ One lock and generation exist per OAuth app and shop. Acquisition and refresh re
 
 A missed envelope is recovered from a current peer via outgoing polling. If no current copy is available, the host requests new consent. A broker crash during an uncertain provider exchange persists `reconnect:true`; it cannot silently reuse an older generation. A host that already saved a completed exchange can commit that checkpoint after broker restart. The first implementation is deliberately single writer: one replica, `Recreate`, one PVC. Do not scale it or mount the same metadata file from multiple processes; a distributed transactional store is required before HA.
 
-Privacy recipients remain in the durable delivery set after product disconnection. Jobs retain only the customer/order identifiers needed by the recipient, encrypted at rest. Hosts acknowledge durable local receipt, retry their local processing and deduplicate. A delayed uninstall from an older grant cannot revoke a later reauthorization. The standalone retains a local encrypted privacy inbox; final privacy processing/export of stored agent content still needs product qualification before provider activation.
+Privacy recipients remain in the durable delivery set after product disconnection. Jobs retain only the customer/order identifiers needed by the recipient, encrypted at rest. Hosts acknowledge durable local receipt, retry their local processing and deduplicate. A delayed uninstall from an older grant cannot revoke a later reauthorization. The standalone retains a local encrypted privacy inbox; processing/export/redaction of stored agent content is not yet implemented in that product and blocks Shopify activation there.
 
 ## Build and release
 
