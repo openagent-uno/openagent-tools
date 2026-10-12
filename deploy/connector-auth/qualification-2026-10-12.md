@@ -16,6 +16,7 @@ This is a bootstrap and development qualification, not authorization to enable c
 - Image: `localhost:5000/openagent-connector-auth@sha256:41e9f04ecb0e49f6dcc3a2657afd8cb063957f2e501dd2cc859466473a4fea22`; source revision above.
 - Server dry-run passed; deployment reached 1/1 Running with zero restarts. Traefik/`letsencrypt-prod` issued the certificate.
 - HTTPS certificate validation passed without bypass. `/healthz`: HTTP 200, contract `openagent-connectors/v1`, `configured_providers:0`. `/readyz`: HTTP 503, `provider activation pending`.
+- The released macOS arm64 runner performed actual signed HTTPS registration and mailbox access against the bootstrap. Shopify start returned `provider_not_configured`. Following a `Recreate` restart, mailbox access succeeded without re-registering; the persistent event secret was unchanged and existing GlassPalace deployments remained ready. One named qualification installation is retained, with public identity metadata only.
 - Bootstrap CPU request 10m: live control-plane node already reserved 1969m of 2000m. Capacity/load testing and a production request budget are prerequisites to enrollment.
 - No provider secrets copied or existing GlassPalace OAuth registrations changed. Host opt-in flags remain disabled. Tailscale primary `spicysparks.com` profile restored after operations.
 
@@ -23,13 +24,13 @@ This is a bootstrap and development qualification, not authorization to enable c
 
 - GlassPalace and ICS gateways tested using the published module with `GOWORK=off`, no sibling replacement; all normal gateway packages passed. Control-plane server/operations/HTTP/collaboration packages passed.
 - Both hosts' real isolated PostgreSQL contracts cover consent through a real broker HTTP handler with a mocked provider, encrypted local persistence, authority revoked mid-exchange, preserved installation/connection identity and retry after a lost completion response.
-- Focused frontend connector suites: 46 tests in each host. All three clients passed TypeScript checks. Standalone policy/storage suite: eight tests covering local encryption, cross-principal/audience denial, revocation, restart and issuer migration fences.
+- Focused frontend connector suites: 46 tests in each host. All three clients passed TypeScript checks. Standalone: eight policy/storage tests covering local encryption, cross-principal/audience denial, revocation, restart and issuer migration fences, plus six acquisition integrity/path-traversal tests. Clean-snapshot server wheel and docs build passed; the wheel is a qualification artifact and does not replace the published product release.
 - Standalone visual fixture used the actual component/theme and mocked management responses; connection controls, write-permission toggle and local disconnect visually checked. It is not real provider or installed-app acceptance.
 - Two GlassPalace database suite failures also occur on unmodified HEAD: `TestPostgresPersistsPerAgentRuntimeIntentAndObservation` and `TestShopifyRedactGenerationMigrationBackfillsLegacyRequests`. These remain baseline issues, not a passing full suite.
 
 ## Required before activation
 
-1. Register/approve OpenAgent-branded apps and exact broker callbacks without retiring legacy registrations. Production Google/ClickUp/Shopify IDs are GlassPalace registrations; Postiz still has a review-pending placeholder. Restricted Google scopes/security assessment remain provider gates.
+1. Register/approve OpenAgent-branded apps and exact broker callbacks without retiring legacy registrations. Production Google/ClickUp/Shopify IDs are GlassPalace registrations; a separate Google project `openagent-connectors` has been created, with OAuth still unconfigured pending operator/privacy contacts; Postiz still has a review-pending placeholder. Restricted Google scopes/security assessment remain provider gates.
 2. Complete standalone privacy export/redaction for stored agent content and qualify product-local privacy processing.
 3. Qualify actual OAuth cancel/read/authorized write/refresh/restart/disconnect visually in all three products. Test two real Shopify servers on one shop, simultaneous rotation, offline peer, expired/lost envelope, recovery and new consent. Test duplicate webhooks/offline recipients.
 4. Build/sign/accept standalone and native host releases on supported OSs. Validate native privacy workers with central notifications and recovery UX.
