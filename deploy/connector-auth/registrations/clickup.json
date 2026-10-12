@@ -1,0 +1,23 @@
+{
+  "provider_family": "clickup",
+  "registration_strategy": "reuse-existing-glasspalace-app",
+  "source_product": "GlassPalace",
+  "reported_registration_owner": "geroale2000@gmail.com",
+  "client_id": "UD5K7XJRRR6Z8BV2SIXSDUPI19P4G9HM",
+  "required_additional_redirect_uri": "https://auth.openagent.uno/v1/oauth/clickup/callback",
+  "keep_existing_redirect_uris": true,
+  "secret_reference": {
+    "namespace": "openagent-connectors",
+    "name": "connector-auth-secrets",
+    "key": "clickup-client-secret",
+    "mount_path": "/secrets/clickup-client-secret"
+  },
+  "source_credentials_rotated": false,
+  "broker_enabled": false,
+  "qualification_pending": [
+    "provider-console access to the existing registered app",
+    "additional broker callback registration and public identity review",
+    "production secret storage encryption at rest",
+    "real end-to-end acceptance in the receiving products"
+  ]
+}
