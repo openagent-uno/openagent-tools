@@ -4,12 +4,17 @@
   "client_id": "68874486fdb4c9948bfde28959dbd671",
   "app_id": "401590648833",
   "organization_id": "227881973",
-  "active_version": "financials-cd44a95",
-  "qualification_version": "openagent-connectors-20261012",
-  "qualification_version_id": "1164244647937",
-  "qualification_version_released": false,
-  "required_scopes": ["read_inventory", "read_products"],
-  "optional_scopes": ["read_orders"],
+  "active_version": "openagent-branding-20261012",
+  "qualification_version": "openagent-branding-20261012",
+  "qualification_version_id": "1164294258689",
+  "qualification_version_released": true,
+  "required_scopes": [
+    "read_inventory",
+    "read_products"
+  ],
+  "optional_scopes": [
+    "read_orders"
+  ],
   "qualification_redirect_uris": [
     "https://app.glasspalace.uno/api/v1/oauth/shopify/callback",
     "https://auth.openagent.uno/v1/oauth/shopify/callback"
@@ -30,5 +35,8 @@
     "standalone derived-content privacy export and redaction",
     "production secret storage encryption at rest",
     "two-server real OAuth and token rotation acceptance"
-  ]
+  ],
+  "active_version_id": "1164294258689",
+  "display_name": "OpenAgent",
+  "display_name_verified_by": "Shopify CLI production config readback"
 }

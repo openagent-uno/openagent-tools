@@ -91,7 +91,7 @@ def main():
 
         subprocess.run(["uv", "build", "--wheel", "--out-dir", str(destination), str(snapshot / "packages/connectors-python")], check=True)
     files = {file.name: {"sha256": hashlib.sha256(file.read_bytes()).hexdigest(), "bytes": file.stat().st_size}
-             for file in sorted(destination.iterdir()) if file.is_file()}
+             for file in sorted(destination.iterdir()) if file.is_file() and not file.name.startswith(".")}
     (destination / "manifest.json").write_text(json.dumps({"format": 1, "version": version, "source_commit": commit, "source_sha256": source_digest,
         "dirty_snapshot": dirty, "release_status": "development-unqualified", "files": files}, indent=2) + "\n")
     files["manifest.json"] = {"sha256": hashlib.sha256((destination / "manifest.json").read_bytes()).hexdigest()}
