@@ -1,0 +1,34 @@
+{
+  "provider_family": "shopify",
+  "registration_strategy": "reuse-existing-glasspalace-app",
+  "client_id": "68874486fdb4c9948bfde28959dbd671",
+  "app_id": "401590648833",
+  "organization_id": "227881973",
+  "active_version": "financials-cd44a95",
+  "qualification_version": "openagent-connectors-20261012",
+  "qualification_version_id": "1164244647937",
+  "qualification_version_released": false,
+  "required_scopes": ["read_inventory", "read_products"],
+  "optional_scopes": ["read_orders"],
+  "qualification_redirect_uris": [
+    "https://app.glasspalace.uno/api/v1/oauth/shopify/callback",
+    "https://auth.openagent.uno/v1/oauth/shopify/callback"
+  ],
+  "existing_embedded_page_preserved": true,
+  "existing_webhook_delivery_preserved": true,
+  "source_credentials_rotated": false,
+  "secret_reference": {
+    "namespace": "openagent-connectors",
+    "name": "connector-auth-secrets",
+    "key": "shopify-client-secret",
+    "mount_path": "/secrets/shopify-client-secret"
+  },
+  "broker_enabled": false,
+  "qualification_pending": [
+    "public shared-connector identity and provider review requirements",
+    "central privacy delivery with backward compatibility for legacy installations",
+    "standalone derived-content privacy export and redaction",
+    "production secret storage encryption at rest",
+    "two-server real OAuth and token rotation acceptance"
+  ]
+}
