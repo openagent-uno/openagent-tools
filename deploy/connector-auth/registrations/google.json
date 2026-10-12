@@ -26,9 +26,26 @@
   "broker_enabled": false,
   "qualification_pending": [
     "production secret storage encryption at rest",
-    "API enablement and least-privilege scope declaration",
+    "real scope acceptance and full OAuth consent",
     "domain ownership and Google verification where required",
     "Google restricted-scope security assessment where required",
     "receiving-product data-handling checks and real end-to-end acceptance"
-  ]
+  ],
+  "test_users": [
+    "geroale2000@gmail.com"
+  ],
+  "declared_scopes": [
+    "https://www.googleapis.com/auth/drive",
+    "https://www.googleapis.com/auth/gmail.modify",
+    "https://www.googleapis.com/auth/gmail.send",
+    "https://www.googleapis.com/auth/analytics.readonly"
+  ],
+  "scope_declaration_saved": "2026-10-12",
+  "enabled_apis": [
+    "gmail.googleapis.com",
+    "drive.googleapis.com",
+    "analyticsdata.googleapis.com",
+    "analyticsadmin.googleapis.com"
+  ],
+  "api_enablement_verified": "2026-10-12"
 }
