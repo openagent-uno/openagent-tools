@@ -1,0 +1,34 @@
+{
+  "provider_family": "google",
+  "project_id": "openagent-connectors",
+  "application_name": "OpenAgent",
+  "client_name": "OpenAgent Shared Connectors",
+  "client_id": "992152108114-pe90eq2hr1i1ruag482s9oje6ifg8mcn.apps.googleusercontent.com",
+  "client_type": "web",
+  "ai_agent": true,
+  "homepage": "https://openagent.uno",
+  "privacy_url": "https://openagent.uno/privacy",
+  "support_email": "geroale2000@gmail.com",
+  "authorized_domain": "openagent.uno",
+  "redirect_uris": [
+    "https://auth.openagent.uno/v1/oauth/gmail/callback",
+    "https://auth.openagent.uno/v1/oauth/google_drive/callback",
+    "https://auth.openagent.uno/v1/oauth/google_analytics/callback"
+  ],
+  "secret_reference": {
+    "namespace": "openagent-connectors",
+    "name": "connector-auth-secrets",
+    "key": "google-client-secret",
+    "mount_path": "/secrets/google-client-secret"
+  },
+  "publication_status": "testing",
+  "verification_complete": false,
+  "broker_enabled": false,
+  "qualification_pending": [
+    "production secret storage encryption at rest",
+    "API enablement and least-privilege scope declaration",
+    "domain ownership and Google verification where required",
+    "Google restricted-scope security assessment where required",
+    "receiving-product data-handling checks and real end-to-end acceptance"
+  ]
+}
