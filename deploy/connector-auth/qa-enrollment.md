@@ -86,7 +86,21 @@ record connector-specific scopes, cancellation, real read/approved reversible
 write, refresh, restart and both local disconnect and explicit provider revoke.
 Global Google revocation can affect other scopes and clients in the same project.
 
-The broker fences a grant durably before contacting a revocation endpoint. A
+The broker's durable fence covers the calling installation/provider/app **grant**,
+including credentials refreshed from that grant. It is not an account-wide
+Google fence: Gmail, Drive and Analytics aliases, another consent, or another
+server can hold distinct bindings for the same Google user. No reliable account
+subject is obtained with the current connector scopes, so the broker does not
+correlate those grants or invalidate unrelated users. An in-flight refresh for a
+different binding can still return a response after Google accepts revocation;
+the receiving product must handle provider `401`/`invalid_grant` and recheck its
+local authorization. Provider acceptance is not proof of instantaneous global
+credential invalidation. Current tests prove the same-grant fence only. Global
+revocation is performed in provider settings or through the signed broker API;
+there is no `auth.revoke` runner/CLI method or product UI revocation flow in this
+release. Do not add identity scopes merely to make this QA run pass.
+
+The broker fences the caller's grant durably before contacting a revocation endpoint. A
 provider failure leaves local renewal fenced and revocation can be retried with
 the same locally held token. An in-flight refresh checks the fence again before
 returning a new credential (409 `token_grant_revoked`). No automatic retry is made
