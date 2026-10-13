@@ -18,6 +18,8 @@ The Python runner protocol is trusted server IPC, not a network endpoint. Creden
 
 Installations use persistent Ed25519 signing and X25519 encryption identities. Signed requests cover method, path/query, body hash, timestamp and nonce. Registration is open to third parties, subject to limits. The consent page displays the operator-supplied product/name, cryptographic installation ID and permissions; it explicitly does not imply endorsement.
 
+After the CSRF-protected consent POST, the broker shows an explicit provider authorization link. The user opens that link to continue on ClickUp, Google, Shopify or Postiz. This avoids a cross-origin redirect after a form submission while preserving `form-action 'self'`, all other CSP directives, no-referrer navigation and the existing recipient/state checks. It does not exchange credentials or activate a provider before the provider's callback.
+
 | Endpoint | Purpose |
 | --- | --- |
 | `POST /v1/installations` | Self-signed identity registration |
