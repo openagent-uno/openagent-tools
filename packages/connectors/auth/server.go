@@ -353,6 +353,21 @@ func (s *Server) authorize(w http.ResponseWriter, r *http.Request) {
 	s.mu.Unlock()
 	installation := s.Store.snapshot().Installations[copy.Installation]
 	if r.Method == "GET" {
+		if copy.approved {
+			p, exists := s.Providers[copy.Provider]
+			if !exists || p.ID != copy.Provider || p.AppID != copy.AppID || installation.ID != copy.Installation || !s.admittedInstallation(copy.Installation) || copy.Provider == "shopify" && !s.admittedShop(copy.Shop) {
+				fail(w, 403, "authorization_unavailable")
+				return
+			}
+			sum := sha256.Sum256([]byte(copy.verifier))
+			target, err := s.Engine.Authorize(p, copy.state, encoding.EncodeToString(sum[:]), copy.Shop, copy.Scopes)
+			if err != nil {
+				fail(w, 400, "invalid_authorization")
+				return
+			}
+			renderProviderAuthorization(w, copy.Provider, target)
+			return
+		}
 		csrf := randomID()
 		s.mu.Lock()
 		tx.csrf = csrf
@@ -409,9 +424,13 @@ func (s *Server) authorize(w http.ResponseWriter, r *http.Request) {
 	s.mu.Lock()
 	tx.approved = true
 	s.mu.Unlock()
-	providerName := map[string]string{"clickup": "ClickUp", "google": "Google", "shopify": "Shopify", "postiz": "Postiz"}[copy.Provider]
+	renderProviderAuthorization(w, copy.Provider, target)
+}
+
+func renderProviderAuthorization(w http.ResponseWriter, provider, target string) {
+	providerName := map[string]string{"clickup": "ClickUp", "google": "Google", "shopify": "Shopify", "postiz": "Postiz"}[provider]
 	if providerName == "" {
-		providerName = copy.Provider
+		providerName = provider
 	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	_ = providerAuthorizationPage.Execute(w, map[string]string{"Provider": providerName, "URL": target})

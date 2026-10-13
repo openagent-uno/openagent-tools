@@ -20,6 +20,8 @@ Installations use persistent Ed25519 signing and X25519 encryption identities. S
 
 After the CSRF-protected consent POST, the broker shows an explicit provider authorization link. The user opens that link to continue on ClickUp, Google, Shopify or Postiz. This avoids a cross-origin redirect after a form submission while preserving `form-action 'self'`, all other CSP directives, no-referrer navigation and the existing recipient/state checks. It does not exchange credentials or activate a provider before the provider's callback.
 
+Reopening that page recovers the same provider link only after a successful consent POST, while the transaction is pending, unexpired and its provider/app/recipient remain admitted. A missing or rejected POST still shows the disclosure form; GET never approves consent or rearms its consumed CSRF token.
+
 | Endpoint | Purpose |
 | --- | --- |
 | `POST /v1/installations` | Self-signed identity registration |
