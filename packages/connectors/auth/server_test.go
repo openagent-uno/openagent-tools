@@ -7,12 +7,14 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"html"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -103,12 +105,29 @@ func (f *fixture) approval(t *testing.T, c *Client) (Transaction, string) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	body, err := io.ReadAll(consent.Body)
 	_ = consent.Body.Close()
-	if consent.StatusCode != 303 {
+	if err != nil {
+		t.Fatal(err)
+	}
+	if consent.StatusCode != 200 || consent.Header.Get("Location") != "" {
 		t.Fatalf("consent status %d", consent.StatusCode)
 	}
-	launch, _ := url.Parse(consent.Header.Get("Location"))
+	launch := providerLink(t, string(body))
 	return tx, launch.Query().Get("state")
+}
+
+func providerLink(t *testing.T, body string) *url.URL {
+	t.Helper()
+	match := regexp.MustCompile(`<a href="([^"]+)"`).FindStringSubmatch(body)
+	if len(match) != 2 {
+		t.Fatal("missing explicit provider authorization link")
+	}
+	link, err := url.Parse(html.UnescapeString(match[1]))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return link
 }
 func (f *fixture) consent(t *testing.T, c *Client) Transaction {
 	t.Helper()

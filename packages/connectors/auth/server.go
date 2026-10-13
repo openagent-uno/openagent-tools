@@ -336,6 +336,10 @@ func (s *Server) start(w http.ResponseWriter, installation Installation, body []
 
 var consentPage = template.Must(template.New("consent").Parse(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Connect with OpenAgent</title><style>body{font:17px system-ui;max-width:560px;margin:12vh auto;padding:24px;color:#18212b}button,input{padding:12px 22px;border-radius:10px;font:inherit}button{border:0;background:#18212b;color:white}small{color:#566}</style><h1>Connect {{.Provider}}</h1><p>You are authorizing <strong>{{.Name}}</strong> ({{.Product}}) to use the OpenAgent connector.</p><p>Credentials and API data are stored on that server. OpenAgent handles authorization and token renewal.</p>{{if eq .Provider "shopify"}}<p>This server will join your store's connector credential synchronization group.</p>{{end}}<p>Installation: <code>{{.Installation}}</code></p><p>Permissions: {{.Scopes}}</p><p><small>This installation name is supplied by its operator. It is not an endorsement by OpenAgent.</small></p><form method="post"><input type="hidden" name="csrf" value="{{.CSRF}}">{{if eq .Provider "shopify"}}<p><label>Shopify store <input name="shop" type="text" value="{{.Shop}}" placeholder="your-store.myshopify.com" pattern="[a-z0-9-]+\.myshopify\.com" required></label></p>{{end}}<button>Continue to {{.Provider}}</button></form><p>You can close this window to cancel.</p></html>`))
 
+// A provider link is an explicit navigation, rather than a cross-origin
+// redirect following the consent POST (blocked by Chrome's form-action CSP).
+var providerAuthorizationPage = template.Must(template.New("provider-authorization").Parse(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><meta name="referrer" content="no-referrer"><title>Continue to {{.Provider}}</title><style>body{font:17px system-ui;max-width:560px;margin:12vh auto;padding:24px;color:#18212b}a{display:inline-block;padding:12px 22px;border-radius:10px;background:#18212b;color:white;text-decoration:none}</style><h1>Continue to {{.Provider}}</h1><p>Complete authorization on the provider's website.</p><a href="{{.URL}}" rel="noreferrer" referrerpolicy="no-referrer">Open {{.Provider}} authorization</a><p>You can close this window to cancel.</p></html>`))
+
 func (s *Server) authorize(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/authorize/")
 	s.mu.Lock()
@@ -405,7 +409,12 @@ func (s *Server) authorize(w http.ResponseWriter, r *http.Request) {
 	s.mu.Lock()
 	tx.approved = true
 	s.mu.Unlock()
-	http.Redirect(w, r, target, 303)
+	providerName := map[string]string{"clickup": "ClickUp", "google": "Google", "shopify": "Shopify", "postiz": "Postiz"}[copy.Provider]
+	if providerName == "" {
+		providerName = copy.Provider
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_ = providerAuthorizationPage.Execute(w, map[string]string{"Provider": providerName, "URL": target})
 }
 func (s *Server) callback(w http.ResponseWriter, r *http.Request) {
 	provider := strings.TrimSuffix(strings.TrimPrefix(r.URL.Path, "/v1/oauth/"), "/callback")
