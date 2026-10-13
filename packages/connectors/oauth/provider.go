@@ -134,7 +134,10 @@ func (e Engine) Authorize(p Provider, state, challenge, shop string, scopes []st
 	q := u.Query()
 	q.Set("client_id", p.ClientID)
 	q.Set("state", state)
-	q.Set("redirect_uri", p.RedirectURI)
+	// Postiz uses the callback stored in the registered app, without a request override.
+	if p.ID != "postiz" {
+		q.Set("redirect_uri", p.RedirectURI)
+	}
 	if p.ID != "clickup" {
 		q.Set("response_type", "code")
 	}
@@ -179,6 +182,8 @@ func (e Engine) Exchange(ctx context.Context, p Provider, code, verifier, shop s
 	if p.ID == "clickup" {
 		fields.Del("redirect_uri")
 		fields.Del("grant_type")
+	} else if p.ID == "postiz" {
+		fields.Del("redirect_uri")
 	}
 	if p.PKCE {
 		if verifier == "" {
@@ -266,7 +271,7 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	fields.Set("client_secret", s)
 	var body io.Reader
 	contentType := "application/x-www-form-urlencoded"
-	if p.ID == "clickup" {
+	if p.ID == "clickup" || p.ID == "postiz" {
 		m := map[string]string{}
 		for k, v := range fields {
 			m[k] = v[0]
