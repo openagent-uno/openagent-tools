@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"encoding/hex"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/signal"
@@ -24,6 +26,7 @@ func main() {
 	providersPath := flag.String("providers", "", "Reviewed provider configuration JSON")
 	keyPath := flag.String("event-key", "", "File containing a 32-byte hex encryption key for webhook storage")
 	legacyPath := flag.String("legacy-shopify-webhooks", "", "Reviewed topic-to-HTTPS-product webhook routes for existing installations")
+	qaPath := flag.String("qa-enrollment", "", "Startup-only installation/store allowlist; public readiness remains disabled")
 	flag.Parse()
 	if *statePath == "" || *providersPath == "" || *keyPath == "" {
 		fmt.Fprintln(os.Stderr, "state, providers and event-key are required")
@@ -60,10 +63,19 @@ func main() {
 			fatal()
 		}
 	}
+	if *qaPath != "" {
+		data, err := os.ReadFile(*qaPath)
+		var config auth.QAEnrollment
+		decoder := json.NewDecoder(bytes.NewReader(data))
+		decoder.DisallowUnknownFields()
+		if err != nil || decoder.Decode(&config) != nil || decoder.Decode(new(any)) != io.EOF || handler.ConfigureQAEnrollment(config) != nil {
+			fatal()
+		}
+	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
-		if len(handler.Providers) == 0 {
+		if len(handler.Providers) == 0 || handler.QAEnrollmentEnabled() {
 			http.Error(w, "provider activation pending", 503)
 			return
 		}

@@ -21,6 +21,8 @@ type TokenBinding struct {
 	Provider     string   `json:"provider"`
 	AppID        string   `json:"app_id"`
 	Scopes       []string `json:"scopes"`
+	GrantID      string   `json:"grant_id,omitempty"`
+	Revoked      bool     `json:"revoked,omitempty"`
 }
 type Group struct {
 	CredentialDigest     string            `json:"credential_digest"`

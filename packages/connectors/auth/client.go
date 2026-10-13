@@ -124,7 +124,7 @@ func (c *Client) call(ctx context.Context, method, path string, input, output an
 			Error string `json:"error"`
 		}
 		_ = json.Unmarshal(data, &failure)
-		allowed := map[string]bool{"provider_not_configured": true, "authorization_not_ready": true, "authorization_expired": true, "oauth_app_mismatch": true, "credential_recovery_required": true, "rotation_in_progress": true, "rate_limited": true, "provider_exchange_failed": true, "provider_refresh_failed": true}
+		allowed := map[string]bool{"provider_not_configured": true, "authorization_not_ready": true, "authorization_expired": true, "oauth_app_mismatch": true, "credential_recovery_required": true, "rotation_in_progress": true, "rate_limited": true, "provider_exchange_failed": true, "provider_refresh_failed": true, "token_grant_revoked": true, "qa_installation_not_admitted": true, "qa_shop_not_admitted": true}
 		code := "request_failed"
 		if allowed[failure.Error] {
 			code = failure.Error

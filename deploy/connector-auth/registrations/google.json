@@ -25,7 +25,6 @@
   "verification_complete": false,
   "broker_enabled": false,
   "qualification_pending": [
-    "production secret storage encryption at rest",
     "real scope acceptance and full OAuth consent",
     "domain ownership and Google verification where required",
     "Google restricted-scope security assessment where required",
@@ -47,5 +46,11 @@
     "analyticsdata.googleapis.com",
     "analyticsadmin.googleapis.com"
   ],
-  "api_enablement_verified": "2026-10-12"
+  "api_enablement_verified": "2026-10-12",
+  "production_secret_storage": {
+    "facility": "Kubernetes Secret",
+    "datastore_encryption": "Enabled",
+    "qualification_checkpoint": "../qualification-2026-10-13.md",
+    "qualified_at": "2026-10-13"
+  }
 }

@@ -2,11 +2,11 @@ module github.com/openagent-uno/openagent-tools/packages/connectors
 
 go 1.26.0
 
-toolchain go1.26.6
+toolchain go1.26.9
 
 require (
 	github.com/emersion/go-imap v1.2.1
-	golang.org/x/text v0.39.0
+	golang.org/x/text v0.41.0
 )
 
 require (

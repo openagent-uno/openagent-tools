@@ -57,7 +57,9 @@ class ConnectorRunner:
                         allowed = {"provider_not_configured", "authorization_not_ready",
                                    "credential_recovery_required", "rotation_in_progress",
                                    "oauth_app_mismatch", "rate_limited", "provider_exchange_failed",
-                                   "provider_refresh_failed", "authorization_expired"}
+                                   "provider_refresh_failed", "authorization_expired",
+                                   "token_grant_revoked", "qa_installation_not_admitted",
+                                   "qa_shop_not_admitted"}
                         code = reply["error"]
                         raise ConnectorError(code if code in allowed else "connector_request_failed")
                     return reply.get("result")

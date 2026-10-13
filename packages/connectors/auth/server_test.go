@@ -76,7 +76,7 @@ func (f *fixture) client(t *testing.T, name string) *Client {
 	}
 	return client
 }
-func (f *fixture) consent(t *testing.T, c *Client) Transaction {
+func (f *fixture) approval(t *testing.T, c *Client) (Transaction, string) {
 	t.Helper()
 	tx, err := c.Start(context.Background(), Start{Provider: "shopify", Shop: "example.myshopify.com"})
 	if err != nil {
@@ -108,8 +108,13 @@ func (f *fixture) consent(t *testing.T, c *Client) Transaction {
 		t.Fatalf("consent status %d", consent.StatusCode)
 	}
 	launch, _ := url.Parse(consent.Header.Get("Location"))
+	return tx, launch.Query().Get("state")
+}
+func (f *fixture) consent(t *testing.T, c *Client) Transaction {
+	t.Helper()
+	tx, state := f.approval(t, c)
 	// Verify the signed provider callback over real HTTP, not by modifying the transaction.
-	q := url.Values{"state": {launch.Query().Get("state")}, "code": {"provider-code"}, "shop": {"example.myshopify.com"}, "timestamp": {strconv.FormatInt(time.Now().Unix(), 10)}}
+	q := url.Values{"state": {state}, "code": {"provider-code"}, "shop": {"example.myshopify.com"}, "timestamp": {strconv.FormatInt(time.Now().Unix(), 10)}}
 	mac := hmac.New(sha256.New, []byte("test-app-secret"))
 	mac.Write([]byte(q.Encode()))
 	q.Set("hmac", hex.EncodeToString(mac.Sum(nil)))

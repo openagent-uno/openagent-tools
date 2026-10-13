@@ -5,7 +5,9 @@
   "reported_registration_owner": "geroale2000@gmail.com",
   "client_id": "UD5K7XJRRR6Z8BV2SIXSDUPI19P4G9HM",
   "requested_redirect_uri": "https://auth.openagent.uno/v1/oauth/clickup/callback",
-  "registered_redirect_uris": ["https://auth.openagent.uno"],
+  "registered_redirect_uris": [
+    "https://auth.openagent.uno"
+  ],
   "provider_normalized_to_origin": true,
   "registration_verified_after_reload": true,
   "keep_existing_redirect_uris": false,
@@ -22,7 +24,12 @@
   "qualification_pending": [
     "full callback path acceptance in a real OAuth flow",
     "public identity review",
-    "production secret storage encryption at rest",
     "real end-to-end acceptance in the receiving products"
-  ]
+  ],
+  "production_secret_storage": {
+    "facility": "Kubernetes Secret",
+    "datastore_encryption": "Enabled",
+    "qualification_checkpoint": "../qualification-2026-10-13.md",
+    "qualified_at": "2026-10-13"
+  }
 }
