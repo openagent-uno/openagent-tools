@@ -57,6 +57,7 @@ type Server struct {
 	Origin                string
 	EventKey              []byte
 	legacyShopifyWebhooks map[string]string
+	qa                    *qaAdmission
 	mu                    sync.Mutex
 	transactions          map[string]*Transaction
 	nonces                map[string]time.Time
@@ -152,7 +153,13 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Content-Security-Policy", "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; frame-ancestors 'none'; base-uri 'none'")
 	if r.Method == "GET" && r.URL.Path == "/healthz" {
-		writeJSON(w, 200, map[string]any{"ok": true, "contract": "openagent-connectors/v1", "configured_providers": len(s.Providers)})
+		enrollment := "public"
+		if s.QAEnrollmentEnabled() {
+			enrollment = "qa"
+		} else if len(s.Providers) == 0 {
+			enrollment = "disabled"
+		}
+		writeJSON(w, 200, map[string]any{"ok": true, "contract": "openagent-connectors/v1", "configured_providers": len(s.Providers), "enrollment": enrollment})
 		return
 	}
 	if strings.HasPrefix(r.URL.Path, "/v1/oauth/") && strings.HasSuffix(r.URL.Path, "/callback") && r.Method == "GET" {
@@ -183,6 +190,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	if s.limited(installation.ID, 120, time.Minute) {
 		fail(w, 429, "rate_limited")
+		return
+	}
+	if !s.admittedInstallation(installation.ID) {
+		fail(w, 403, "qa_installation_not_admitted")
 		return
 	}
 	parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
@@ -239,6 +250,10 @@ func (s *Server) register(w http.ResponseWriter, r *http.Request, body []byte) {
 		fail(w, 401, "invalid_installation_signature")
 		return
 	}
+	if !s.admittedInstallation(installation.ID) {
+		fail(w, 403, "qa_installation_not_admitted")
+		return
+	}
 	if old, exists := s.Store.snapshot().Installations[installation.ID]; exists && old == installation {
 		writeJSON(w, 200, installation)
 		return
@@ -283,6 +298,10 @@ func (s *Server) start(w http.ResponseWriter, installation Installation, body []
 	}
 	if p.ID == "shopify" && start.Shop != "" && !oauth.ValidShop(start.Shop) || p.ID != "shopify" && start.Shop != "" {
 		fail(w, 400, "invalid_provider_account")
+		return
+	}
+	if p.ID == "shopify" && s.qa != nil && !s.admittedShop(start.Shop) {
+		fail(w, 403, "qa_shop_not_admitted")
 		return
 	}
 	if start.Scopes == nil {
@@ -365,6 +384,10 @@ func (s *Server) authorize(w http.ResponseWriter, r *http.Request) {
 		shop := r.PostForm.Get("shop")
 		if !oauth.ValidShop(shop) || copy.Shop != "" && copy.Shop != shop {
 			fail(w, 400, "invalid_shop")
+			return
+		}
+		if !s.admittedShop(shop) {
+			fail(w, 403, "qa_shop_not_admitted")
 			return
 		}
 		copy.Shop = shop
@@ -612,6 +635,7 @@ func (s *Server) refresh(w http.ResponseWriter, r *http.Request, installation In
 		return
 	}
 	id, operation := "", randomID()
+	var binding TokenBinding
 	if p.ID == "shopify" {
 		group := s.Store.snapshot().Groups[groupID(p.AppID, input.Shop)]
 		if group == nil || group.RefreshHash != s.tokenHash(p.AppID, p.ID, input.RefreshToken) || !sameScopes(group.Scopes, input.Scopes) {
@@ -627,8 +651,9 @@ func (s *Server) refresh(w http.ResponseWriter, r *http.Request, installation In
 		}
 	}
 	if p.ID != "shopify" {
-		binding, ok := s.Store.snapshot().TokenBindings[s.tokenHash(p.AppID, p.ID, input.RefreshToken)]
-		if !ok || binding.Installation != installation.ID || binding.Provider != p.ID || !sameScopes(binding.Scopes, input.Scopes) {
+		var found bool
+		binding, found = s.Store.snapshot().TokenBindings[s.tokenHash(p.AppID, p.ID, input.RefreshToken)]
+		if !found || binding.Revoked || binding.Installation != installation.ID || binding.Provider != p.ID || !sameScopes(binding.Scopes, input.Scopes) {
 			fail(w, 403, "invalid_token_binding")
 			return
 		}
@@ -653,8 +678,8 @@ func (s *Server) refresh(w http.ResponseWriter, r *http.Request, installation In
 		}
 	}
 	if id == "" {
-		if err = s.bindToken(installation.ID, p.ID, token); err != nil {
-			fail(w, 500, "token_binding_failed")
+		if err = s.bindRefreshedToken(installation.ID, p.ID, input.RefreshToken, binding, token); err != nil {
+			fail(w, 409, "token_grant_revoked")
 			return
 		}
 	}
@@ -679,6 +704,29 @@ func (s *Server) revoke(w http.ResponseWriter, r *http.Request, installation Ins
 	binding, ok := s.Store.snapshot().TokenBindings[s.tokenHash(p.AppID, p.ID, input.Token)]
 	if !ok || binding.Installation != installation.ID || binding.Provider != p.ID {
 		fail(w, 403, "invalid_token_binding")
+		return
+	}
+	if p.RevocationURL == "" {
+		fail(w, 502, "provider_revocation_failed")
+		return
+	}
+	// Fence every token from this grant before contacting the provider. An
+	// exchange already in flight cannot republish credentials after revocation.
+	// Keep the binding as a tombstone so a failed provider call can be retried.
+	if err := s.Store.update(func(state *State) error {
+		current, exists := state.TokenBindings[s.tokenHash(p.AppID, p.ID, input.Token)]
+		if !exists || !sameGrant(current, binding) {
+			return ErrDenied
+		}
+		for hash, candidate := range state.TokenBindings {
+			if sameGrant(candidate, binding) {
+				candidate.Revoked = true
+				state.TokenBindings[hash] = candidate
+			}
+		}
+		return nil
+	}); err != nil {
+		fail(w, 500, "token_binding_failed")
 		return
 	}
 	if s.Engine.Revoke(r.Context(), p, input.Token, "") != nil {
@@ -879,6 +927,10 @@ func (s *Server) webhook(w http.ResponseWriter, r *http.Request) {
 		fail(w, 400, "invalid_webhook")
 		return
 	}
+	if !s.admittedShop(shop) {
+		fail(w, 403, "qa_shop_not_admitted")
+		return
+	}
 	var payload map[string]json.RawMessage
 	if json.Unmarshal(body, &payload) != nil {
 		fail(w, 400, "invalid_webhook")
@@ -1061,12 +1113,54 @@ func (s *Server) tokenHash(app, provider, token string) string {
 }
 func (s *Server) bindToken(installation, provider string, token oauth.Token) error {
 	return s.Store.update(func(state *State) error {
-		binding := TokenBinding{Installation: installation, Provider: provider, AppID: token.AppID, Scopes: token.Scopes}
-		state.TokenBindings[s.tokenHash(token.AppID, provider, token.AccessToken)] = binding
-		if token.RefreshToken != "" {
-			state.TokenBindings[s.tokenHash(token.AppID, provider, token.RefreshToken)] = binding
+		binding := TokenBinding{Installation: installation, Provider: provider, AppID: token.AppID, Scopes: token.Scopes, GrantID: randomID()}
+		return s.bindTokenInState(state, binding, token, true)
+	})
+}
+
+func sameGrant(a, b TokenBinding) bool {
+	if a.Installation != b.Installation || a.Provider != b.Provider || a.AppID != b.AppID {
+		return false
+	}
+	// Legacy metadata did not distinguish grants; invalidate its bindings for
+	// this installation/provider/app together rather than lose the revocation fence.
+	return a.GrantID == b.GrantID || a.GrantID == "" && b.GrantID == ""
+}
+
+func (s *Server) bindTokenInState(state *State, binding TokenBinding, token oauth.Token, freshConsent bool) error {
+	var existing *TokenBinding
+	for _, raw := range []string{token.AccessToken, token.RefreshToken} {
+		if raw == "" {
+			continue
 		}
-		return nil
+		hash := s.tokenHash(token.AppID, binding.Provider, raw)
+		if old, exists := state.TokenBindings[hash]; exists {
+			if old.Revoked || old.Installation != binding.Installation || old.Provider != binding.Provider || old.AppID != binding.AppID || !sameScopes(old.Scopes, binding.Scopes) {
+				return ErrDenied
+			}
+			if !freshConsent && !sameGrant(binding, old) || existing != nil && !sameGrant(*existing, old) {
+				return ErrDenied
+			}
+			copy := old
+			existing = &copy
+			binding.GrantID = old.GrantID
+		}
+	}
+	state.TokenBindings[s.tokenHash(token.AppID, binding.Provider, token.AccessToken)] = binding
+	if token.RefreshToken != "" {
+		state.TokenBindings[s.tokenHash(token.AppID, binding.Provider, token.RefreshToken)] = binding
+	}
+	return nil
+}
+
+func (s *Server) bindRefreshedToken(installation, provider, previous string, expected TokenBinding, token oauth.Token) error {
+	return s.Store.update(func(state *State) error {
+		current, exists := state.TokenBindings[s.tokenHash(token.AppID, provider, previous)]
+		if !exists || current.Revoked || !sameGrant(current, expected) || current.Installation != installation || current.Provider != provider {
+			return ErrDenied
+		}
+		current.Scopes = token.Scopes
+		return s.bindTokenInState(state, current, token, false)
 	})
 }
 func sameScopes(a, b []string) bool {
