@@ -34,8 +34,36 @@ explicitly in the copied database, so it is not worker runtime acceptance.
 An initial network-only attempt exposed a K3s compatibility-symlink write outside
 the requested data directory. The administrative kubeconfig was restored from
 backup; the final mount-isolated run preserved it byte-for-byte. All isolated
-controllers are stopped. No live datastore, binary or encryption configuration
-was changed. Applying the prepared shared-cluster maintenance remains pending.
+controllers are stopped. The following production maintenance was performed
+after the operator explicitly approved it; the isolated test alone did not
+authorize a shared-cluster change.
+
+## Production secret storage and admission
+
+The production control plane was upgraded from `v1.33.6+k3s1` to the official
+`v1.33.13+k3s2` binary (SHA-256
+`1572f0f23bd5a844bd405b71875877aacacc7ab79e279d3d73735654c37c7735`).
+A fresh consistent SQLite snapshot, original binary, server token, credentials
+and configuration were protected before the transition. The vendor sequence
+`secrets-encrypt enable`, configuration/restart, `rotate-keys` and final restart
+completed. Live status reports **Enabled**, **reencrypt_finished**, **All hashes
+match**. Both nodes are Ready; the worker retains the same-minor `v1.33.6+k3s1`.
+The broker Secret values remained unchanged, its current datastore record is
+encrypted, and a matching post-rotation backup was integrity-checked. Backups
+include sensitive encryption material and remain root-only on the server.
+The broker returned to one ready replica and HTTPS health with zero providers.
+
+A real outgoing client pinned to the published Go module `v0.1.1` verified TLS,
+signed registration/mailbox access, unsigned/replayed request rejection and
+disabled-provider rejection. A bounded burst of 130 mailbox requests at maximum
+concurrency four produced 118 successful responses and 12 rate-limit responses;
+the preceding two admitted requests complete the 120-per-minute quota. There
+were no unexpected responses. Median latency was 184 ms, p95 299 ms and maximum
+376 ms over 6.1 seconds. Broker memory measured 7 MiB after the burst, with no
+restart. This qualifies **bootstrap mailbox admission only**, not real provider
+exchange/rotation or privacy backlog capacity. The current 10m CPU reservation
+is still a bootstrap setting; production request-budget/admission qualification
+remains required before enrollment. The prior Tailscale profile was restored.
 
 Product-local standalone privacy-content lineage/export/redaction, provider
 activation, actual dual-server Shopify acceptance, native qualification and
