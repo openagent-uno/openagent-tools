@@ -22,9 +22,13 @@ jobs:
     timeout-minutes: 60
     env:
       GOMAXPROCS: '2'
+      GOMEMLIMIT: 1GiB
       GOFLAGS: -p=1
       GOTOOLCHAIN: go1.26.9
       GOWORK: 'off'
+      UV_CONCURRENT_BUILDS: '1'
+      UV_CONCURRENT_DOWNLOADS: '4'
+      UV_CONCURRENT_INSTALLS: '2'
       PAYLOAD_SOURCE: ${{ inputs.source_sha }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
