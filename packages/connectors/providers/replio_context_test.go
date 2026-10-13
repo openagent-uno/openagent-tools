@@ -59,6 +59,12 @@ func assertReplioContextRequest(t *testing.T, request *http.Request) {
 	if err != nil || string(body) != replioContextRequest {
 		t.Fatal("preflight body was not the fixed read-only mcp_context call")
 	}
+	var envelope struct {
+		ID string `json:"id"`
+	}
+	if json.Unmarshal(body, &envelope) != nil || envelope.ID != "openagent-replio-context" {
+		t.Fatal("scope preflight must use the generic OpenAgent correlation identity")
+	}
 }
 
 func TestReplioContextAllowsOnlyVerifiedBroadOrganizationKeys(t *testing.T) {

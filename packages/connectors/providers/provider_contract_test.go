@@ -390,7 +390,7 @@ func TestShopifyWebhookSubscriptionsUseTypedGraphQLOnly(t *testing.T) {
 		case strings.Contains(query, "query WebhookSubscriptions"):
 			return jsonResponse(http.StatusOK, `{"data":{"webhookSubscriptions":{"nodes":[],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}`, nil), nil
 		case strings.Contains(query, "mutation WebhookSubscriptionCreate"):
-			return jsonResponse(http.StatusOK, `{"data":{"webhookSubscriptionCreate":{"webhookSubscription":{"id":"gid://shopify/WebhookSubscription/1","topic":"PRODUCTS_CREATE","uri":"https://api.glasspalace.uno/webhooks/shopify/hook_test"},"userErrors":[]}}}`, nil), nil
+			return jsonResponse(http.StatusOK, `{"data":{"webhookSubscriptionCreate":{"webhookSubscription":{"id":"gid://shopify/WebhookSubscription/1","topic":"PRODUCTS_CREATE","uri":"https://api.example.com/webhooks/shopify/hook_test"},"userErrors":[]}}}`, nil), nil
 		case strings.Contains(query, "mutation WebhookSubscriptionDelete"):
 			return jsonResponse(http.StatusOK, `{"data":{"webhookSubscriptionDelete":{"deletedWebhookSubscriptionId":"gid://shopify/WebhookSubscription/1","userErrors":[]}}}`, nil), nil
 		default:
@@ -401,7 +401,7 @@ func TestShopifyWebhookSubscriptionsUseTypedGraphQLOnly(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	callback := "https://api.glasspalace.uno/webhooks/shopify/hook_test"
+	callback := "https://api.example.com/webhooks/shopify/hook_test"
 	invocations := []struct {
 		name      string
 		arguments json.RawMessage

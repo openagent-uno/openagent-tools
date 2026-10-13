@@ -740,7 +740,7 @@ func conformanceArguments(specification OperationManifest) json.RawMessage {
 			arguments["start_history_id"] = "1"
 		case "outreach.gmail.watch":
 			arguments["body"] = map[string]any{
-				"topicName": "projects/glasspalace-test/topics/gmail-events",
+				"topicName": "projects/openagent-test/topics/gmail-events",
 				"labelIds":  []string{"INBOX"},
 			}
 		case "outreach.gmail.drafts.create":
@@ -758,7 +758,7 @@ func conformanceArguments(specification OperationManifest) json.RawMessage {
 		case "commerce.shopify.webhook_subscriptions.create":
 			arguments["variables"] = map[string]any{
 				"topic":               "PRODUCTS_CREATE",
-				"webhookSubscription": map[string]any{"uri": "https://api.glasspalace.uno/webhooks/shopify/hook_conformance"},
+				"webhookSubscription": map[string]any{"uri": "https://api.example.com/webhooks/shopify/hook_conformance"},
 			}
 		case "commerce.shopify.webhook_subscriptions.delete":
 			arguments["variables"] = map[string]any{"id": "gid://shopify/WebhookSubscription/1"}
@@ -797,7 +797,7 @@ func testInvocation(t *testing.T, manifest Manifest, operation domain.Operation,
 		externalID = "snow-globe.myshopify.com"
 		configuration = json.RawMessage(`{"shop_domain":"snow-globe.myshopify.com","theme_writes_enabled":true}`)
 	} else if manifest.Provider == "gmail" {
-		configuration = json.RawMessage(`{"gmail_topic_name":"projects/glasspalace-test/topics/gmail-events"}`)
+		configuration = json.RawMessage(`{"gmail_topic_name":"projects/openagent-test/topics/gmail-events"}`)
 	} else if manifest.Provider == "replio" {
 		configuration = json.RawMessage(`{"organization_id":"11111111-1111-4111-8111-111111111111"}`)
 		credentialValue = credentialWithSecret(t, "rpl_"+strings.Repeat("a", 48), "Authorization", "Bearer")

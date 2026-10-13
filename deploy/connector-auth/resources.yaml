@@ -33,7 +33,7 @@ spec:
       labels:
         app: connector-auth
     spec:
-      # The registry and durable bootstrap metadata live on this Mixout node.
+      # The registry and durable bootstrap metadata live on the designated infrastructure node.
       nodeSelector:
         kubernetes.io/hostname: mixout-server
       automountServiceAccountToken: false

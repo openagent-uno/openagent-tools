@@ -93,7 +93,7 @@ func TestClickUpCatalogCoversReadsWritesAndOneRawEscape(t *testing.T) {
 func TestClickUpCallsFixedDocumentedEndpoints(t *testing.T) {
 	cases := []struct{ name, args, method, path, query, body, response string }{
 		{"files.clickup.user.get", `{}`, "GET", "/api/v2/user", "", "", `{"user":{"id":1,"username":"ada"}}`},
-		{"files.clickup.workspaces.list", `{"connection_id":"conn-1","provider":"clickup"}`, "GET", "/api/v2/team", "", "", `{"teams":[{"id":"9012432693","name":"Spicy Sparks"}]}`},
+		{"files.clickup.workspaces.list", `{"connection_id":"conn-1","provider":"clickup"}`, "GET", "/api/v2/team", "", "", `{"teams":[{"id":"9012432693","name":"QA workspace"}]}`},
 		{"files.clickup.tasks.list", `{"list_id":"901200","page":2,"statuses":["to do","in progress"],"include_closed":true,"due_date_gt":1700000000000,"order_by":"due_date","custom_fields":"[{\"field_id\":\"abc\",\"operator\":\"=\",\"value\":1}]"}`, "GET", "/api/v2/list/901200/task", "custom_fields=%5B%7B%22field_id%22%3A%22abc%22%2C%22operator%22%3A%22%3D%22%2C%22value%22%3A1%7D%5D&due_date_gt=1700000000000&include_closed=true&order_by=due_date&page=2&statuses%5B%5D=to+do&statuses%5B%5D=in+progress", "", `{"tasks":[{"id":"86b1","name":"Ship it","echo":"clickup-test-secret"}]}`},
 		{"files.clickup.tasks.get", `{"task_id":"PROJ-12","custom_task_ids":true,"team_id":"9012432693"}`, "GET", "/api/v2/task/PROJ-12", "custom_task_ids=true&team_id=9012432693", "", `{"id":"86b1","custom_id":"PROJ-12"}`},
 		{"files.clickup.spaces.list", `{"team_id":9012432693,"archived":false}`, "GET", "/api/v2/team/9012432693/space", "archived=false", "", `{"spaces":[]}`},

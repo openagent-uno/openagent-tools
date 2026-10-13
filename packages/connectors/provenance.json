@@ -1,5 +1,5 @@
 {
-  "source": "GlassPalace connector-gateway",
+  "source": "original host connector-gateway extraction",
   "source_sha": "143715e85125af122e3a6dc7df7b85dac4f655b9",
   "files": {
     "internal/providers/manifest.go": "d6133a189a0bbcb8f13218a4b83ed4b41d61f56d2884b3268c3ad43c6b0458ca",
