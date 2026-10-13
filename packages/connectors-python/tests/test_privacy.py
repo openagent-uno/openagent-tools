@@ -18,6 +18,20 @@ class ProviderPrivacySchemas(unittest.TestCase):
         self.assertTrue(records[('data','customers','pageInfo')].nonpersonal)
         self.assertFalse(records[('data','customers','nodes',0)].nonpersonal)
 
+    def test_customer_update_empty_errors_are_only_a_source_bound_technical_fragment(self):
+        operation='commerce.shopify.customers.update'
+        fragments=result_fragments('shopify',operation,{'data':{'customerUpdate':{
+            'customer':{'id':'gid://shopify/Customer/23'},'userErrors':[]}}})
+        records={fragment.path:fragment.selection for fragment in fragments}
+        self.assertEqual(records[('data','customerUpdate','customer')].subjects,('customer:23',))
+        self.assertTrue(records[('data','customerUpdate','userErrors')].nonpersonal)
+        cases=(('commerce.shopify.customers.get',{'data':{'customerUpdate':{'userErrors':[]}}}),
+               (operation,{'unreviewed':{'userErrors':[]}}),
+               (operation,{'data':{'customerUpdate':{'userErrors':[{'message':'PRIVATE FAILURE'}]}}}))
+        for name,payload in cases:
+            with self.subTest(operation=name,payload=payload):
+                self.assertTrue(all(not item.selection.nonpersonal for item in result_fragments('shopify',name,payload)))
+
     def test_product_data_is_source_bound_but_not_customer_applicable(self):
         payload={'data':{'product':{'id':'gid://shopify/Product/42','title':'Inventory'}}}
         fragment=result_fragments('shopify','commerce.shopify.products.get',payload)[0]
