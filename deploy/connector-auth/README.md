@@ -39,6 +39,12 @@ A provider outage leaves valid local tokens usable. New consents and renewals re
 
 ## Qualification still required
 
+For a real-provider trial before public activation, use the explicit
+[allowlisted QA procedure](qa-enrollment.md) and reviewed provider configuration.
+It retains one writer and the registered callbacks; public readiness stays 503.
+The prepared overlay is not deployed automatically and the bootstrap image does
+not implement this gate.
+
 See the [13 October checkpoint](qualification-2026-10-13.md) for published
 documentation, current host acceptance and the isolated infrastructure test.
 

@@ -33,10 +33,15 @@
     "public shared-connector identity and provider review requirements",
     "central privacy delivery with backward compatibility for legacy installations",
     "standalone derived-content privacy export and redaction",
-    "production secret storage encryption at rest",
     "two-server real OAuth and token rotation acceptance"
   ],
   "active_version_id": "1164294258689",
   "display_name": "OpenAgent",
-  "display_name_verified_by": "Shopify CLI production config readback"
+  "display_name_verified_by": "Shopify CLI production config readback",
+  "production_secret_storage": {
+    "facility": "Kubernetes Secret",
+    "datastore_encryption": "Enabled",
+    "qualification_checkpoint": "../qualification-2026-10-13.md",
+    "qualified_at": "2026-10-13"
+  }
 }

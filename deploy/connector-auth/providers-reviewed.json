@@ -1,0 +1,71 @@
+[
+  {
+    "id": "gmail",
+    "app_id": "google:992152108114-pe90eq2hr1i1ruag482s9oje6ifg8mcn.apps.googleusercontent.com",
+    "client_id": "992152108114-pe90eq2hr1i1ruag482s9oje6ifg8mcn.apps.googleusercontent.com",
+    "secret_file": "/secrets/google-client-secret",
+    "authorization_url": "https://accounts.google.com/o/oauth2/v2/auth",
+    "token_url": "https://oauth2.googleapis.com/token",
+    "revocation_url": "https://oauth2.googleapis.com/revoke",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/gmail/callback",
+    "scopes": [
+      "https://www.googleapis.com/auth/gmail.modify",
+      "https://www.googleapis.com/auth/gmail.send"
+    ],
+    "pkce": true
+  },
+  {
+    "id": "google_drive",
+    "app_id": "google:992152108114-pe90eq2hr1i1ruag482s9oje6ifg8mcn.apps.googleusercontent.com",
+    "client_id": "992152108114-pe90eq2hr1i1ruag482s9oje6ifg8mcn.apps.googleusercontent.com",
+    "secret_file": "/secrets/google-client-secret",
+    "authorization_url": "https://accounts.google.com/o/oauth2/v2/auth",
+    "token_url": "https://oauth2.googleapis.com/token",
+    "revocation_url": "https://oauth2.googleapis.com/revoke",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/google_drive/callback",
+    "scopes": [
+      "https://www.googleapis.com/auth/drive"
+    ],
+    "pkce": true
+  },
+  {
+    "id": "google_analytics",
+    "app_id": "google:992152108114-pe90eq2hr1i1ruag482s9oje6ifg8mcn.apps.googleusercontent.com",
+    "client_id": "992152108114-pe90eq2hr1i1ruag482s9oje6ifg8mcn.apps.googleusercontent.com",
+    "secret_file": "/secrets/google-client-secret",
+    "authorization_url": "https://accounts.google.com/o/oauth2/v2/auth",
+    "token_url": "https://oauth2.googleapis.com/token",
+    "revocation_url": "https://oauth2.googleapis.com/revoke",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/google_analytics/callback",
+    "scopes": [
+      "https://www.googleapis.com/auth/analytics.readonly"
+    ],
+    "pkce": true
+  },
+  {
+    "id": "clickup",
+    "app_id": "clickup:UD5K7XJRRR6Z8BV2SIXSDUPI19P4G9HM",
+    "client_id": "UD5K7XJRRR6Z8BV2SIXSDUPI19P4G9HM",
+    "secret_file": "/secrets/clickup-client-secret",
+    "authorization_url": "https://app.clickup.com/api",
+    "token_url": "https://api.clickup.com/api/v2/oauth/token",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/clickup/callback",
+    "scopes": [],
+    "pkce": false
+  },
+  {
+    "id": "shopify",
+    "app_id": "shopify:68874486fdb4c9948bfde28959dbd671",
+    "client_id": "68874486fdb4c9948bfde28959dbd671",
+    "secret_file": "/secrets/shopify-client-secret",
+    "authorization_url": "https://{shop}/admin/oauth/authorize",
+    "token_url": "https://{shop}/admin/oauth/access_token",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/shopify/callback",
+    "scopes": [
+      "read_inventory",
+      "read_products",
+      "read_orders"
+    ],
+    "pkce": false
+  }
+]
