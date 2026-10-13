@@ -25,6 +25,20 @@ class ProviderPrivacySchemas(unittest.TestCase):
         self.assertEqual(fragment.selection.subjects,())
         self.assertTrue(fragment.selection.nonpersonal)
 
+    def test_order_records_retain_order_subject_for_provider_requested_ids(self):
+        fragments=result_fragments('shopify','commerce.shopify.orders.list',
+            {'data':{'orders':{'nodes':[{'id':'gid://shopify/Order/42'},{'id':'gid://shopify/Order/43'}]}}})
+        self.assertEqual([fragment.selection.subjects for fragment in fragments],[('order:42',),('order:43',)])
+
+    def test_traversal_is_bounded_before_json_serialization(self):
+        from unittest.mock import patch
+        payloads=({'extra':[None]*4097},{'extra':{str(index):None for index in range(4097)}},
+                  {'extra':[[None]*4096 for _ in range(20)]})
+        with patch('openagent_connectors.privacy.json.dumps',side_effect=AssertionError('serialized before bound')):
+            for payload in payloads:
+                with self.subTest(shape=type(payload['extra'])),self.assertRaises(ValueError):
+                    result_fragments('shopify','commerce.shopify.customers.list',payload)
+
     def test_unknown_provider_operation_and_extra_payload_fail_closed(self):
         with self.assertRaises(ValueError):result_fragments('custom','commerce.shopify.customers.get',{})
         unknown=result_fragments('shopify','unreviewed',{'id':'gid://shopify/Customer/23'})

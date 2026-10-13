@@ -141,17 +141,28 @@ def invocation_origin_spec(operation, arguments):
 
 
 def _validate_json(value):
+    remaining = 65_536
     def visit(node, depth=0):
+        nonlocal remaining
+        remaining -= 1
+        if remaining < 0:
+            raise ValueError("Provider JSON node count exceeds its bound")
         if depth > 60:
             raise ValueError("Provider JSON nesting exceeds its bound")
         if isinstance(node, dict):
+            if len(node) > 4096 or len(node) > remaining:
+                raise ValueError("Provider JSON object count exceeds its bound")
             if not all(isinstance(key, str) for key in node):
                 raise ValueError("Provider JSON keys must be strings")
             for child in node.values(): visit(child, depth + 1)
         elif isinstance(node, list):
+            if len(node) > 4096 or len(node) > remaining:
+                raise ValueError("Provider JSON array count exceeds its bound")
             for child in node: visit(child, depth + 1)
         elif node is not None and type(node) not in {bool, int, float, str}:
             raise ValueError("Provider payload must be plain JSON")
+        elif isinstance(node, str) and len(node) > 2 << 20:
+            raise ValueError("Provider JSON string exceeds its bound")
     visit(value)
     if len(json.dumps(value, ensure_ascii=False, allow_nan=False).encode()) > 2 << 20:
         raise ValueError("Provider JSON exceeds its bound")
