@@ -40,7 +40,7 @@ The deployment's pod readiness remains `/healthz` so the existing HTTPS callback
 works; public `/readyz` continues to announce enrollment as unavailable. Only
 allowlisted identities can create a transaction. No code-routing proxy, second
 writer, new domain, callback or provider app is introduced. Shopify QA must use a
-dedicated store with no GlassPalace or other production installation of this app:
+dedicated store with no other production installation of this app:
 acquiring an expiring token can retire another current app/store credential.
 The allowlist alone cannot prove the merchant's production usage.
 
@@ -52,7 +52,7 @@ The allowlist alone cannot prove the merchant's production usage.
 2. Build the reviewed broker commit and push a unique image, recording its digest.
    Preserve the live metadata, event key, Secret and deployment/configuration in a
    root-only consistent backup. Verify the currently active profile and single
-   writer before any Mixout command.
+   writer before any infrastructure command.
 3. Prepare files with `prepare-qa-overlay.py --provider clickup --installation
    <fingerprint> --image localhost:5000/openagent-connector-auth@sha256:<digest>
    --output <new-directory>`. The script rejects mutable images, the old bootstrap

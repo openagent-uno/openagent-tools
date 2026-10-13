@@ -136,7 +136,7 @@ func TestGmailWatchIsBoundToConfiguredTopic(t *testing.T) {
 		t.Fatalf("mismatched watch topic error=%v", err)
 	}
 	invocation.Arguments = json.RawMessage(`{
-		"body":{"topicName":"projects/glasspalace-test/topics/gmail-events","labelIds":["INBOX"]}
+		"body":{"topicName":"projects/openagent-test/topics/gmail-events","labelIds":["INBOX"]}
 	}`)
 	preview, err := adapter.Preview(invocation)
 	if err != nil {

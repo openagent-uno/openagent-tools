@@ -1,7 +1,6 @@
 {
   "provider_family": "clickup",
-  "registration_strategy": "reuse-existing-glasspalace-app",
-  "source_product": "GlassPalace",
+  "registration_strategy": "reuse-existing-provider-app",
   "reported_registration_owner": "geroale2000@gmail.com",
   "client_id": "UD5K7XJRRR6Z8BV2SIXSDUPI19P4G9HM",
   "requested_redirect_uri": "https://auth.openagent.uno/v1/oauth/clickup/callback",
@@ -11,7 +10,6 @@
   "provider_normalized_to_origin": true,
   "registration_verified_after_reload": true,
   "keep_existing_redirect_uris": false,
-  "removed_legacy_redirect_uri": "https://api.glasspalace.uno",
   "legacy_redirect_removal_authorized_by_user": true,
   "secret_reference": {
     "namespace": "openagent-connectors",
@@ -31,5 +29,6 @@
     "datastore_encryption": "Enabled",
     "qualification_checkpoint": "../qualification-2026-10-13.md",
     "qualified_at": "2026-10-13"
-  }
+  },
+  "legacy_redirect_retirement_recorded_by_operator": true
 }

@@ -17,7 +17,7 @@ Standalone integration includes current canonical main and verified Core/SQLite
 beta 20 wheels. Its 25 focused connector authorization/storage and acquisition
 checks passed without a Core overlay. The host now refuses to silently replace
 a missing encryption key when encrypted credentials or privacy events exist.
-ICS private native acceptance also verified local disconnection, removal of
+Independent host private native acceptance also verified local disconnection, removal of
 credential/nonce, full server restart and retention of the authenticated catalog.
 These are development/contract proofs, not signed native or real provider tests.
 

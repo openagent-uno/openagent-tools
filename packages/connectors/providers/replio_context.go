@@ -12,9 +12,9 @@ import (
 
 const (
 	replioContextURL      = "https://api.replio.to/mcp/"
-	replioContextID       = "glasspalace-replio-context"
+	replioContextID       = "openagent-replio-context"
 	replioContextMaxBytes = 64 << 10
-	replioContextRequest  = `{"jsonrpc":"2.0","id":"glasspalace-replio-context","method":"tools/call","params":{"name":"mcp_context","arguments":{}}}`
+	replioContextRequest  = `{"jsonrpc":"2.0","id":"openagent-replio-context","method":"tools/call","params":{"name":"mcp_context","arguments":{}}}`
 )
 
 // Replio's REST routes bind the organization, but currently do not enforce the

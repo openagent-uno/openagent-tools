@@ -15,7 +15,7 @@ BASE = Path(__file__).resolve().parent
 
 def prepare(provider, installations, shops, image, output):
     if not re.fullmatch(r"localhost:5000/openagent-connector-auth@sha256:[0-9a-f]{64}", image):
-        raise ValueError("a pinned Mixout broker image digest is required")
+        raise ValueError("a pinned broker image digest is required")
     if not 1 <= len(installations) <= 50 or len(set(installations)) != len(installations):
         raise ValueError("one to fifty distinct installation fingerprints are required")
     if any(not re.fullmatch(r"[0-9a-f]{64}", value) for value in installations):

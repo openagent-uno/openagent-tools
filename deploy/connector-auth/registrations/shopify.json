@@ -1,6 +1,6 @@
 {
   "provider_family": "shopify",
-  "registration_strategy": "reuse-existing-glasspalace-app",
+  "registration_strategy": "reuse-existing-provider-app",
   "client_id": "68874486fdb4c9948bfde28959dbd671",
   "app_id": "401590648833",
   "organization_id": "227881973",
@@ -14,10 +14,6 @@
   ],
   "optional_scopes": [
     "read_orders"
-  ],
-  "qualification_redirect_uris": [
-    "https://app.glasspalace.uno/api/v1/oauth/shopify/callback",
-    "https://auth.openagent.uno/v1/oauth/shopify/callback"
   ],
   "existing_embedded_page_preserved": true,
   "existing_webhook_delivery_preserved": true,
@@ -43,5 +39,9 @@
     "datastore_encryption": "Enabled",
     "qualification_checkpoint": "../qualification-2026-10-13.md",
     "qualified_at": "2026-10-13"
-  }
+  },
+  "qualification_shared_redirect_uris": [
+    "https://auth.openagent.uno/v1/oauth/shopify/callback"
+  ],
+  "existing_host_redirect_uris_preserved": true
 }

@@ -70,7 +70,7 @@ func TestShopifyProductListAdapterPreservesTags(t *testing.T) {
 			t.Fatal(err)
 		}
 		query = body.Query
-		return jsonResponse(http.StatusOK, `{"data":{"productsCount":{"count":1,"precision":"EXACT"},"products":{"nodes":[{"id":"gid://shopify/Product/1","title":"Gift Card","tags":["glasspalace-webhook-probe","featured"],"totalInventory":0,"tracksInventory":false}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}`, nil), nil
+		return jsonResponse(http.StatusOK, `{"data":{"productsCount":{"count":1,"precision":"EXACT"},"products":{"nodes":[{"id":"gid://shopify/Product/1","title":"Gift Card","tags":["connector-webhook-probe","featured"],"totalInventory":0,"tracksInventory":false}],"pageInfo":{"hasNextPage":false,"endCursor":null}}}}`, nil), nil
 	}))
 	if err != nil {
 		t.Fatal(err)
@@ -87,7 +87,7 @@ func TestShopifyProductListAdapterPreservesTags(t *testing.T) {
 	products := data["products"].(map[string]any)
 	product := products["nodes"].([]any)[0].(map[string]any)
 	tags, ok := product["tags"].([]any)
-	if !ok || len(tags) != 2 || tags[0] != "glasspalace-webhook-probe" || tags[1] != "featured" {
+	if !ok || len(tags) != 2 || tags[0] != "connector-webhook-probe" || tags[1] != "featured" {
 		t.Fatalf("adapter product tags=%#v", product["tags"])
 	}
 	if tracked, ok := product["tracksInventory"].(bool); !ok || tracked {
