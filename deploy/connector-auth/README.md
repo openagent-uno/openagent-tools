@@ -39,4 +39,7 @@ A provider outage leaves valid local tokens usable. New consents and renewals re
 
 ## Qualification still required
 
+See the [13 October checkpoint](qualification-2026-10-13.md) for published
+documentation, current host acceptance and the isolated infrastructure test.
+
 No public activation is justified by mocked OAuth endpoints or compiled binaries. Native Windows/Linux runtime acceptance, provider review, DNS/TLS, actual dual-server Shopify consent, and standalone privacy-content processing must be qualified before turning on common apps. Do not describe bootstrap as an operational connector release.
