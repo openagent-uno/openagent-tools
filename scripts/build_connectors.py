@@ -42,6 +42,10 @@ def main():
     if not version_match or not python_match or version_match[1] != python_match[1]:
         parser.error("Go and Python connector versions must match")
     version = version_match[1]
+    toolchain_match = re.search(r'^toolchain (go\d+\.\d+\.\d+)$', (MODULE / "go.mod").read_text(), re.MULTILINE)
+    if not toolchain_match:
+        parser.error("Pin an exact Go toolchain before building release artifacts")
+    required_toolchain = toolchain_match[1]
     sources = {}
     with tempfile.TemporaryDirectory(prefix="openagent-connectors-build-") as temporary:
         scratch = Path(temporary)
@@ -61,7 +65,10 @@ def main():
             shutil.copymode(source, target)
         module = snapshot / "packages/connectors"
         source_digest = hashlib.sha256(json.dumps(sources,sort_keys=True,separators=(",",":")).encode()).hexdigest()
-        environment = dict(os.environ, CGO_ENABLED="0", GOWORK="off")
+        environment = dict(os.environ, CGO_ENABLED="0", GOWORK="off", GOTOOLCHAIN=required_toolchain)
+        actual_toolchain = run("go", "env", "GOVERSION", cwd=module, env=environment)
+        if actual_toolchain != required_toolchain:
+            parser.error("Artifact toolchain does not match the pinned version")
         local = scratch / "catalog-runner"
         subprocess.run(["go", "build", "-trimpath", "-o", str(local), "./cmd/connector-runner"], cwd=module, env=environment, check=True)
         reply = subprocess.check_output([str(local)], input=b'{"id":"catalog","method":"catalog"}\n')
@@ -78,6 +85,7 @@ def main():
                                cwd=module, env=dict(environment, GOOS=goos, GOARCH=goarch), check=True)
                 files[f"bin/{filename}"] = binary.read_bytes()
             manifest = {"format": 1, "version": version, "platform": platform, "source_commit": commit, "source_sha256": source_digest,
+                        "go_toolchain": actual_toolchain,
                         "dirty_snapshot": dirty, "files": {name: {"sha256": hashlib.sha256(data).hexdigest(), "bytes": len(data)} for name, data in files.items()}}
             files["manifest.json"] = (json.dumps(manifest, indent=2) + "\n").encode()
             name = f"openagent-connectors-{version}-{platform}.tar.gz"
@@ -93,6 +101,7 @@ def main():
     files = {file.name: {"sha256": hashlib.sha256(file.read_bytes()).hexdigest(), "bytes": file.stat().st_size}
              for file in sorted(destination.iterdir()) if file.is_file() and not file.name.startswith(".")}
     (destination / "manifest.json").write_text(json.dumps({"format": 1, "version": version, "source_commit": commit, "source_sha256": source_digest,
+        "go_toolchain": actual_toolchain,
         "dirty_snapshot": dirty, "release_status": "development-unqualified", "files": files}, indent=2) + "\n")
     files["manifest.json"] = {"sha256": hashlib.sha256((destination / "manifest.json").read_bytes()).hexdigest()}
     (destination / "SHA256SUMS").write_text("".join(f'{data["sha256"]}  {name}\n' for name, data in files.items()))
