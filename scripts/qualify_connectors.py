@@ -156,11 +156,20 @@ def qualify(directory, tests, vet, vulnerability, artifact_receipt, consumer_rec
             require(receipt["real_provider_grants"] == 0 and receipt["production_secret_reads"] == 0, "unexpected real-provider evidence")
         receipts[kind] = record
     payloads = {name: dict(value) for name, value in manifest["files"].items()}
+    qualifier_path = Path(__file__).resolve().relative_to(ROOT).as_posix()
+    qualifier_commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    qualifier_body = Path(__file__).read_bytes()
+    committed_qualifier = subprocess.check_output(["git", "show", qualifier_commit + ":" + qualifier_path], cwd=ROOT)
+    require(committed_qualifier == qualifier_body, "qualification tool is not committed")
+    require(not subprocess.check_output(["git", "status", "--porcelain"], cwd=ROOT).strip(), "qualification tool checkout is not clean")
     attestation = {
         "format": 1, "status": STATUS, "version": manifest["version"],
         "source_commit": manifest["source_commit"], "source_sha256": manifest["source_sha256"],
         "go_toolchain": manifest["go_toolchain"], "payloads": payloads,
-        "qualifier_sha256": digest(Path(__file__).read_bytes()),
+        "qualifier_sha256": digest(qualifier_body),
+        "qualifier_source_commit": qualifier_commit,
+        "qualifier_source_path": qualifier_path,
+        "qualifier_source_url": "https://github.com/openagent-uno/openagent-tools/blob/" + qualifier_commit + "/" + qualifier_path,
         "checks": {"platform_bundles": 6, "compiled_binaries": 12, "payload_checksums": "verified", "race_tests": "passed", "vet": "passed", "govulncheck": {"tool": "v1.6.0", "database": "https://vuln.go.dev", "result": "no vulnerabilities found"}},
         "evidence": {"logs": logs, "receipts": receipts},
         "coverage": {"native_runtime": ["darwin-arm64 smoke"], "other_platforms": "cross-compilation and checksum/toolchain verification only", "mcp": "published adapter/protocol import smoke; full host transport acceptance separate"},
