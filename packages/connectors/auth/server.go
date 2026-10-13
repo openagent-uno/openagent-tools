@@ -1135,7 +1135,8 @@ func (s *Server) bindTokenInState(state *State, binding TokenBinding, token oaut
 		}
 		hash := s.tokenHash(token.AppID, binding.Provider, raw)
 		if old, exists := state.TokenBindings[hash]; exists {
-			if old.Revoked || old.Installation != binding.Installation || old.Provider != binding.Provider || old.AppID != binding.AppID || !sameScopes(old.Scopes, binding.Scopes) {
+			if old.Revoked || old.Installation != binding.Installation || old.Provider != binding.Provider || old.AppID != binding.AppID ||
+				freshConsent && !sameScopes(old.Scopes, binding.Scopes) || !freshConsent && !scopeSubset(binding.Scopes, old.Scopes) {
 				return ErrDenied
 			}
 			if !freshConsent && !sameGrant(binding, old) || existing != nil && !sameGrant(*existing, old) {
@@ -1156,12 +1157,25 @@ func (s *Server) bindTokenInState(state *State, binding TokenBinding, token oaut
 func (s *Server) bindRefreshedToken(installation, provider, previous string, expected TokenBinding, token oauth.Token) error {
 	return s.Store.update(func(state *State) error {
 		current, exists := state.TokenBindings[s.tokenHash(token.AppID, provider, previous)]
-		if !exists || current.Revoked || !sameGrant(current, expected) || current.Installation != installation || current.Provider != provider {
+		if !exists || current.Revoked || !sameGrant(current, expected) || !sameScopes(current.Scopes, expected.Scopes) || current.Installation != installation || current.Provider != provider {
 			return ErrDenied
 		}
 		current.Scopes = token.Scopes
 		return s.bindTokenInState(state, current, token, false)
 	})
+}
+func scopeSubset(requested, allowed []string) bool {
+	known := map[string]bool{}
+	for _, scope := range allowed {
+		known[scope] = true
+	}
+	for _, scope := range requested {
+		if !known[scope] {
+			return false
+		}
+		delete(known, scope)
+	}
+	return true
 }
 func sameScopes(a, b []string) bool {
 	if len(a) != len(b) {

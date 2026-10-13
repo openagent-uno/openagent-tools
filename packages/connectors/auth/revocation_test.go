@@ -151,6 +151,43 @@ func TestTokenBindingCannotMoveToAnotherInstallation(t *testing.T) {
 	}
 }
 
+func TestRefreshScopeReductionRetainsRevocationGrant(t *testing.T) {
+	f := newFixture(t)
+	c := f.client(t, "A")
+	token := nonShopifyGrant(t, f, c)
+	token.AccessToken, token.RefreshToken = "both-scope-access", "both-scope-refresh"
+	token.Scopes = append(token.Scopes, "https://www.googleapis.com/auth/gmail.send")
+	p := f.server.Providers["gmail"]
+	p.Scopes = token.Scopes
+	f.server.Providers["gmail"] = p
+	if err := f.server.bindToken(c.Identity.ID(), "gmail", token); err != nil {
+		t.Fatal(err)
+	}
+	f.server.Engine.Client = doerFunc(func(req *http.Request) (*http.Response, error) {
+		if req.URL.Path == "/revoke" {
+			return fixtureResponse(200, `{}`), nil
+		}
+		return fixtureResponse(200, `{"access_token":"reduced-access","expires_in":3600,"scope":"https://www.googleapis.com/auth/gmail.modify"}`), nil
+	})
+	ctx := context.Background()
+	refreshed, err := c.Refresh(ctx, "gmail", token)
+	if err != nil || refreshed.Token.RefreshToken != token.RefreshToken || len(refreshed.Token.Scopes) != 1 {
+		t.Fatal("reduced scope refresh failed", err)
+	}
+	if _, err := c.Refresh(ctx, "gmail", token); err == nil {
+		t.Fatal("old wider scope binding remained active")
+	}
+	if _, err := c.Refresh(ctx, "gmail", refreshed.Token); err != nil {
+		t.Fatal("retained refresh token lost the new scopes", err)
+	}
+	if err := revokeGrant(ctx, c, token); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := c.Refresh(ctx, "gmail", refreshed.Token); err == nil {
+		t.Fatal("scope reduction lost the grant revocation fence")
+	}
+}
+
 func TestShopifyUninstallFencesInFlightRotation(t *testing.T) {
 	f := newFixture(t)
 	c := f.client(t, "A")
