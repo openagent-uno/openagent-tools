@@ -57,6 +57,19 @@ Reviewed `--legacy-shopify-webhooks` routes preserve the existing app's product 
 
 Run `GOWORK=off go test -race ./...` inside this module. Build artifacts with `python3 scripts/build_connectors.py --out <empty-directory>` at the Tools repository root. The builder snapshots all tracked/nonignored sources once, records source digests, cross-compiles runner and broker for macOS/Linux/Windows arm64/x64 and creates the Python wheel, catalog, manifest and `SHA256SUMS`. Dirty sources require explicit `--allow-dirty` and produce unqualified artifacts. After publication, the Go module tag is `packages/connectors/v0.1.3`; binaries use the matching version. Verify both archive and extracted binary checksums. Cross-compilation is not native OS qualification.
 
+## Host-owned privacy binding
+
+The Python adapter includes the pure `openagent_connectors.privacy` helper.
+`result_fragments("shopify", operation_id, provider_json)` selects reviewed
+provider records independently; `invocation_selection("shopify", operation_id,
+arguments)` classifies the compiled operation's inputs before host persistence.
+These functions return schema paths, subject selectors and explicit nonpersonal
+classifications, not identities or consent. The trusted host must bind every
+selection to its verified app, installation, tenant, shop and authorization.
+Unknown subject data stays unknown; an unsupported provider is rejected.
+The helper has no Core dependency and does not enable Shopify enrollment or
+supply a storage/export/redaction implementation.
+
 ## Optional own apps
 
 The standalone accepts a host-owned `connectors.oauth_providers_file` containing an array of the same provider descriptors. Google, ClickUp and Postiz own-app callbacks bind only to explicit `http://127.0.0.1:<port>/<path>` URLs registered with that provider. The runner handles state, PKCE, single-use exchange and issuer-bound renewal locally; central availability is irrelevant for these credentials. Secret files remain on the user's server and never become tool arguments. Protect configuration/key files and reserve unique callback ports when multiple agents use own-app flows on one machine. Shopify own apps that serve several servers use a separately configured instance of the broker, preserving the same group coordination. Host-owned app setup remains compatible with its existing callbacks.
