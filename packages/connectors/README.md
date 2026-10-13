@@ -75,3 +75,15 @@ supply a storage/export/redaction implementation.
 The standalone accepts a host-owned `connectors.oauth_providers_file` containing an array of the same provider descriptors. Google, ClickUp and Postiz own-app callbacks bind only to explicit `http://127.0.0.1:<port>/<path>` URLs registered with that provider. The runner handles state, PKCE, single-use exchange and issuer-bound renewal locally; central availability is irrelevant for these credentials. Secret files remain on the user's server and never become tool arguments. Protect configuration/key files and reserve unique callback ports when multiple agents use own-app flows on one machine. Shopify own apps that serve several servers use a separately configured instance of the broker, preserving the same group coordination. Host-owned app setup remains compatible with its existing callbacks.
 
 See [deployment and activation](../../deploy/connector-auth/README.md). Provider activation and real merchant/user acceptance remain separate from code/build tests.
+
+## Remote qualification staging
+
+The manual `Qualify shared connectors` Actions workflow accepts a reviewed full
+source SHA and runs one standard hosted macOS ARM64 job. Builds and tests run
+sequentially with Go 1.26.9, `GOMAXPROCS=2` and `-p=1`; no credentials, provider
+grants, tags or releases are created. It verifies all six bundles, installs the
+SDK normally with the checksum-verified public beta 38/Core 21/Tools dependency
+closure, exercises the installed public host's acquisition contract, and runs
+native macOS runner/broker fixtures. Windows/Linux remain cross-compilation
+only. Artifacts and evidence stay in workflow staging pending operator review.
+The legacy public host keeps its existing SDK pin in a separate environment.
