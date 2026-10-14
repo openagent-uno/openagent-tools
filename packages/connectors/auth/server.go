@@ -373,6 +373,9 @@ func (s *Server) authorize(w http.ResponseWriter, r *http.Request) {
 		tx.csrf = csrf
 		s.mu.Unlock()
 		http.SetCookie(w, &http.Cookie{Name: "oa_connector_consent", Value: csrf, Path: "/authorize/" + id, HttpOnly: true, Secure: !s.Engine.AllowLoopback, SameSite: http.SameSiteLaxMode, MaxAge: 600})
+		// A no-referrer form submission sends Origin: null. Retain the
+		// same-origin POST fence without exposing the consent URL to providers.
+		w.Header().Set("Referrer-Policy", "same-origin")
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		_ = consentPage.Execute(w, map[string]string{"Name": installation.Name, "Product": installation.Product, "Provider": copy.Provider, "Shop": copy.Shop, "CSRF": csrf, "Installation": installation.ID, "Scopes": strings.Join(copy.Scopes, ", ")})
 		return

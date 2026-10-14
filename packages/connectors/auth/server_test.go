@@ -92,6 +92,9 @@ func (f *fixture) approval(t *testing.T, c *Client) (Transaction, string) {
 	}
 	_, _ = io.Copy(io.Discard, page.Body)
 	_ = page.Body.Close()
+	if page.Header.Get("Referrer-Policy") != "same-origin" {
+		t.Fatal("disclosure must preserve the browser's same-origin form Origin")
+	}
 	cookies := page.Cookies()
 	if len(cookies) != 1 {
 		t.Fatal("missing consent cookie")
@@ -112,6 +115,9 @@ func (f *fixture) approval(t *testing.T, c *Client) (Transaction, string) {
 	}
 	if consent.StatusCode != 200 || consent.Header.Get("Location") != "" {
 		t.Fatalf("consent status %d", consent.StatusCode)
+	}
+	if consent.Header.Get("Referrer-Policy") != "no-referrer" {
+		t.Fatal("provider navigation must not disclose the consent URL")
 	}
 	launch := providerLink(t, string(body))
 	return tx, launch.Query().Get("state")

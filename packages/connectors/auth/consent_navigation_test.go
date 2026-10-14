@@ -79,7 +79,7 @@ func TestConsentUsesExplicitProviderNavigationWithUnchangedCSP(t *testing.T) {
 }
 
 func TestProviderNavigationKeepsConsentCSRFAndOriginFences(t *testing.T) {
-	for _, scenario := range []string{"missing cookie", "wrong cookie", "wrong csrf", "wrong origin"} {
+	for _, scenario := range []string{"missing cookie", "wrong cookie", "wrong csrf", "wrong origin", "null origin", "missing origin"} {
 		t.Run(scenario, func(t *testing.T) {
 			f, tx, cookie := clickUpConsent(t)
 			csrf, origin := cookie.Value, f.http.URL
@@ -92,6 +92,10 @@ func TestProviderNavigationKeepsConsentCSRFAndOriginFences(t *testing.T) {
 				csrf = "other-form"
 			case "wrong origin":
 				origin = "https://other.example"
+			case "null origin":
+				origin = "null"
+			case "missing origin":
+				origin = ""
 			}
 			response, body := postConsent(t, f, tx, cookie, csrf, origin)
 			if response.StatusCode != 403 || strings.Contains(body, "<a href=") {
