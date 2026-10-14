@@ -45,7 +45,9 @@ It retains one writer and the registered callbacks; public readiness stays 503.
 The prepared overlay is not deployed automatically and the bootstrap image does
 not implement this gate.
 
-See the [13 October checkpoint](qualification-2026-10-13.md) for published
-documentation, current host acceptance and the isolated infrastructure test.
+See the [14 October checkpoint](qualification-2026-10-14.md) for auth-only
+`0.1.6`, the real allowlisted standalone ClickUp trial and remaining activation
+gates. The [13 October checkpoint](qualification-2026-10-13.md) retains the
+earlier isolated infrastructure and bootstrap admission evidence.
 
 No public activation is justified by mocked OAuth endpoints or compiled binaries. Native Windows/Linux runtime acceptance, provider review, DNS/TLS, actual dual-server Shopify consent, and standalone privacy-content processing must be qualified before turning on common apps. Do not describe bootstrap as an operational connector release.

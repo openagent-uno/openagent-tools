@@ -20,9 +20,9 @@
   "source_credentials_rotated": false,
   "broker_enabled": false,
   "qualification_pending": [
-    "full callback path acceptance in a real OAuth flow",
     "public identity review",
-    "real end-to-end acceptance in the receiving products"
+    "native App and other receiving-host acceptance",
+    "public enrollment capacity qualification"
   ],
   "production_secret_storage": {
     "facility": "Kubernetes Secret",
@@ -30,5 +30,17 @@
     "qualification_checkpoint": "../qualification-2026-10-13.md",
     "qualified_at": "2026-10-13"
   },
-  "legacy_redirect_retirement_recorded_by_operator": true
+  "legacy_redirect_retirement_recorded_by_operator": true,
+  "broker_qa_enabled": true,
+  "real_standalone_qualification": {
+    "recorded_at": "2026-10-14",
+    "auth_version": "0.1.6",
+    "product_version": "1.1.0-beta.39",
+    "oauth_callback": "passed",
+    "read": "passed",
+    "reversible_qa_write_cleanup": "passed",
+    "restart_read": "passed",
+    "local_disconnect": "passed",
+    "checkpoint": "../qualification-2026-10-14.md"
+  }
 }
