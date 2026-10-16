@@ -1,5 +1,10 @@
 # Independent OpenAgent tools
 
+The [ChatGPT app inventory and connector coverage](chatgpt-app-coverage.md)
+records all publicly observed category cards, the editorial Popular order and
+the API/MCP research backlog. Implementation, registration, published artifacts
+and real provider qualification are recorded separately.
+
 The public capability guide is at
 [openagent.uno](https://openagent.uno/guide/mcp); this repository remains the
 canonical source for package contracts, provenance and verification evidence.

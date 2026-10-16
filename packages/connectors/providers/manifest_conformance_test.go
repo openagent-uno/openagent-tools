@@ -77,7 +77,7 @@ func TestBuiltInManifestConformance(t *testing.T) {
 				}
 			}
 			wantRaw := 1
-			if manifest.ReadOnly {
+			if manifest.ReadOnly || manifest.TypedOnly {
 				wantRaw = 0
 			}
 			if rawCount != wantRaw {
@@ -129,7 +129,7 @@ func TestProviderSetupAndUploadCopyIsNeutralAndExact(t *testing.T) {
 func TestRawEscapesRejectURLOriginVersionMethodAndCredentialOverrides(t *testing.T) {
 	t.Parallel()
 	for _, manifest := range Manifests() {
-		if manifest.ReadOnly {
+		if manifest.ReadOnly || manifest.TypedOnly {
 			continue // Read-only providers intentionally offer no raw operation.
 		}
 		manifest := manifest
@@ -684,6 +684,25 @@ func TestFixedOriginsRejectInternalAndAmbiguousHosts(t *testing.T) {
 }
 
 func conformanceArguments(specification OperationManifest) json.RawMessage {
+	if strings.HasPrefix(specification.Name, "files.notion.") {
+		id := "b55c9c91-384d-452b-81db-d1ef79372b75"
+		arguments := map[string]any{}
+		for _, match := range pathTemplatePattern.FindAllStringSubmatch(specification.Path, -1) {
+			arguments[match[1]] = id
+		}
+		switch specification.Name {
+		case "files.notion.search":
+			arguments["body"] = map[string]any{}
+		case "files.notion.pages.create":
+			arguments["body"] = map[string]any{"parent": map[string]any{"page_id": id}, "properties": map[string]any{"title": map[string]any{"title": []any{map[string]any{"type": "text", "text": map[string]any{"content": "Conformance"}}}}}}
+		case "files.notion.pages.update":
+			arguments["body"] = map[string]any{"properties": map[string]any{"title": map[string]any{"title": []any{map[string]any{"type": "text", "text": map[string]any{"content": "Conformance"}}}}}}
+		case "files.notion.blocks.children.append":
+			arguments["body"] = map[string]any{"children": []any{map[string]any{"type": "paragraph", "paragraph": map[string]any{"rich_text": []any{map[string]any{"type": "text", "text": map[string]any{"content": "Conformance"}}}}}}}
+		}
+		data, _ := json.Marshal(arguments)
+		return data
+	}
 	arguments := map[string]any{}
 	if specification.Raw != nil {
 		path := specification.Raw.PathPrefixes[0]
@@ -710,6 +729,33 @@ func conformanceArguments(specification OperationManifest) json.RawMessage {
 				arguments[required] = map[string]any{}
 			} else {
 				arguments[required] = "resource-1"
+			}
+		}
+		if strings.HasPrefix(specification.Name, "files.github.") {
+			for _, name := range []string{"owner", "username"} {
+				if _, exists := arguments[name]; exists {
+					arguments[name] = "octocat"
+				}
+			}
+			if _, exists := arguments["repo"]; exists {
+				arguments["repo"] = "hello-world"
+			}
+			for _, name := range []string{"issue_number", "pull_number"} {
+				if _, exists := arguments[name]; exists {
+					arguments[name] = 1
+				}
+			}
+			for _, name := range []string{"tree_sha", "file_sha", "commit_sha"} {
+				if _, exists := arguments[name]; exists {
+					arguments[name] = strings.Repeat("a", 40)
+				}
+			}
+			if specification.Body == BodyJSON {
+				if specification.Name == "files.github.issue_comments.create" {
+					arguments["body"] = map[string]any{"body": "Conformance comment"}
+				} else {
+					arguments["body"] = map[string]any{"title": "Conformance issue"}
+				}
 			}
 		}
 		switch specification.Name {

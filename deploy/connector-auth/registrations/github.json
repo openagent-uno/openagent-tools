@@ -1,0 +1,45 @@
+{
+  "provider_family": "github",
+  "registration_strategy": "new-github-app-user-oauth",
+  "registration_owner": "geroale",
+  "reported_registration_owner": "geroale2000@gmail.com",
+  "registered_at": "2026-10-16",
+  "display_name": "OpenAgent Connectors",
+  "provider_app_id": 5345616,
+  "client_id": "Iv23lis9sNxlYnR2B6lZ",
+  "public_url": "https://github.com/apps/openagent-connectors",
+  "registered_redirect_uris": [
+    "https://auth.openagent.uno/v1/oauth/github/callback"
+  ],
+  "repository_permissions": {
+    "contents": "read",
+    "metadata": "read",
+    "issues": "write",
+    "pull_requests": "read"
+  },
+  "account_permissions": {},
+  "organization_permissions": {},
+  "oauth_scopes": [],
+  "pkce": true,
+  "expiring_user_tokens": true,
+  "webhooks_enabled": false,
+  "broker_enabled": false,
+  "secret_reference": {
+    "namespace": "openagent-connectors",
+    "name": "connector-auth-secrets",
+    "key": "github-client-secret",
+    "mount_path": "/secrets/github-client-secret"
+  },
+  "qualification_pending": [
+    "GitHub App installation with explicit repository selection",
+    "real user OAuth, read, authorized reversible write, refresh and disconnect",
+    "qualified connector release and consumer adoption"
+  ],
+  "private_key_reference": {
+    "namespace": "openagent-connectors",
+    "name": "connector-github-app-private-key",
+    "key": "private-key.pem",
+    "mounted_in_broker": false,
+    "provider_fingerprint_verified": true
+  }
+}

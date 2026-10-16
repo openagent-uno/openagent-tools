@@ -79,6 +79,11 @@ func (e Engine) ValidateConfiguration(p Provider) error {
 	if p.ID == "" || p.AppID == "" || p.ClientID == "" || !approvedScopes(p, p.Scopes) {
 		return ErrAuthentication
 	}
+	// Notion capabilities are configured on the registered connection and the
+	// user selects pages during consent; they are not OAuth scope strings.
+	if p.ID == "notion" && (len(p.Scopes) != 0 || p.PKCE) {
+		return ErrAuthentication
+	}
 	if _, err := secret(p); err != nil {
 		return err
 	}
@@ -127,6 +132,9 @@ func (e Engine) Authorize(p Provider, state, challenge, shop string, scopes []st
 	if state == "" || p.AppID == "" || p.ClientID == "" || !approvedScopes(p, scopes) {
 		return "", ErrAuthentication
 	}
+	if p.ID == "notion" && (len(scopes) != 0 || p.PKCE) {
+		return "", ErrAuthentication
+	}
 	u, err := e.target(p, p.AuthorizationURL, shop)
 	if err != nil {
 		return "", err
@@ -140,6 +148,9 @@ func (e Engine) Authorize(p Provider, state, challenge, shop string, scopes []st
 	}
 	if p.ID != "clickup" {
 		q.Set("response_type", "code")
+	}
+	if p.ID == "notion" {
+		q.Set("owner", "user")
 	}
 	if len(scopes) > 0 && p.ID != "shopify" {
 		q.Set("scope", strings.Join(scopes, " "))
@@ -184,6 +195,8 @@ func (e Engine) Exchange(ctx context.Context, p Provider, code, verifier, shop s
 		fields.Del("grant_type")
 	} else if p.ID == "postiz" {
 		fields.Del("redirect_uri")
+	} else if p.ID == "github" {
+		fields.Del("grant_type")
 	}
 	if p.PKCE {
 		if verifier == "" {
@@ -259,6 +272,9 @@ func (e Engine) Refresh(ctx context.Context, p Provider, refresh, shop string, s
 	return e.request(ctx, p, shop, url.Values{"grant_type": {"refresh_token"}, "refresh_token": {refresh}}, scopes, refresh)
 }
 func (e Engine) request(ctx context.Context, p Provider, shop string, fields url.Values, scopes []string, previous string) (Token, error) {
+	if p.ID == "notion" && (len(scopes) != 0 || p.PKCE) {
+		return Token{}, ErrAuthentication
+	}
 	u, err := e.target(p, p.TokenURL, shop)
 	if err != nil {
 		return Token{}, err
@@ -269,9 +285,13 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	}
 	fields.Set("client_id", p.ClientID)
 	fields.Set("client_secret", s)
+	if p.ID == "notion" {
+		fields.Del("client_id")
+		fields.Del("client_secret")
+	}
 	var body io.Reader
 	contentType := "application/x-www-form-urlencoded"
-	if p.ID == "clickup" || p.ID == "postiz" {
+	if p.ID == "clickup" || p.ID == "postiz" || p.ID == "notion" {
 		m := map[string]string{}
 		for k, v := range fields {
 			m[k] = v[0]
@@ -287,6 +307,12 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 		return Token{}, ErrAuthentication
 	}
 	req.Header.Set("Content-Type", contentType)
+	// GitHub defaults to a form-encoded response unless JSON is requested.
+	req.Header.Set("Accept", "application/json")
+	if p.ID == "notion" {
+		req.SetBasicAuth(p.ClientID, s)
+		req.Header.Set("Notion-Version", "2026-03-11")
+	}
 	client := e.Client
 	if client == nil {
 		client = &http.Client{Timeout: 20 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}

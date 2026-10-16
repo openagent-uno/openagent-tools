@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 
 	"github.com/openagent-uno/openagent-tools/packages/connectors/domain"
 )
@@ -169,6 +170,13 @@ func (a *HTTPAdapter) Invoke(ctx context.Context, invocation domain.Invocation) 
 		}
 		request.Header.Set("Accept", "application/json, application/octet-stream;q=0.9, */*;q=0.8")
 		request.Header.Set("User-Agent", "OpenAgent-Connector/1.0")
+		if a.manifest.Provider == "github" {
+			request.Header.Set("Accept", "application/vnd.github+json")
+			request.Header.Set("X-GitHub-Api-Version", GitHubAPIVersion)
+		}
+		if a.manifest.Provider == "notion" {
+			request.Header.Set("Notion-Version", notionAPIVersion)
+		}
 		if len(plan.body) > 0 {
 			request.Header.Set("Content-Type", plan.contentType)
 		}
@@ -297,6 +305,16 @@ func (a *HTTPAdapter) buildPlan(invocation domain.Invocation) (requestPlan, erro
 	}
 	if a.manifest.Provider == "clickup" {
 		if err := validateClickUpArguments(operation, arguments); err != nil {
+			return requestPlan{}, err
+		}
+	}
+	if a.manifest.Provider == "github" {
+		if err := validateGitHubArguments(operation, arguments); err != nil {
+			return requestPlan{}, err
+		}
+	}
+	if a.manifest.Provider == "notion" {
+		if err := validateNotionArguments(operation, arguments); err != nil {
 			return requestPlan{}, err
 		}
 	}
@@ -579,12 +597,31 @@ func decodeArguments(raw json.RawMessage, maximum int64) (map[string]json.RawMes
 	if len(bytes.TrimSpace(raw)) == 0 {
 		return map[string]json.RawMessage{}, nil
 	}
-	if int64(len(raw)) > maximum || !json.Valid(raw) {
+	if int64(len(raw)) > maximum || !utf8.Valid(raw) || !json.Valid(raw) {
 		return nil, domain.ErrInvalidArguments
 	}
-	var result map[string]json.RawMessage
 	decoder := json.NewDecoder(bytes.NewReader(raw))
-	if decoder.Decode(&result) != nil || result == nil || decoder.Decode(&struct{}{}) != io.EOF {
+	token, err := decoder.Token()
+	if err != nil || token != json.Delim('{') {
+		return nil, domain.ErrInvalidArguments
+	}
+	result := map[string]json.RawMessage{}
+	for decoder.More() {
+		token, err = decoder.Token()
+		key, ok := token.(string)
+		if err != nil || !ok {
+			return nil, domain.ErrInvalidArguments
+		}
+		if _, duplicate := result[key]; duplicate {
+			return nil, domain.ErrInvalidArguments
+		}
+		var value json.RawMessage
+		if decoder.Decode(&value) != nil {
+			return nil, domain.ErrInvalidArguments
+		}
+		result[key] = value
+	}
+	if token, err = decoder.Token(); err != nil || token != json.Delim('}') || decoder.Decode(&struct{}{}) != io.EOF {
 		return nil, domain.ErrInvalidArguments
 	}
 	return result, nil

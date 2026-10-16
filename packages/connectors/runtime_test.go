@@ -64,10 +64,71 @@ func TestRuntimeBindsCatalogPermissionsAndLocalExecution(t *testing.T) {
 		t.Fatal("denied call reached provider")
 	}
 	for _, item := range Catalog() {
-		if item.ID == "github" || item.ID == "slack-import" {
+		if item.ID == "slack-import" {
 			if item.Available {
 				t.Fatal("placeholder declared implemented")
 			}
 		}
+	}
+}
+
+func TestWorkspaceConnectorsUseHostCredentialsAndWriteAuthorization(t *testing.T) {
+	for _, tc := range []struct {
+		id, read, write, host string
+	}{
+		{"github", "files.github.repositories.list", "files.github.issues.create", "api.github.com"},
+		{"notion", "files.notion.users.list", "files.notion.pages.create", "api.notion.com"},
+	} {
+		t.Run(tc.id, func(t *testing.T) {
+			d := &localDoer{}
+			runtime, err := NewRuntime(d)
+			if err != nil {
+				t.Fatal(err)
+			}
+			item, ok := Lookup(tc.id)
+			if !ok || !item.Available || item.Auth != "oauth" {
+				t.Fatal("implemented OAuth connector missing from catalog")
+			}
+			binding := Binding{CatalogID: tc.id, Principal: domain.Principal{WorkspaceID: "workspace-a", ActorID: "owner"},
+				Connection: domain.Connection{ID: "held-connection", WorkspaceID: "workspace-a", Provider: item.Provider, Capability: domain.Files, Enabled: true, Config: json.RawMessage(`{}`)}}
+			tools, err := runtime.Tools(binding)
+			if err != nil || len(tools) != len(item.ReadTools) {
+				t.Fatalf("read-only discovery: %v", err)
+			}
+			for _, tool := range tools {
+				if tool.Risk != domain.RiskRead {
+					t.Fatal("write exposed without host authorization")
+				}
+			}
+			var credential domain.Credential
+			if err := json.Unmarshal([]byte(`{"kind":"oauth2_bearer","secret":"host-held-token","header":"Authorization","scheme":"Bearer","version":"1"}`), &credential); err != nil {
+				t.Fatal(err)
+			}
+			call := Call{Binding: binding, Credential: credential, InvocationID: "read-once", Tool: tc.read, Arguments: json.RawMessage(`{}`)}
+			if _, err := runtime.Invoke(context.Background(), call); err != nil {
+				t.Fatal(err)
+			}
+			if d.calls != 1 || d.request.URL.Host != tc.host || d.request.Header.Get("Authorization") != "Bearer host-held-token" {
+				t.Fatal("provider request did not use host transport and local credential")
+			}
+			call.Arguments = json.RawMessage(`{"connection_id":"another-connection"}`)
+			if _, err := runtime.Invoke(context.Background(), call); err == nil {
+				t.Fatal("argument selected another connection")
+			}
+			call.Arguments = json.RawMessage(`{}`)
+			call.Tool = tc.write
+			if _, err := runtime.Invoke(context.Background(), call); err == nil || d.calls != 1 {
+				t.Fatal("unauthorized write reached the provider")
+			}
+			binding.AllowWrite = true
+			tools, err = runtime.Tools(binding)
+			if err != nil || len(tools) != len(item.ReadTools)+len(item.AgentTools) {
+				t.Fatalf("explicit write authorization did not expose declared tools: %v", err)
+			}
+			binding.Connection.WorkspaceID = "workspace-b"
+			if _, err := runtime.Tools(binding); err == nil {
+				t.Fatal("cross-workspace binding accepted")
+			}
+		})
 	}
 }

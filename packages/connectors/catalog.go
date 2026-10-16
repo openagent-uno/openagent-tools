@@ -2,7 +2,7 @@ package connectors
 
 import "encoding/json"
 
-const Version = "0.1.3"
+const Version = "0.1.4"
 
 type Item struct {
 	ID                string   `json:"id"`
@@ -33,7 +33,17 @@ var catalogEntries = []CatalogEntry{
 	{Item: Item{
 		ID: "github", Name: "GitHub", Description: "Browse repositories, issues and pull requests.",
 		Category: "Developer", Auth: "oauth", Icon: "github", Capability: "files", Provider: "github",
-		ReadTools: []string{}, AgentTools: []string{},
+		ReadTools: []string{"files.github.user.get", "files.github.repositories.list", "files.github.repositories.user.list", "files.github.repositories.get",
+			"files.github.repositories.branches.list", "files.github.git.commits.get", "files.github.git.trees.get", "files.github.git.blobs.get",
+			"files.github.issues.list", "files.github.issues.get", "files.github.issue_comments.list",
+			"files.github.pulls.list", "files.github.pulls.get", "files.github.pulls.files.list"},
+		AgentTools: []string{"files.github.issues.create", "files.github.issues.update", "files.github.issue_comments.create"},
+	}},
+	{Item: Item{
+		ID: "notion", Name: "Notion", Description: "Search shared pages and data sources, read pages and blocks, and create or edit authorized content.",
+		Category: "Productivity", Auth: "oauth", Icon: "notion", Capability: "files", Provider: "notion",
+		ReadTools:  []string{"files.notion.search", "files.notion.pages.get", "files.notion.blocks.children.list", "files.notion.users.get", "files.notion.users.list"},
+		AgentTools: []string{"files.notion.pages.create", "files.notion.pages.update", "files.notion.blocks.children.append"},
 	}},
 	{Item: Item{
 		ID: "slack-import", Name: "Slack import", Description: "Bring selected Slack conversations into a workspace.",

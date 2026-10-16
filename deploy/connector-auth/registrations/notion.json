@@ -1,0 +1,33 @@
+{
+  "provider_family": "notion",
+  "registration_strategy": "new-public-oauth-connection",
+  "reported_registration_owner": "geroale2000@gmail.com",
+  "registered_at": "2026-10-16",
+  "display_name": "OpenAgent",
+  "client_id": "3fbd872b-594c-8157-8fb9-0037e6a6efb2",
+  "registered_redirect_uris": [
+    "https://auth.openagent.uno/v1/oauth/notion/callback"
+  ],
+  "installation_scope": "any-workspace",
+  "marketplace_listing": "unpublished",
+  "content_capabilities": ["read", "update", "insert"],
+  "user_information": "without-email-addresses",
+  "comment_capabilities": [],
+  "oauth_scopes": [],
+  "pkce": false,
+  "token_authentication": "client-secret-basic",
+  "token_encoding": "application/json",
+  "api_version": "2026-03-11",
+  "broker_enabled": false,
+  "secret_reference": {
+    "namespace": "openagent-connectors",
+    "name": "connector-auth-secrets",
+    "key": "notion-client-secret",
+    "mount_path": "/secrets/notion-client-secret"
+  },
+  "qualification_pending": [
+    "real consent with explicit page selection",
+    "read, authorized reversible write, refresh and disconnect",
+    "qualified connector release and consumer adoption"
+  ]
+}

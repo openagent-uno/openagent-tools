@@ -124,6 +124,8 @@ type Manifest struct {
 	Operations       []OperationManifest
 	// ReadOnly manifests deliberately expose no raw escape hatch or mutations.
 	ReadOnly bool
+	// TypedOnly manifests may include writes but never expose raw requests.
+	TypedOnly bool
 }
 
 type FeatureFlagDefinition struct {
@@ -227,10 +229,13 @@ func (m Manifest) validate() error {
 			return fmt.Errorf("operation %s: Drive upload body is bound to a fixed Drive upload endpoint", operation.Name)
 		}
 		if operation.Raw != nil {
+			if m.TypedOnly {
+				return errors.New("typed-only manifests cannot expose raw operations")
+			}
 			rawCount++
 		}
 	}
-	if !m.ReadOnly && rawCount != 1 {
+	if !m.ReadOnly && !m.TypedOnly && rawCount != 1 {
 		return fmt.Errorf("provider %s must expose exactly one raw operation", m.Provider)
 	}
 	return nil

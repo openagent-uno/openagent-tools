@@ -1,5 +1,5 @@
 {
-  "version": "0.1.3",
+  "version": "0.1.4",
   "connectors": [
     {
       "id": "google-drive",
@@ -30,10 +30,51 @@
       "icon": "github",
       "capability": "files",
       "provider": "github",
-      "readTools": [],
-      "agentTools": [],
-      "available": false,
-      "unavailableReason": "No reviewed tool implementation"
+      "readTools": [
+        "files.github.user.get",
+        "files.github.repositories.list",
+        "files.github.repositories.user.list",
+        "files.github.repositories.get",
+        "files.github.repositories.branches.list",
+        "files.github.git.commits.get",
+        "files.github.git.trees.get",
+        "files.github.git.blobs.get",
+        "files.github.issues.list",
+        "files.github.issues.get",
+        "files.github.issue_comments.list",
+        "files.github.pulls.list",
+        "files.github.pulls.get",
+        "files.github.pulls.files.list"
+      ],
+      "agentTools": [
+        "files.github.issues.create",
+        "files.github.issues.update",
+        "files.github.issue_comments.create"
+      ],
+      "available": true
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "description": "Search shared pages and data sources, read pages and blocks, and create or edit authorized content.",
+      "category": "Productivity",
+      "auth": "oauth",
+      "icon": "notion",
+      "capability": "files",
+      "provider": "notion",
+      "readTools": [
+        "files.notion.search",
+        "files.notion.pages.get",
+        "files.notion.blocks.children.list",
+        "files.notion.users.get",
+        "files.notion.users.list"
+      ],
+      "agentTools": [
+        "files.notion.pages.create",
+        "files.notion.pages.update",
+        "files.notion.blocks.children.append"
+      ],
+      "available": true
     },
     {
       "id": "slack-import",
