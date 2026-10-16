@@ -10,7 +10,11 @@
   ],
   "installation_scope": "any-workspace",
   "marketplace_listing": "unpublished",
-  "content_capabilities": ["read", "update", "insert"],
+  "content_capabilities": [
+    "read",
+    "update",
+    "insert"
+  ],
   "user_information": "without-email-addresses",
   "comment_capabilities": [],
   "oauth_scopes": [],
@@ -26,8 +30,19 @@
     "mount_path": "/secrets/notion-client-secret"
   },
   "qualification_pending": [
-    "real consent with explicit page selection",
-    "read, authorized reversible write, refresh and disconnect",
-    "qualified connector release and consumer adoption"
+    "qualified connector release and consumer adoption",
+    "remaining provider tools and native App acceptance",
+    "general provider enrollment approval"
+  ],
+  "qa_only": true,
+  "common_enrollment_enabled": false,
+  "real_oauth_grant": true,
+  "real_provider_qualification": "single-page-lifecycle-passed",
+  "qualification_date": "2026-10-16",
+  "qualification_product_source": "9f54c97d996475e58c0759ef7203a4400c28ebd5",
+  "qualification_notes": [
+    "Explicit single empty private QA page; read, reversible title update and exact cleanup, owner refresh, read after real server restart, and local disconnect passed.",
+    "Runtime used public Core/Storage beta 22 and SDK 0.1.3 with the supported private candidate runner override. No model or source overlay was used.",
+    "Provider-wide revocation and multi-source application synchronization are not qualified by this lifecycle."
   ]
 }

@@ -175,13 +175,41 @@ retain their cohort-specific flags. No Auth, SDK, runner or receiving-product
 release was published by this QA run; consumer pins remain `0.1.3`. General
 enrollment stays closed. Notion, Slack and Atlassian consent is not implied.
 
+## Notion real-provider lifecycle
+
+The same broker image was then configured for Notion-only QA in
+`connector-auth-notion-qa-20261016`, preserving its metadata PVC, event key and
+Secrets. One approved installation received consent to one newly created empty
+private QA page. The standalone candidate used normal private server/CLI wheels
+from product `9f54c97d996475e58c0759ef7203a4400c28ebd5`, public Core/Storage
+beta 22 and SDK 0.1.3 with the supported private runner override. The runner was
+built from Tools `52e8de4838de2f3af6a33b2dd254c67a98e67cbe`; its SHA-256 is
+`dec3ef647ceee4a0ab81deb58a4c48b223a1a9db40a5d438f8e2f87aa3368345`.
+
+On 16 October (UTC), product polling confirmed consent at 17:13:15, page reading
+at 17:14:31, reversible title update with independent reads and exact title/local
+write-policy restoration at 17:17:02, owner refresh at 17:17:51, reading after an
+actual server process restart at 17:18:31, and local disconnection at 17:19:03.
+The receiving server was subsequently stopped; its credentials were not copied
+into the evidence. The workflow-detail path correctly returned temporary typed
+503 warming responses. No history fallback, model, private Core overlay or
+automatic provider-write retry was used. An initial harness preflight rejected
+SQLite 0/1 permission flags before any mutation; the reviewed harness now
+normalizes only canonical bool or integer 0/1 values.
+
+The [Notion lifecycle receipt](https://github.com/openagent-uno/openagent/blob/main/docs/qualification/notion-oauth-2026-10-16.json)
+records the limited page cohort and evidence hashes. This does not qualify
+remaining Notion operations, provider-wide revocation, native App delivery or
+multi-source application synchronization. No release or public enrollment was
+enabled.
+
 ## Remaining gates
 
 GitHub still needs a qualified runner/SDK release, explicit consumer adoption,
-remaining-tool qualification and native App acceptance. Notion, Slack and
-Atlassian still need an explicitly authorized receiving installation and consent,
-then reads, permitted writes, renewal, restart and disconnect. Notion requires
-explicit page selection; Atlassian needs verified secret custody and site
+remaining-tool qualification and native App acceptance. Notion needs remaining
+tools, native App acceptance and qualified release/adoption. Slack and Atlassian
+still need an explicitly authorized receiving installation and consent, then
+reads, permitted writes, renewal, restart and disconnect. Atlassian needs verified secret custody and site
 selection; Slack needs an authorized installation and separate broker admission.
 Existing installations are never silently upgraded or activated.
 
