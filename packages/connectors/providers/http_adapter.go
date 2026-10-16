@@ -242,6 +242,16 @@ func (a *HTTPAdapter) Invoke(ctx context.Context, invocation domain.Invocation) 
 			return domain.Result{}, providerErr
 		}
 
+		if a.manifest.Provider == "slack_import" {
+			if kind, permission := slackResponseFailure(data); kind != "" {
+				providerErr := &domain.ProviderError{Kind: kind, StatusCode: response.StatusCode, ProviderID: providerID,
+					Attempts: attempt, RequestBytes: requestBytes, ResponseBytes: responseBytes}
+				if permission {
+					return domain.Result{}, errors.Join(domain.ErrProviderPermission, providerErr)
+				}
+				return domain.Result{}, providerErr
+			}
+		}
 		decoded := decodeProviderBody(data, response.Header.Get("Content-Type"))
 		if shopifyGraphQLPermissionDenied(a.manifest.Provider, plan, data) {
 			providerErr := &domain.ProviderError{
@@ -315,6 +325,16 @@ func (a *HTTPAdapter) buildPlan(invocation domain.Invocation) (requestPlan, erro
 	}
 	if a.manifest.Provider == "notion" {
 		if err := validateNotionArguments(operation, arguments); err != nil {
+			return requestPlan{}, err
+		}
+	}
+	if a.manifest.Provider == "slack_import" {
+		if err := validateSlackArguments(operation, arguments); err != nil {
+			return requestPlan{}, err
+		}
+	}
+	if a.manifest.Provider == "atlassian" {
+		if err := validateAtlassianArguments(operation, arguments, invocation.Connection.Config); err != nil {
 			return requestPlan{}, err
 		}
 	}
@@ -1047,7 +1067,7 @@ func readBounded(reader io.Reader, maximum int64) ([]byte, bool, error) {
 }
 
 func providerRequestID(headers http.Header) string {
-	for _, name := range []string{"X-Request-ID", "X-Shopify-Request-ID", "X-GUploader-UploadID", "X-Google-Request-ID"} {
+	for _, name := range []string{"X-Request-ID", "X-Shopify-Request-ID", "X-GUploader-UploadID", "X-Google-Request-ID", "X-Slack-Req-Id"} {
 		if value := strings.TrimSpace(headers.Get(name)); value != "" && len(value) <= 256 && !strings.ContainsAny(value, "\r\n") {
 			return value
 		}

@@ -67,5 +67,66 @@
       "read_orders"
     ],
     "pkce": false
+  },
+  {
+    "id": "github",
+    "app_id": "github:Iv23lis9sNxlYnR2B6lZ",
+    "client_id": "Iv23lis9sNxlYnR2B6lZ",
+    "secret_file": "/secrets/github-client-secret",
+    "authorization_url": "https://github.com/login/oauth/authorize",
+    "token_url": "https://github.com/login/oauth/access_token",
+    "revocation_url": "https://api.github.com/applications/Iv23lis9sNxlYnR2B6lZ/token",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/github/callback",
+    "scopes": [],
+    "pkce": true
+  },
+  {
+    "id": "notion",
+    "app_id": "notion:3fbd872b-594c-8157-8fb9-0037e6a6efb2",
+    "client_id": "3fbd872b-594c-8157-8fb9-0037e6a6efb2",
+    "secret_file": "/secrets/notion-client-secret",
+    "authorization_url": "https://api.notion.com/v1/oauth/authorize",
+    "token_url": "https://api.notion.com/v1/oauth/token",
+    "revocation_url": "https://api.notion.com/v1/oauth/revoke",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/notion/callback",
+    "scopes": [],
+    "pkce": false
+  },
+  {
+    "id": "slack_import",
+    "app_id": "slack_import:registration-pending",
+    "client_id": "",
+    "secret_file": "/secrets/slack-client-secret",
+    "authorization_url": "https://slack.com/oauth/v2/authorize",
+    "token_url": "https://slack.com/api/oauth.v2.access",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/slack_import/callback",
+    "scopes": [
+      "channels:read",
+      "channels:history",
+      "groups:read",
+      "groups:history",
+      "im:read",
+      "im:history",
+      "mpim:read",
+      "mpim:history",
+      "users:read",
+      "chat:write"
+    ],
+    "pkce": false
+  },
+  {
+    "id": "atlassian",
+    "app_id": "atlassian:registration-pending",
+    "client_id": "",
+    "secret_file": "/secrets/atlassian-client-secret",
+    "authorization_url": "https://auth.atlassian.com/authorize",
+    "token_url": "https://auth.atlassian.com/oauth/token",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/atlassian/callback",
+    "scopes": [
+      "read:jira-work",
+      "write:jira-work",
+      "offline_access"
+    ],
+    "pkce": false
   }
 ]

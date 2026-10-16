@@ -684,7 +684,7 @@ func (s *Server) refresh(w http.ResponseWriter, r *http.Request, installation In
 	if p.ID != "shopify" {
 		var found bool
 		binding, found = s.Store.snapshot().TokenBindings[s.tokenHash(p.AppID, p.ID, input.RefreshToken)]
-		if !found || binding.Revoked || binding.Installation != installation.ID || binding.Provider != p.ID || !sameScopes(binding.Scopes, input.Scopes) {
+		if !found || binding.Revoked || binding.Installation != installation.ID || binding.Provider != p.ID || binding.ExternalID != input.Shop || !sameScopes(binding.Scopes, input.Scopes) {
 			fail(w, 403, "invalid_token_binding")
 			return
 		}
@@ -1144,13 +1144,13 @@ func (s *Server) tokenHash(app, provider, token string) string {
 }
 func (s *Server) bindToken(installation, provider string, token oauth.Token) error {
 	return s.Store.update(func(state *State) error {
-		binding := TokenBinding{Installation: installation, Provider: provider, AppID: token.AppID, Scopes: token.Scopes, GrantID: randomID()}
+		binding := TokenBinding{Installation: installation, Provider: provider, AppID: token.AppID, ExternalID: token.ExternalID, Scopes: token.Scopes, GrantID: randomID()}
 		return s.bindTokenInState(state, binding, token, true)
 	})
 }
 
 func sameGrant(a, b TokenBinding) bool {
-	if a.Installation != b.Installation || a.Provider != b.Provider || a.AppID != b.AppID {
+	if a.Installation != b.Installation || a.Provider != b.Provider || a.AppID != b.AppID || a.ExternalID != b.ExternalID {
 		return false
 	}
 	// Legacy metadata did not distinguish grants; invalidate its bindings for
@@ -1159,6 +1159,9 @@ func sameGrant(a, b TokenBinding) bool {
 }
 
 func (s *Server) bindTokenInState(state *State, binding TokenBinding, token oauth.Token, freshConsent bool) error {
+	if binding.ExternalID != token.ExternalID {
+		return ErrDenied
+	}
 	var existing *TokenBinding
 	for _, raw := range []string{token.AccessToken, token.RefreshToken} {
 		if raw == "" {
@@ -1166,7 +1169,7 @@ func (s *Server) bindTokenInState(state *State, binding TokenBinding, token oaut
 		}
 		hash := s.tokenHash(token.AppID, binding.Provider, raw)
 		if old, exists := state.TokenBindings[hash]; exists {
-			if old.Revoked || old.Installation != binding.Installation || old.Provider != binding.Provider || old.AppID != binding.AppID ||
+			if old.Revoked || old.Installation != binding.Installation || old.Provider != binding.Provider || old.AppID != binding.AppID || old.ExternalID != binding.ExternalID ||
 				freshConsent && !sameScopes(old.Scopes, binding.Scopes) || !freshConsent && !scopeSubset(binding.Scopes, old.Scopes) {
 				return ErrDenied
 			}

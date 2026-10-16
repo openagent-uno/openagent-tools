@@ -5,6 +5,13 @@ records all publicly observed category cards, the editorial Popular order and
 the API/MCP research backlog. Implementation, registration, published artifacts
 and real provider qualification are recorded separately.
 
+The [16 October source checkpoint](../deploy/connector-auth/qualification-2026-10-16.md)
+records remote Go test/vet/build qualification for the unpublished `0.1.4`
+candidate: GitHub 17, Notion 8, Slack 9 and Atlassian/Jira 9 typed operations.
+The source catalog contains 14 official implementations plus Custom MCP;
+published artifacts remain `0.1.3`. Provider registrations, secret custody and
+actual OAuth acceptance remain separate gates.
+
 The public capability guide is at
 [openagent.uno](https://openagent.uno/guide/mcp); this repository remains the
 canonical source for package contracts, provenance and verification evidence.

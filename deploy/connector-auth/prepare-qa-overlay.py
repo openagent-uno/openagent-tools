@@ -11,9 +11,12 @@ import re
 
 
 BASE = Path(__file__).resolve().parent
+QA_PROVIDERS = ("clickup", "gmail", "google_drive", "google_analytics", "shopify", "github", "notion")
 
 
 def prepare(provider, installations, shops, image, output):
+    if provider not in QA_PROVIDERS:
+        raise ValueError("provider is not admitted to the reviewed QA overlay")
     if not re.fullmatch(r"localhost:5000/openagent-connector-auth@sha256:[0-9a-f]{64}", image):
         raise ValueError("a pinned broker image digest is required")
     if not 1 <= len(installations) <= 50 or len(set(installations)) != len(installations):
@@ -30,6 +33,8 @@ def prepare(provider, installations, shops, image, output):
     selected = [row for row in rows if row["id"] == provider]
     if len(selected) != 1:
         raise ValueError("select one reviewed provider")
+    if not selected[0].get("client_id") or not selected[0].get("app_id") or "registration-pending" in selected[0]["app_id"]:
+        raise ValueError("provider registration must be complete before QA")
     # A previous immutable bootstrap image does not implement QA admission.
     digest = image.split("@sha256:")[1]
     if digest == "f5cb0256ef28919ccf2f3e27a47bdb5c87931a27d7e3197f870fb1a1a81f2777":
@@ -61,7 +66,7 @@ def prepare(provider, installations, shops, image, output):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--provider", required=True, choices=["clickup", "gmail", "google_drive", "google_analytics", "shopify"])
+    parser.add_argument("--provider", required=True, choices=QA_PROVIDERS)
     parser.add_argument("--installation", action="append", required=True)
     parser.add_argument("--shop", action="append", default=[])
     parser.add_argument("--image", required=True)

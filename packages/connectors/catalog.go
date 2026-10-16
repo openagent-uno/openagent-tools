@@ -46,9 +46,16 @@ var catalogEntries = []CatalogEntry{
 		AgentTools: []string{"files.notion.pages.create", "files.notion.pages.update", "files.notion.blocks.children.append"},
 	}},
 	{Item: Item{
-		ID: "slack-import", Name: "Slack import", Description: "Bring selected Slack conversations into a workspace.",
+		ID: "atlassian", Name: "Atlassian", Description: "Read Jira projects, issues and comments, and create or edit authorized issues and comments on a selected site.",
+		Category: "Productivity", Auth: "oauth", Icon: "atlassian", Capability: "files", Provider: "atlassian",
+		ReadTools:  []string{"files.atlassian.resources.list", "files.atlassian.projects.list", "files.atlassian.projects.get", "files.atlassian.issues.search", "files.atlassian.issues.get", "files.atlassian.issue_comments.list"},
+		AgentTools: []string{"files.atlassian.issues.create", "files.atlassian.issues.update", "files.atlassian.issue_comments.create"},
+	}},
+	{Item: Item{
+		ID: "slack-import", Name: "Slack", Description: "Read authorized Slack conversations and user information, and post, edit or delete authorized messages.",
 		Category: "Communication", Auth: "oauth", Icon: "message-square", Capability: "social", Provider: "slack_import",
-		ReadTools: []string{}, AgentTools: []string{},
+		ReadTools:  []string{"social.slack_import.auth.test", "social.slack_import.conversations.list", "social.slack_import.conversations.info", "social.slack_import.conversations.history", "social.slack_import.conversations.replies", "social.slack_import.users.info"},
+		AgentTools: []string{"social.slack_import.chat.post_message", "social.slack_import.chat.update", "social.slack_import.chat.delete"},
 	}},
 	{Item: Item{
 		ID: "gmail", Name: "Gmail", Description: "Read email and let authorized agents prepare drafts or send messages.",

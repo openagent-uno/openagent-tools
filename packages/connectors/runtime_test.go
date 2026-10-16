@@ -18,7 +18,13 @@ type localDoer struct {
 func (d *localDoer) Do(r *http.Request) (*http.Response, error) {
 	d.calls++
 	d.request = r
-	return &http.Response{StatusCode: 200, Header: http.Header{"Content-Type": []string{"application/json"}}, Body: io.NopCloser(strings.NewReader(`{"teams":[]}`))}, nil
+	body := `{"teams":[]}`
+	if r.URL.Host == "slack.com" {
+		body = `{"ok":true,"team_id":"T012ABCDE9"}`
+	} else if r.URL.Host == "api.atlassian.com" {
+		body = `{"values":[],"startAt":0,"maxResults":50,"isLast":true}`
+	}
+	return &http.Response{StatusCode: 200, Header: http.Header{"Content-Type": []string{"application/json"}}, Body: io.NopCloser(strings.NewReader(body))}, nil
 }
 func TestRuntimeBindsCatalogPermissionsAndLocalExecution(t *testing.T) {
 	d := &localDoer{}
@@ -65,8 +71,8 @@ func TestRuntimeBindsCatalogPermissionsAndLocalExecution(t *testing.T) {
 	}
 	for _, item := range Catalog() {
 		if item.ID == "slack-import" {
-			if item.Available {
-				t.Fatal("placeholder declared implemented")
+			if !item.Available || item.Name != "Slack" || item.Provider != "slack_import" || item.Capability != "social" {
+				t.Fatal("implemented Slack connector lost its existing identity")
 			}
 		}
 	}
@@ -78,6 +84,8 @@ func TestWorkspaceConnectorsUseHostCredentialsAndWriteAuthorization(t *testing.T
 	}{
 		{"github", "files.github.repositories.list", "files.github.issues.create", "api.github.com"},
 		{"notion", "files.notion.users.list", "files.notion.pages.create", "api.notion.com"},
+		{"slack-import", "social.slack_import.auth.test", "social.slack_import.chat.post_message", "slack.com"},
+		{"atlassian", "files.atlassian.projects.list", "files.atlassian.issues.create", "api.atlassian.com"},
 	} {
 		t.Run(tc.id, func(t *testing.T) {
 			d := &localDoer{}
@@ -89,8 +97,16 @@ func TestWorkspaceConnectorsUseHostCredentialsAndWriteAuthorization(t *testing.T
 			if !ok || !item.Available || item.Auth != "oauth" {
 				t.Fatal("implemented OAuth connector missing from catalog")
 			}
+			config := json.RawMessage(`{}`)
+			scopes := []string{}
+			if tc.id == "atlassian" {
+				config = json.RawMessage(`{"cloud_id":"11111111-1111-4111-8111-111111111111"}`)
+				scopes = []string{"read:jira-work", "write:jira-work"}
+			} else if tc.id == "slack-import" {
+				scopes = []string{"chat:write", "users:read"}
+			}
 			binding := Binding{CatalogID: tc.id, Principal: domain.Principal{WorkspaceID: "workspace-a", ActorID: "owner"},
-				Connection: domain.Connection{ID: "held-connection", WorkspaceID: "workspace-a", Provider: item.Provider, Capability: domain.Files, Enabled: true, Config: json.RawMessage(`{}`)}}
+				Connection: domain.Connection{ID: "held-connection", WorkspaceID: "workspace-a", Provider: item.Provider, Capability: domain.Capability(item.Capability), Enabled: true, Config: config, Scopes: scopes}}
 			tools, err := runtime.Tools(binding)
 			if err != nil || len(tools) != len(item.ReadTools) {
 				t.Fatalf("read-only discovery: %v", err)
@@ -124,6 +140,23 @@ func TestWorkspaceConnectorsUseHostCredentialsAndWriteAuthorization(t *testing.T
 			tools, err = runtime.Tools(binding)
 			if err != nil || len(tools) != len(item.ReadTools)+len(item.AgentTools) {
 				t.Fatalf("explicit write authorization did not expose declared tools: %v", err)
+			}
+			if tc.id == "slack-import" || tc.id == "atlassian" {
+				scopeDenied := binding
+				scopeDenied.Connection.Scopes = nil
+				call.Binding = scopeDenied
+				if _, err := runtime.Invoke(context.Background(), call); err == nil || d.calls != 1 {
+					t.Fatal("host write authorization bypassed missing provider scopes")
+				}
+			}
+			if tc.id == "atlassian" {
+				invalidSite := binding
+				invalidSite.Connection.Config = json.RawMessage(`{}`)
+				call.Binding = invalidSite
+				call.Tool = tc.read
+				if _, err := runtime.Invoke(context.Background(), call); err == nil || d.calls != 1 {
+					t.Fatal("Jira request reached provider without a host-selected site")
+				}
 			}
 			binding.Connection.WorkspaceID = "workspace-b"
 			if _, err := runtime.Tools(binding); err == nil {

@@ -20,6 +20,7 @@ type TokenBinding struct {
 	Installation string   `json:"installation"`
 	Provider     string   `json:"provider"`
 	AppID        string   `json:"app_id"`
+	ExternalID   string   `json:"external_id,omitempty"`
 	Scopes       []string `json:"scopes"`
 	GrantID      string   `json:"grant_id,omitempty"`
 	Revoked      bool     `json:"revoked,omitempty"`

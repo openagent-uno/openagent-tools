@@ -194,7 +194,7 @@ func (f *LocalOAuth) Refresh(ctx context.Context, provider string, token oauth.T
 	if !ok || token.AppID != p.AppID {
 		return Rotation{}, ErrDenied
 	}
-	next, err := f.engine.Refresh(ctx, p, token.RefreshToken, "", token.Scopes)
+	next, err := f.engine.Refresh(ctx, p, token.RefreshToken, token.ExternalID, token.Scopes)
 	return Rotation{Token: next}, err
 }
 func (f *LocalOAuth) Issued(provider, app string) bool {

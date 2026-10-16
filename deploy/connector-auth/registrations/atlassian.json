@@ -1,0 +1,29 @@
+{
+  "format": 1,
+  "provider": "atlassian",
+  "app_name": "OpenAgent",
+  "app_id": "25ac00a3-d831-4dfc-b785-eab01fd7f2f7",
+  "client_id": "nShjjeUGI1OrLWnmBshOEe8nS9JIfURl",
+  "registration_date": "2026-10-16",
+  "access_type": "resource-level",
+  "callback_url": "https://auth.openagent.uno/v1/oauth/atlassian/callback",
+  "configured_scopes": [
+    "read:jira-work",
+    "write:jira-work"
+  ],
+  "oauth_requested_scopes": [
+    "read:jira-work",
+    "write:jira-work",
+    "offline_access"
+  ],
+  "terms_confirmed": true,
+  "registration_status": "created-secret-custody-pending",
+  "production_secret_configured": false,
+  "common_enrollment_enabled": false,
+  "real_provider_qualification": false,
+  "notes": [
+    "Resource-level restricts accessible-resources to consented sites. The host independently verifies and stores cloud_id.",
+    "No API grant has been authorized.",
+    "Client secret copy could not be verified in this browser session; no credential was assumed or activated."
+  ]
+}

@@ -77,18 +77,52 @@
       "available": true
     },
     {
+      "id": "atlassian",
+      "name": "Atlassian",
+      "description": "Read Jira projects, issues and comments, and create or edit authorized issues and comments on a selected site.",
+      "category": "Productivity",
+      "auth": "oauth",
+      "icon": "atlassian",
+      "capability": "files",
+      "provider": "atlassian",
+      "readTools": [
+        "files.atlassian.resources.list",
+        "files.atlassian.projects.list",
+        "files.atlassian.projects.get",
+        "files.atlassian.issues.search",
+        "files.atlassian.issues.get",
+        "files.atlassian.issue_comments.list"
+      ],
+      "agentTools": [
+        "files.atlassian.issues.create",
+        "files.atlassian.issues.update",
+        "files.atlassian.issue_comments.create"
+      ],
+      "available": true
+    },
+    {
       "id": "slack-import",
-      "name": "Slack import",
-      "description": "Bring selected Slack conversations into a workspace.",
+      "name": "Slack",
+      "description": "Read authorized Slack conversations and user information, and post, edit or delete authorized messages.",
       "category": "Communication",
       "auth": "oauth",
       "icon": "message-square",
       "capability": "social",
       "provider": "slack_import",
-      "readTools": [],
-      "agentTools": [],
-      "available": false,
-      "unavailableReason": "No reviewed tool implementation"
+      "readTools": [
+        "social.slack_import.auth.test",
+        "social.slack_import.conversations.list",
+        "social.slack_import.conversations.info",
+        "social.slack_import.conversations.history",
+        "social.slack_import.conversations.replies",
+        "social.slack_import.users.info"
+      ],
+      "agentTools": [
+        "social.slack_import.chat.post_message",
+        "social.slack_import.chat.update",
+        "social.slack_import.chat.delete"
+      ],
+      "available": true
     },
     {
       "id": "gmail",

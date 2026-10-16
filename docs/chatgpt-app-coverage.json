@@ -23,11 +23,12 @@
     "commit": "05059be75d3a68571a19683c517be4c04da6505f",
     "path": "packages/connectors/catalog.go",
     "sha256": "886f36aa4d750e112af48ef812dfe5119e2d52d83cf8597874fca50f791cda52",
-    "work_in_progress": "GitHub and Notion additions are concurrently in development. They are intentionally not counted as qualified/public availability.",
+    "work_in_progress": "Superseded by candidate_catalog source qualification; published 0.1.3 artifact availability is unchanged.",
     "official_catalog_entries": 12,
     "implemented_official_adapters": 10,
     "unavailable_placeholders": 2,
-    "generic_custom_mcp_entries": 1
+    "generic_custom_mcp_entries": 1,
+    "counts_scope": "Historical published 0.1.3 baseline; not the current 0.1.4 candidate."
   },
   "status_definitions": {
     "implemented_adapter": "Committed source contains provider operations. Does not imply public enrollment, feature parity or end-to-end qualification.",
@@ -35,7 +36,8 @@
     "placeholder_unavailable_partial": "Catalog placeholder, potentially narrower scope than the directory app.",
     "not_implemented_in_official_catalog": "No official branded connector found in the audited catalog; user-managed custom MCP possibility is not an implemented official connector.",
     "public_interface_not_established_by_this_audit": "Not individually researched or no usable public interface established here; not proof that no API or MCP exists.",
-    "documented_interface_requires_integration_qualification": "Primary provider documentation establishes an interface, not successful OpenAgent integration."
+    "documented_interface_requires_integration_qualification": "Primary provider documentation establishes an interface, not successful OpenAgent integration.",
+    "source_qualified_candidate_unpublished": "Integrated candidate passed remote Go test/vet/runner build. No 0.1.4 publication, real OAuth acceptance, native-platform qualification or ChatGPT feature parity is implied."
   },
   "primary_sources": [
     {
@@ -61,14 +63,46 @@
     {
       "id": "github",
       "name": "GitHub",
-      "status": "placeholder_unavailable",
-      "note": "Committed baseline placeholder; implementation is in progress and not qualified in this snapshot."
+      "status": "source_qualified_candidate_unpublished",
+      "typed_operations": 17,
+      "candidate_artifacts_published": false,
+      "real_provider_qualification": false,
+      "note": "17 typed API operations qualified on a remote source worker; app/secret registered, real consent and release pending.",
+      "shared_library_public_version": "0.1.3",
+      "published_provider_adapter": false
+    },
+    {
+      "id": "notion",
+      "name": "Notion",
+      "status": "source_qualified_candidate_unpublished",
+      "typed_operations": 8,
+      "candidate_artifacts_published": false,
+      "real_provider_qualification": false,
+      "note": "8 typed API operations qualified on a remote source worker; app/secret registered, real page consent and release pending.",
+      "shared_library_public_version": "0.1.3",
+      "published_provider_adapter": false
+    },
+    {
+      "id": "atlassian",
+      "name": "Atlassian",
+      "status": "source_qualified_candidate_unpublished",
+      "typed_operations": 9,
+      "candidate_artifacts_published": false,
+      "real_provider_qualification": false,
+      "note": "9 typed Jira REST operations qualified on a remote source worker; app/callback/two classic scopes saved, secret custody and real site consent pending. No Confluence/Rovo MCP parity.",
+      "shared_library_public_version": "0.1.3",
+      "published_provider_adapter": false
     },
     {
       "id": "slack-import",
-      "name": "Slack import",
-      "status": "placeholder_unavailable",
-      "note": "Unavailable placeholder, not a full Slack connector."
+      "name": "Slack",
+      "status": "source_qualified_candidate_unpublished",
+      "typed_operations": 9,
+      "candidate_artifacts_published": false,
+      "real_provider_qualification": false,
+      "note": "9 typed Web API operations; stable slack-import/slack_import identity. App registration not completed; no persistent app ID, real grant or MCP approval.",
+      "shared_library_public_version": "0.1.3",
+      "published_provider_adapter": false
     },
     {
       "id": "gmail",
@@ -11661,8 +11695,8 @@
         "https://chatgpt.com/plugins?category=productivity"
       ],
       "popular_order": 4,
-      "openagent_status": "not_implemented_in_official_catalog",
-      "connector_id": null,
+      "openagent_status": "source_qualified_candidate_unpublished",
+      "connector_id": "atlassian",
       "chatgpt_feature_parity": "not_qualified",
       "access_findings": [
         {
@@ -11670,10 +11704,31 @@
           "source_url": "https://support.atlassian.com/atlassian-ai-gateway/docs/get-started-with-the-atlassian-remote-mcp-server/",
           "finding": "Official MCP for compatible clients is documented.",
           "access_conditions": "OAuth 2.1, existing product permissions and Rovo usage credits; terms and plan limits apply."
+        },
+        {
+          "kind": "public_api",
+          "source_url": "https://developer.atlassian.com/cloud/jira/platform/rest/v3/intro/",
+          "finding": "9 typed Jira REST operations qualified on a remote source worker; app/callback/two classic scopes saved, secret custody and real site consent pending. No Confluence/Rovo MCP parity.",
+          "access_conditions": "Explicit provider app registration and consent, operation scopes and permissions, local authorization and lifecycle acceptance remain separate from source tests."
         }
       ],
       "access_status": "documented_interface_requires_integration_qualification",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
+      "next_action": "Custody the app secret, configure the broker explicitly, obtain site consent and qualify Jira read/authorized write/refresh/restart/disconnect before publishing.",
+      "candidate_version": "0.1.4",
+      "typed_operations": 9,
+      "candidate_artifacts_published": false,
+      "real_provider_qualification": false,
+      "registration": {
+        "status": "created-secret-custody-pending",
+        "app_id": "25ac00a3-d831-4dfc-b785-eab01fd7f2f7",
+        "callback_saved": true,
+        "configured_scopes": [
+          "read:jira-work",
+          "write:jira-work"
+        ],
+        "refresh_scope_requested": "offline_access",
+        "production_secret_configured": false
+      }
     },
     {
       "name": "Atly",
@@ -31920,7 +31975,7 @@
         "https://chatgpt.com/plugins?category=developer-tools"
       ],
       "popular_order": 6,
-      "openagent_status": "implementation_in_progress",
+      "openagent_status": "source_qualified_candidate_unpublished",
       "connector_id": "github",
       "chatgpt_feature_parity": "not_qualified",
       "access_findings": [
@@ -31929,10 +31984,20 @@
           "source_url": "https://github.com/github/github-mcp-server",
           "finding": "Official remote and local MCP server; OAuth and PAT setup documented.",
           "access_conditions": "Provider account, permissions, usage limits and terms require verification for the chosen integration."
+        },
+        {
+          "kind": "public_api",
+          "source_url": "https://docs.github.com/en/rest",
+          "finding": "17 typed API operations qualified on a remote source worker; app/secret registered, real consent and release pending.",
+          "access_conditions": "Explicit provider app registration and consent, operation scopes and permissions, local authorization and lifecycle acceptance remain separate from source tests."
         }
       ],
       "access_status": "documented_interface_requires_integration_qualification",
-      "next_action": "Qualify the in-progress implementation before advertising availability."
+      "next_action": "Complete explicit repository consent, real read/authorized write/refresh/restart/disconnect, then qualify and publish the candidate.",
+      "candidate_version": "0.1.4",
+      "typed_operations": 17,
+      "candidate_artifacts_published": false,
+      "real_provider_qualification": false
     },
     {
       "name": "GitLab (Beta)",
@@ -49220,7 +49285,7 @@
         "https://chatgpt.com/plugins?category=productivity"
       ],
       "popular_order": 15,
-      "openagent_status": "implementation_in_progress",
+      "openagent_status": "source_qualified_candidate_unpublished",
       "connector_id": "notion",
       "chatgpt_feature_parity": "not_qualified",
       "access_findings": [
@@ -49229,10 +49294,20 @@
           "source_url": "https://developers.notion.com/guides/mcp/overview",
           "finding": "Official hosted MCP uses OAuth to access authorized Notion content.",
           "access_conditions": "Provider account, permissions, usage limits and terms require verification for the chosen integration."
+        },
+        {
+          "kind": "public_api",
+          "source_url": "https://developers.notion.com/reference/versioning",
+          "finding": "8 typed API operations qualified on a remote source worker; app/secret registered, real page consent and release pending.",
+          "access_conditions": "Explicit provider app registration and consent, operation scopes and permissions, local authorization and lifecycle acceptance remain separate from source tests."
         }
       ],
       "access_status": "documented_interface_requires_integration_qualification",
-      "next_action": "Qualify the in-progress implementation before advertising availability."
+      "next_action": "Complete explicit page consent, real read/authorized write/refresh/restart/disconnect, then qualify and publish the candidate.",
+      "candidate_version": "0.1.4",
+      "typed_operations": 8,
+      "candidate_artifacts_published": false,
+      "real_provider_qualification": false
     },
     {
       "name": "Notit",
@@ -64308,7 +64383,7 @@
         "https://chatgpt.com/plugins?category=communication"
       ],
       "popular_order": 16,
-      "openagent_status": "placeholder_unavailable_partial",
+      "openagent_status": "source_qualified_candidate_unpublished",
       "connector_id": "slack-import",
       "chatgpt_feature_parity": "not_qualified",
       "access_findings": [
@@ -64323,10 +64398,26 @@
           "source_url": "https://docs.slack.dev/apis/",
           "finding": "Slack Web API is documented; endpoint scopes and distribution policy must be reviewed.",
           "access_conditions": "Provider account, permissions, usage limits and terms require verification for the chosen integration."
+        },
+        {
+          "kind": "public_api",
+          "source_url": "https://docs.slack.dev/reference/methods/",
+          "finding": "9 typed Web API operations; stable slack-import/slack_import identity. App registration not completed; no persistent app ID, real grant or MCP approval.",
+          "access_conditions": "Explicit provider app registration and consent, operation scopes and permissions, local authorization and lifecycle acceptance remain separate from source tests."
         }
       ],
       "access_status": "documented_interface_requires_integration_qualification",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
+      "next_action": "Finish app registration and authorized installation; qualify user-token consent, API operations, rate limits and lifecycle before publishing. Do not assume separate Slack MCP approval.",
+      "candidate_version": "0.1.4",
+      "typed_operations": 9,
+      "candidate_artifacts_published": false,
+      "real_provider_qualification": false,
+      "registration": {
+        "status": "pending_no_persistent_app_id",
+        "setup_workspace_created": true,
+        "app_id": null,
+        "installation_grant_completed": false
+      }
     },
     {
       "name": "Slashtel",
@@ -80275,5 +80366,33 @@
     "Do not reuse ChatGPT cookies, private endpoints, client secrets or a closed partner-only app backend.",
     "Require actual discovery, authorized read/write where appropriate, renewal/restart/disconnect and permission/isolation checks before availability.",
     "Shared Shopify remains gated; unknown historical or unsupported derived content is not silently marked compliant."
-  ]
+  ],
+  "candidate_catalog": {
+    "version": "0.1.4",
+    "state": "source_qualified_unpublished",
+    "source_commit": null,
+    "catalog_path": "packages/connectors/catalog.go",
+    "catalog_sha256": "19a1df465b1897c57699c97c8bb1321451ce2b13d1bc91fed16f80a875b4a503",
+    "official_catalog_entries": 14,
+    "implemented_official_adapters": 14,
+    "unavailable_placeholders": 0,
+    "generic_custom_mcp_entries": 1,
+    "new_typed_operations": {
+      "GitHub": 17,
+      "Notion": 8,
+      "Slack": 9,
+      "Atlassian": 9
+    },
+    "remote_checks": {
+      "go_test": "passed",
+      "go_vet": "passed",
+      "runner_build": "passed"
+    },
+    "qualification_receipt": "docs/connector-candidate-0.1.4-workspace-qualification.json",
+    "published_artifacts_unchanged": "0.1.3",
+    "common_provider_activation": false,
+    "real_provider_qualification": false,
+    "native_os_qualification": false,
+    "qualified_source_index_sha256": "1f7f60a41354903508625ae35cebd11be3f38e7462ee4a70b222a0d395f490c4"
+  }
 }

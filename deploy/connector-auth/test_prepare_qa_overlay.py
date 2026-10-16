@@ -47,6 +47,45 @@ class PrepareQAOverlayTests(unittest.TestCase):
             module.prepare("clickup", ["b" * 64], [], self.image, self.output)
         self.assertEqual(marker.read_text(), "keep")
 
+    def test_github_and_notion_select_only_registered_app_and_exact_callback(self):
+        expected = {
+            "github": ("Iv23lis9sNxlYnR2B6lZ", True, "https://github.com/login/oauth/access_token"),
+            "notion": ("3fbd872b-594c-8157-8fb9-0037e6a6efb2", False, "https://api.notion.com/v1/oauth/token"),
+        }
+        for provider, (client_id, pkce, token_url) in expected.items():
+            with self.subTest(provider=provider):
+                output = Path(self.temp.name) / provider
+                module.prepare(provider, ["b" * 64], [], self.image, output)
+                rows = json.loads((output / "providers.json").read_text())
+                self.assertEqual(len(rows), 1)
+                self.assertEqual(rows[0]["id"], provider)
+                self.assertEqual(rows[0]["client_id"], client_id)
+                self.assertEqual(rows[0]["app_id"], provider + ":" + client_id)
+                self.assertEqual(rows[0]["pkce"], pkce)
+                self.assertEqual(rows[0]["scopes"], [])
+                self.assertEqual(rows[0]["token_url"], token_url)
+                self.assertEqual(rows[0]["secret_file"], "/secrets/" + provider + "-client-secret")
+                self.assertEqual(rows[0]["redirect_uri"], "https://auth.openagent.uno/v1/oauth/" + provider + "/callback")
+                self.assertEqual(json.loads((output / "qa-enrollment.json").read_text()), {"installations": ["b" * 64]})
+                self.assertNotIn("--legacy-shopify-webhooks", (output / "resources.yaml").read_text())
+
+    def test_pending_slack_and_atlassian_cannot_be_selected_even_programmatically(self):
+        for provider in ("slack_import", "atlassian", "arbitrary"):
+            with self.subTest(provider=provider):
+                with self.assertRaises(ValueError):
+                    module.prepare(provider, ["b" * 64], [], self.image, self.output)
+                self.assertFalse(self.output.exists())
+
+    def test_candidate_metadata_does_not_activate_bootstrap_or_invent_registrations(self):
+        self.assertIn("'providers.json=[]'", (module.BASE / "kustomization.yaml").read_text())
+        rows = json.loads((module.BASE / "providers-reviewed.json").read_text())
+        for provider in ("slack_import", "atlassian"):
+            row = next(item for item in rows if item["id"] == provider)
+            self.assertEqual(row["client_id"], "")
+            self.assertEqual(row["app_id"], provider + ":registration-pending")
+            self.assertFalse(row["pkce"])
+            self.assertNotIn("revocation_url", row)
+
 
 if __name__ == "__main__":
     unittest.main()

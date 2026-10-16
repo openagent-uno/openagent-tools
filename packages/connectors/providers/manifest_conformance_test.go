@@ -684,6 +684,53 @@ func TestFixedOriginsRejectInternalAndAmbiguousHosts(t *testing.T) {
 }
 
 func conformanceArguments(specification OperationManifest) json.RawMessage {
+	if strings.HasPrefix(specification.Name, "social.slack_import.") {
+		arguments := map[string]any{}
+		for _, required := range specification.Required {
+			switch required {
+			case "channel":
+				arguments[required] = "C012ABCDE9"
+			case "user":
+				arguments[required] = "U012ABCDE9"
+			case "ts":
+				arguments[required] = "1482960137.003543"
+			case "body":
+				body := map[string]any{"channel": "C012ABCDE9"}
+				if specification.Name != "social.slack_import.chat.post_message" {
+					body["ts"] = "1482960137.003543"
+				}
+				if specification.Name != "social.slack_import.chat.delete" {
+					body["text"] = "Conformance message"
+				}
+				arguments[required] = body
+			}
+		}
+		data, _ := json.Marshal(arguments)
+		return data
+	}
+	if strings.HasPrefix(specification.Name, "files.atlassian.") {
+		arguments := map[string]any{}
+		for _, required := range specification.Required {
+			switch required {
+			case "project_id_or_key":
+				arguments[required] = "ALPHA"
+			case "issue_id_or_key":
+				arguments[required] = "ALPHA-12"
+			case "jql":
+				arguments[required] = "project = ALPHA"
+			}
+		}
+		switch specification.Name {
+		case "files.atlassian.issues.create":
+			arguments["body"] = map[string]any{"fields": map[string]any{"project": map[string]any{"key": "ALPHA"}, "issuetype": map[string]any{"id": "10001"}, "summary": "Conformance issue"}}
+		case "files.atlassian.issues.update":
+			arguments["body"] = map[string]any{"fields": map[string]any{"summary": "Conformance update"}}
+		case "files.atlassian.issue_comments.create":
+			arguments["body"] = map[string]any{"body": map[string]any{"version": 1, "type": "doc", "content": []any{map[string]any{"type": "paragraph", "content": []any{map[string]any{"type": "text", "text": "Conformance comment"}}}}}}
+		}
+		data, _ := json.Marshal(arguments)
+		return data
+	}
 	if strings.HasPrefix(specification.Name, "files.notion.") {
 		id := "b55c9c91-384d-452b-81db-d1ef79372b75"
 		arguments := map[string]any{}
@@ -838,6 +885,10 @@ func testInvocation(t *testing.T, manifest Manifest, operation domain.Operation,
 	t.Helper()
 	configuration := json.RawMessage(`{}`)
 	externalID := ""
+	var scopes []string
+	if manifest.Provider == "atlassian" || manifest.Provider == "slack_import" {
+		scopes = append([]string(nil), operation.RequiredScopes...)
+	}
 	credentialValue := credential(t, manifest.CredentialHeader, manifest.CredentialScheme)
 	if manifest.Provider == "shopify" {
 		externalID = "snow-globe.myshopify.com"
@@ -850,6 +901,8 @@ func testInvocation(t *testing.T, manifest Manifest, operation domain.Operation,
 	} else if manifest.Provider == "billingbear" {
 		configuration = json.RawMessage(`{"project_id":"project-test"}`)
 		credentialValue = credentialWithSecret(t, "sk_live_"+strings.Repeat("b", 32), "Authorization", "Bearer")
+	} else if manifest.Provider == "atlassian" {
+		configuration = json.RawMessage(`{"cloud_id":"11111111-1111-4111-8111-111111111111"}`)
 	} else if manifest.Provider == "pipeboard" {
 		endpoint := "meta_ads"
 		if strings.Contains(operation.Name, ".keywords.") || strings.Contains(operation.Name, ".google.") {
@@ -859,7 +912,7 @@ func testInvocation(t *testing.T, manifest Manifest, operation domain.Operation,
 	}
 	return domain.Invocation{
 		ID: "inv-1", Principal: domain.Principal{WorkspaceID: "ws-1", ActorID: "workspace-agent", Role: "agent"},
-		Connection: domain.Connection{ID: "conn-1", WorkspaceID: "ws-1", Capability: manifest.Capability, Provider: manifest.Provider, ExternalID: externalID, Config: configuration, Enabled: true},
+		Connection: domain.Connection{ID: "conn-1", WorkspaceID: "ws-1", Capability: manifest.Capability, Provider: manifest.Provider, ExternalID: externalID, Config: configuration, Enabled: true, Scopes: scopes},
 		Credential: credentialValue, Operation: operation, Arguments: arguments, RequestedAt: time.Now().UTC(), Idempotency: "gp-test-idempotency",
 	}
 }

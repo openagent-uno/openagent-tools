@@ -81,7 +81,7 @@ func (e Engine) ValidateConfiguration(p Provider) error {
 	}
 	// Notion capabilities are configured on the registered connection and the
 	// user selects pages during consent; they are not OAuth scope strings.
-	if p.ID == "notion" && (len(p.Scopes) != 0 || p.PKCE) {
+	if !validWorkspaceProtocol(p, p.Scopes) {
 		return ErrAuthentication
 	}
 	if _, err := secret(p); err != nil {
@@ -132,7 +132,7 @@ func (e Engine) Authorize(p Provider, state, challenge, shop string, scopes []st
 	if state == "" || p.AppID == "" || p.ClientID == "" || !approvedScopes(p, scopes) {
 		return "", ErrAuthentication
 	}
-	if p.ID == "notion" && (len(scopes) != 0 || p.PKCE) {
+	if !validWorkspaceProtocol(p, scopes) {
 		return "", ErrAuthentication
 	}
 	u, err := e.target(p, p.AuthorizationURL, shop)
@@ -146,13 +146,25 @@ func (e Engine) Authorize(p Provider, state, challenge, shop string, scopes []st
 	if p.ID != "postiz" {
 		q.Set("redirect_uri", p.RedirectURI)
 	}
-	if p.ID != "clickup" {
+	if p.ID != "clickup" && p.ID != "slack_import" {
 		q.Set("response_type", "code")
 	}
 	if p.ID == "notion" {
 		q.Set("owner", "user")
 	}
-	if len(scopes) > 0 && p.ID != "shopify" {
+	if p.ID == "atlassian" {
+		q.Set("audience", "api.atlassian.com")
+		q.Set("prompt", "consent")
+	}
+	if p.ID == "slack_import" {
+		// This connector acts only as the consenting user, never as a bot.
+		q.Del("scope")
+		q.Del("response_type")
+		q.Del("code_challenge")
+		q.Del("code_challenge_method")
+		q.Set("user_scope", strings.Join(scopes, ","))
+	}
+	if len(scopes) > 0 && p.ID != "shopify" && p.ID != "slack_import" {
 		q.Set("scope", strings.Join(scopes, " "))
 	}
 	if p.PKCE {
@@ -195,7 +207,7 @@ func (e Engine) Exchange(ctx context.Context, p Provider, code, verifier, shop s
 		fields.Del("grant_type")
 	} else if p.ID == "postiz" {
 		fields.Del("redirect_uri")
-	} else if p.ID == "github" {
+	} else if p.ID == "github" || p.ID == "slack_import" {
 		fields.Del("grant_type")
 	}
 	if p.PKCE {
@@ -269,10 +281,15 @@ func (e Engine) Refresh(ctx context.Context, p Provider, refresh, shop string, s
 	if refresh == "" || len(refresh) > 65536 || !approvedScopes(p, scopes) {
 		return Token{}, ErrAuthentication
 	}
+	// Slack's refresh response may omit team. Only the host-held original
+	// provider team binding may supply it; never adopt a refresh caller's hint.
+	if p.ID == "slack_import" && !validSlackTeam(shop) {
+		return Token{}, ErrAuthentication
+	}
 	return e.request(ctx, p, shop, url.Values{"grant_type": {"refresh_token"}, "refresh_token": {refresh}}, scopes, refresh)
 }
 func (e Engine) request(ctx context.Context, p Provider, shop string, fields url.Values, scopes []string, previous string) (Token, error) {
-	if p.ID == "notion" && (len(scopes) != 0 || p.PKCE) {
+	if !validWorkspaceProtocol(p, scopes) {
 		return Token{}, ErrAuthentication
 	}
 	u, err := e.target(p, p.TokenURL, shop)
@@ -291,7 +308,7 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	}
 	var body io.Reader
 	contentType := "application/x-www-form-urlencoded"
-	if p.ID == "clickup" || p.ID == "postiz" || p.ID == "notion" {
+	if p.ID == "clickup" || p.ID == "postiz" || p.ID == "notion" || p.ID == "atlassian" {
 		m := map[string]string{}
 		for k, v := range fields {
 			m[k] = v[0]
@@ -322,11 +339,11 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 		return Token{}, ErrAuthentication
 	}
 	defer res.Body.Close()
-	b, err := io.ReadAll(io.LimitReader(res.Body, 1<<20))
-	if err != nil || res.StatusCode != 200 {
+	b, err := io.ReadAll(io.LimitReader(res.Body, (1<<20)+1))
+	if err != nil || res.StatusCode != 200 || len(b) > 1<<20 {
 		return Token{}, ErrAuthentication
 	}
-	var wire struct {
+	type tokenFields struct {
 		AccessToken      string `json:"access_token"`
 		RefreshToken     string `json:"refresh_token"`
 		ExpiresIn        int64  `json:"expires_in"`
@@ -334,10 +351,51 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 		Scope            string `json:"scope"`
 		TokenType        string `json:"token_type"`
 	}
-	if json.Unmarshal(b, &wire) != nil || wire.AccessToken == "" || len(wire.AccessToken) > 65536 || strings.ContainsAny(wire.AccessToken, "\r\n\x00") || len(wire.RefreshToken) > 65536 || strings.ContainsAny(wire.RefreshToken, "\r\n\x00") || wire.ExpiresIn < 0 || wire.ExpiresIn > 315360000 || wire.RefreshExpiresIn < 0 || wire.RefreshExpiresIn > 315360000 {
+	var response struct {
+		tokenFields
+		OK         *bool        `json:"ok"`
+		AuthedUser *tokenFields `json:"authed_user"`
+		Team       *struct {
+			ID string `json:"id"`
+		} `json:"team"`
+		IsEnterpriseInstall bool `json:"is_enterprise_install"`
+	}
+	if json.Unmarshal(b, &response) != nil {
 		return Token{}, ErrAuthentication
 	}
-	if wire.TokenType != "" && !strings.EqualFold(wire.TokenType, "bearer") {
+	wire := response.tokenFields
+	externalID := shop
+	if p.ID == "slack_import" {
+		if response.OK == nil || !*response.OK || response.IsEnterpriseInstall {
+			return Token{}, ErrAuthentication
+		}
+		if previous == "" {
+			if response.AuthedUser == nil || response.Team == nil || !validSlackTeam(response.Team.ID) {
+				return Token{}, ErrAuthentication
+			}
+			wire = *response.AuthedUser
+			externalID = response.Team.ID
+			if shop != "" && shop != externalID {
+				return Token{}, ErrAuthentication
+			}
+		} else {
+			if response.AuthedUser != nil || wire.RefreshToken == "" || wire.ExpiresIn <= 0 {
+				return Token{}, ErrAuthentication
+			}
+			if response.Team != nil && (!validSlackTeam(response.Team.ID) || response.Team.ID != shop) {
+				return Token{}, ErrAuthentication
+			}
+		}
+		if wire.TokenType != "user" || wire.Scope == "" ||
+			(!strings.HasPrefix(wire.AccessToken, "xoxp-") && !strings.HasPrefix(wire.AccessToken, "xoxe.xoxp-")) ||
+			(wire.ExpiresIn > 0) != (wire.RefreshToken != "") {
+			return Token{}, ErrAuthentication
+		}
+	}
+	if wire.AccessToken == "" || len(wire.AccessToken) > 65536 || strings.ContainsAny(wire.AccessToken, "\r\n\x00") || len(wire.RefreshToken) > 65536 || strings.ContainsAny(wire.RefreshToken, "\r\n\x00") || wire.ExpiresIn < 0 || wire.ExpiresIn > 315360000 || wire.RefreshExpiresIn < 0 || wire.RefreshExpiresIn > 315360000 {
+		return Token{}, ErrAuthentication
+	}
+	if p.ID != "slack_import" && wire.TokenType != "" && !strings.EqualFold(wire.TokenType, "bearer") {
 		return Token{}, ErrAuthentication
 	}
 	granted := append([]string{}, scopes...)
@@ -354,7 +412,7 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 		wire.RefreshToken = previous
 	}
 	sort.Strings(granted)
-	token := Token{AccessToken: wire.AccessToken, RefreshToken: wire.RefreshToken, Scopes: granted, AppID: p.AppID, ExternalID: shop}
+	token := Token{AccessToken: wire.AccessToken, RefreshToken: wire.RefreshToken, Scopes: granted, AppID: p.AppID, ExternalID: externalID}
 	now := time.Now().UTC()
 	if wire.ExpiresIn > 0 {
 		expiry := now.Add(time.Duration(wire.ExpiresIn) * time.Second)
@@ -367,19 +425,53 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	return token, nil
 }
 func (e Engine) Revoke(ctx context.Context, p Provider, token, shop string) error {
-	if p.RevocationURL == "" {
+	if p.RevocationURL == "" || token == "" || len(token) > 65536 || strings.ContainsAny(token, "\r\n\x00") {
 		return ErrAuthentication
 	}
 	u, err := e.target(p, p.RevocationURL, shop)
 	if err != nil {
 		return err
 	}
-	fields := url.Values{"token": {token}}
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), strings.NewReader(fields.Encode()))
+	method, contentType := http.MethodPost, "application/x-www-form-urlencoded"
+	var body io.Reader = strings.NewReader(url.Values{"token": {token}}.Encode())
+	clientSecret := ""
+	if p.ID == "notion" || p.ID == "github" {
+		// Provider-specific endpoints, not an arbitrary authenticated REST call.
+		expectedHost, expectedPath := "api.notion.com", "/v1/oauth/revoke"
+		field := "token"
+		if p.ID == "github" {
+			if p.ClientID == "" || len(p.ClientID) > 128 || strings.ContainsAny(p.ClientID, "/?#%\\\r\n\x00") {
+				return ErrAuthentication
+			}
+			expectedHost, expectedPath = "api.github.com", "/applications/"+p.ClientID+"/token"
+			method, field = http.MethodDelete, "access_token"
+		}
+		loopback := e.AllowLoopback && u.Scheme == "http" && (u.Hostname() == "127.0.0.1" || u.Hostname() == "localhost")
+		if (!loopback && u.Host != expectedHost) || u.EscapedPath() != expectedPath || u.RawQuery != "" {
+			return ErrAuthentication
+		}
+		clientSecret, err = secret(p)
+		if err != nil {
+			return err
+		}
+		encoded, _ := json.Marshal(map[string]string{field: token})
+		body, contentType = bytes.NewReader(encoded), "application/json"
+	}
+	req, err := http.NewRequestWithContext(ctx, method, u.String(), body)
 	if err != nil {
 		return ErrAuthentication
 	}
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-Type", contentType)
+	if clientSecret != "" {
+		req.SetBasicAuth(p.ClientID, clientSecret)
+		req.Header.Set("Accept", "application/json")
+		if p.ID == "notion" {
+			req.Header.Set("Notion-Version", "2026-03-11")
+		} else {
+			req.Header.Set("Accept", "application/vnd.github+json")
+			req.Header.Set("X-GitHub-Api-Version", "2026-03-10")
+		}
+	}
 	client := e.Client
 	if client == nil {
 		client = &http.Client{Timeout: 20 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
@@ -389,10 +481,39 @@ func (e Engine) Revoke(ctx context.Context, p Provider, token, shop string) erro
 		return ErrAuthentication
 	}
 	defer res.Body.Close()
-	if res.StatusCode != 200 {
+	data, readErr := io.ReadAll(io.LimitReader(res.Body, (1<<20)+1))
+	expectedStatus := http.StatusOK
+	if p.ID == "github" {
+		expectedStatus = http.StatusNoContent
+	}
+	if readErr != nil || len(data) > 1<<20 || res.StatusCode != expectedStatus {
 		return ErrAuthentication
 	}
 	return nil
+}
+
+// These branches implement the documented confidential flow only. Enabling
+// Slack PKCE requires app-side configuration and is deliberately not guessed.
+func validWorkspaceProtocol(p Provider, scopes []string) bool {
+	if p.ID == "notion" {
+		return len(scopes) == 0 && !p.PKCE
+	}
+	if p.ID == "atlassian" || p.ID == "slack_import" {
+		return !p.PKCE && len(scopes) > 0
+	}
+	return true
+}
+
+func validSlackTeam(value string) bool {
+	if len(value) < 9 || len(value) > 64 || value[0] != 'T' {
+		return false
+	}
+	for _, c := range value[1:] {
+		if !(c >= 'A' && c <= 'Z' || c >= '0' && c <= '9') {
+			return false
+		}
+	}
+	return true
 }
 func VerifyShopifyCallback(p Provider, q url.Values, now time.Time) error {
 	s, err := secret(p)
