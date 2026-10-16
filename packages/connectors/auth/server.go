@@ -13,6 +13,7 @@ import (
 	"errors"
 	"html/template"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -685,12 +686,21 @@ func (s *Server) refresh(w http.ResponseWriter, r *http.Request, installation In
 		var found bool
 		binding, found = s.Store.snapshot().TokenBindings[s.tokenHash(p.AppID, p.ID, input.RefreshToken)]
 		if !found || binding.Revoked || binding.Installation != installation.ID || binding.Provider != p.ID || binding.ExternalID != input.Shop || !sameScopes(binding.Scopes, input.Scopes) {
+			if p.ID == "slack_import" && s.QAEnrollmentEnabled() {
+				log.Print("connector_oauth_refresh_failed provider=slack_import stage=binding reason=token_binding provider_error=none")
+			}
 			fail(w, 403, "invalid_token_binding")
 			return
 		}
 	}
 	token, err := s.Engine.Refresh(r.Context(), p, input.RefreshToken, input.Shop, input.Scopes)
 	if err != nil {
+		if p.ID == "slack_import" && s.QAEnrollmentEnabled() {
+			var failure *oauth.SlackRefreshError
+			if errors.As(err, &failure) {
+				log.Printf("connector_oauth_refresh_failed provider=slack_import stage=%s reason=%s provider_error=%s", failure.Stage(), failure.Reason(), failure.ProviderCode())
+			}
+		}
 		if id != "" {
 			s.failedRotation(id, operation)
 		}
@@ -710,6 +720,9 @@ func (s *Server) refresh(w http.ResponseWriter, r *http.Request, installation In
 	}
 	if id == "" {
 		if err = s.bindRefreshedToken(installation.ID, p.ID, input.RefreshToken, binding, token); err != nil {
+			if p.ID == "slack_import" && s.QAEnrollmentEnabled() {
+				log.Print("connector_oauth_refresh_failed provider=slack_import stage=binding reason=grant_conflict provider_error=none")
+			}
 			fail(w, 409, "token_grant_revoked")
 			return
 		}

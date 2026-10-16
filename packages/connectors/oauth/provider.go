@@ -278,26 +278,47 @@ func (e Engine) shopIdentity(ctx context.Context, p Provider, shop, access strin
 	return id, nil
 }
 func (e Engine) Refresh(ctx context.Context, p Provider, refresh, shop string, scopes []string) (Token, error) {
-	if refresh == "" || len(refresh) > 65536 || !approvedScopes(p, scopes) {
+	if refresh == "" || len(refresh) > 65536 {
+		if p.ID == "slack_import" {
+			return Token{}, slackRefreshFailure("preflight", "refresh_invalid", "none")
+		}
+		return Token{}, ErrAuthentication
+	}
+	if !approvedScopes(p, scopes) {
+		if p.ID == "slack_import" {
+			return Token{}, slackRefreshFailure("preflight", "scope_config", "none")
+		}
 		return Token{}, ErrAuthentication
 	}
 	// Slack's refresh response may omit team. Only the host-held original
 	// provider team binding may supply it; never adopt a refresh caller's hint.
 	if p.ID == "slack_import" && !validSlackTeam(shop) {
-		return Token{}, ErrAuthentication
+		return Token{}, slackRefreshFailure("preflight", "team_invalid", "none")
 	}
 	return e.request(ctx, p, shop, url.Values{"grant_type": {"refresh_token"}, "refresh_token": {refresh}}, scopes, refresh)
 }
 func (e Engine) request(ctx context.Context, p Provider, shop string, fields url.Values, scopes []string, previous string) (Token, error) {
+	failure := func(stage, reason string) error {
+		if p.ID == "slack_import" && fields.Get("grant_type") == "refresh_token" {
+			return slackRefreshFailure(stage, reason, "none")
+		}
+		return ErrAuthentication
+	}
 	if !validWorkspaceProtocol(p, scopes) {
-		return Token{}, ErrAuthentication
+		return Token{}, failure("preflight", "protocol")
 	}
 	u, err := e.target(p, p.TokenURL, shop)
 	if err != nil {
+		if p.ID == "slack_import" && previous != "" {
+			return Token{}, failure("request", "target")
+		}
 		return Token{}, err
 	}
 	s, err := secret(p)
 	if err != nil {
+		if p.ID == "slack_import" && previous != "" {
+			return Token{}, failure("request", "secret")
+		}
 		return Token{}, err
 	}
 	fields.Set("client_id", p.ClientID)
@@ -321,7 +342,7 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, u.String(), body)
 	if err != nil {
-		return Token{}, ErrAuthentication
+		return Token{}, failure("request", "request_invalid")
 	}
 	req.Header.Set("Content-Type", contentType)
 	// GitHub defaults to a form-encoded response unless JSON is requested.
@@ -336,12 +357,18 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	}
 	res, err := client.Do(req)
 	if err != nil {
-		return Token{}, ErrAuthentication
+		return Token{}, failure("request", "network")
 	}
 	defer res.Body.Close()
 	b, err := io.ReadAll(io.LimitReader(res.Body, (1<<20)+1))
-	if err != nil || res.StatusCode != 200 || len(b) > 1<<20 {
-		return Token{}, ErrAuthentication
+	if err != nil {
+		return Token{}, failure("response", "response_read")
+	}
+	if res.StatusCode != 200 {
+		return Token{}, failure("response", "http_status")
+	}
+	if len(b) > 1<<20 {
+		return Token{}, failure("response", "response_size")
 	}
 	type tokenFields struct {
 		AccessToken      string `json:"access_token"`
@@ -353,21 +380,33 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	}
 	var response struct {
 		tokenFields
-		OK         *bool        `json:"ok"`
-		AuthedUser *tokenFields `json:"authed_user"`
+		OK         *bool           `json:"ok"`
+		Error      json.RawMessage `json:"error"`
+		AuthedUser *tokenFields    `json:"authed_user"`
 		Team       *struct {
 			ID string `json:"id"`
 		} `json:"team"`
 		IsEnterpriseInstall bool `json:"is_enterprise_install"`
 	}
 	if json.Unmarshal(b, &response) != nil {
-		return Token{}, ErrAuthentication
+		return Token{}, failure("response", "json")
 	}
 	wire := response.tokenFields
 	externalID := shop
 	if p.ID == "slack_import" {
-		if response.OK == nil || !*response.OK || response.IsEnterpriseInstall {
+		if response.OK == nil {
+			return Token{}, failure("response", "ok_missing")
+		}
+		if !*response.OK {
+			if previous != "" {
+				var code string
+				_ = json.Unmarshal(response.Error, &code)
+				return Token{}, slackRefreshFailure("response", "ok_false", code)
+			}
 			return Token{}, ErrAuthentication
+		}
+		if response.IsEnterpriseInstall {
+			return Token{}, failure("token", "enterprise")
 		}
 		if previous == "" {
 			if response.AuthedUser == nil || response.Team == nil || !validSlackTeam(response.Team.ID) {
@@ -379,21 +418,39 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 				return Token{}, ErrAuthentication
 			}
 		} else {
-			if response.AuthedUser != nil || wire.RefreshToken == "" || wire.ExpiresIn <= 0 {
-				return Token{}, ErrAuthentication
+			if response.AuthedUser != nil {
+				return Token{}, failure("token", "unexpected_nested")
 			}
-			if response.Team != nil && (!validSlackTeam(response.Team.ID) || response.Team.ID != shop) {
-				return Token{}, ErrAuthentication
+			if wire.RefreshToken == "" {
+				return Token{}, failure("token", "refresh_missing")
+			}
+			if wire.ExpiresIn <= 0 {
+				return Token{}, failure("token", "expiry_invalid")
+			}
+			if response.Team != nil && !validSlackTeam(response.Team.ID) {
+				return Token{}, failure("token", "team_invalid")
+			}
+			if response.Team != nil && response.Team.ID != shop {
+				return Token{}, failure("token", "team_mismatch")
 			}
 		}
-		if wire.TokenType != "user" || wire.Scope == "" ||
-			(!strings.HasPrefix(wire.AccessToken, "xoxp-") && !strings.HasPrefix(wire.AccessToken, "xoxe.xoxp-")) ||
-			(wire.ExpiresIn > 0) != (wire.RefreshToken != "") {
-			return Token{}, ErrAuthentication
+		if wire.TokenType != "user" {
+			return Token{}, failure("token", "token_type")
+		}
+		// Slack rotation may omit scope; only refresh can retain the previously
+		// approved scopes supplied by the host (and verified by broker binding).
+		if wire.Scope == "" && previous == "" {
+			return Token{}, failure("token", "scope_missing")
+		}
+		if !strings.HasPrefix(wire.AccessToken, "xoxp-") && !strings.HasPrefix(wire.AccessToken, "xoxe.xoxp-") {
+			return Token{}, failure("token", "token_prefix")
+		}
+		if (wire.ExpiresIn > 0) != (wire.RefreshToken != "") {
+			return Token{}, failure("token", "rotation_shape")
 		}
 	}
 	if wire.AccessToken == "" || len(wire.AccessToken) > 65536 || strings.ContainsAny(wire.AccessToken, "\r\n\x00") || len(wire.RefreshToken) > 65536 || strings.ContainsAny(wire.RefreshToken, "\r\n\x00") || wire.ExpiresIn < 0 || wire.ExpiresIn > 315360000 || wire.RefreshExpiresIn < 0 || wire.RefreshExpiresIn > 315360000 {
-		return Token{}, ErrAuthentication
+		return Token{}, failure("token", "token_bounds")
 	}
 	if p.ID != "slack_import" && wire.TokenType != "" && !strings.EqualFold(wire.TokenType, "bearer") {
 		return Token{}, ErrAuthentication
@@ -402,8 +459,11 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	if wire.Scope != "" {
 		granted = strings.Fields(strings.ReplaceAll(wire.Scope, ",", " "))
 	}
-	if !approvedScopes(p, granted) || !approvedScopes(Provider{Scopes: scopes}, granted) {
-		return Token{}, ErrAuthentication
+	if !approvedScopes(p, granted) {
+		return Token{}, failure("scopes", "scope_config")
+	}
+	if !approvedScopes(Provider{Scopes: scopes}, granted) {
+		return Token{}, failure("scopes", "scope_subset")
 	}
 	if p.ID == "shopify" && (wire.ExpiresIn <= 0 || wire.RefreshToken == "" || wire.RefreshExpiresIn <= 0) {
 		return Token{}, ErrAuthentication
