@@ -1,0 +1,46 @@
+{
+  "format": 1,
+  "provider": "slack_import",
+  "app_name": "OpenAgent",
+  "app_id": "A0C9XC9JHTK",
+  "client_id": "12333069497846.12337417629937",
+  "registration_date": "2026-10-16",
+  "callback_url": "https://auth.openagent.uno/v1/oauth/slack_import/callback",
+  "configured_user_scopes": [
+    "channels:read",
+    "channels:history",
+    "groups:read",
+    "groups:history",
+    "im:read",
+    "im:history",
+    "mpim:read",
+    "mpim:history",
+    "users:read",
+    "chat:write"
+  ],
+  "configured_bot_scopes": [],
+  "events_enabled": false,
+  "token_rotation_enabled": true,
+  "pkce": false,
+  "manifest_saved": true,
+  "oauth_settings_verified": true,
+  "registration_status": "created-production-secret-configured-not-installed",
+  "local_secret_custody_verified": true,
+  "production_secret_configured": true,
+  "secret_reference": {
+    "name": "connector-auth-secrets",
+    "client_id_key": "slack-client-id",
+    "client_secret_key": "slack-client-secret"
+  },
+  "broker_enabled": false,
+  "installation_authorized": false,
+  "real_oauth_grant": false,
+  "common_enrollment_enabled": false,
+  "real_provider_qualification": false,
+  "notes": [
+    "The confidential client secret is held in private local custody and encrypted production secret storage; no secret bytes or private workspace identifiers are recorded here.",
+    "Production secret custody was verified after a merge preserving other secret keys; the app remains inactive in the current restricted GitHub QA broker configuration.",
+    "No installation or provider grant has been authorized.",
+    "Registration does not activate the reviewed provider inventory or qualify access to Slack's separate MCP service."
+  ]
+}

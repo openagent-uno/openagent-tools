@@ -23,7 +23,7 @@
   "pkce": true,
   "expiring_user_tokens": true,
   "webhooks_enabled": false,
-  "broker_enabled": false,
+  "broker_enabled": true,
   "secret_reference": {
     "namespace": "openagent-connectors",
     "name": "connector-auth-secrets",
@@ -31,9 +31,9 @@
     "mount_path": "/secrets/github-client-secret"
   },
   "qualification_pending": [
-    "GitHub App installation with explicit repository selection",
-    "real user OAuth, read, authorized reversible write, refresh and disconnect",
-    "qualified connector release and consumer adoption"
+    "readiness response fix verification and receiving-product release",
+    "qualified runner/SDK release and consumer adoption",
+    "remaining GitHub tools and native App acceptance"
   ],
   "private_key_reference": {
     "namespace": "openagent-connectors",
@@ -41,5 +41,19 @@
     "key": "private-key.pem",
     "mounted_in_broker": false,
     "provider_fingerprint_verified": true
+  },
+  "qa_only_enabled": true,
+  "common_enrollment_enabled": false,
+  "real_qa_lifecycle": {
+    "date": "2026-10-16",
+    "explicit_repository_selection": true,
+    "oauth": true,
+    "repository_read": true,
+    "issue_create_read_close": true,
+    "owner_refresh": true,
+    "post_restart_read": true,
+    "local_disconnect": true,
+    "qa_runtime_removed": true,
+    "public_release": false
   }
 }

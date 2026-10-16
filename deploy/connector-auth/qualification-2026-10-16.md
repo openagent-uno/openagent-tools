@@ -69,8 +69,9 @@ with explicit opaque-cursor pagination. No Slack MCP access is claimed.
 It now includes the registered GitHub and Notion client IDs and secret-file
 references. The Atlassian registration was subsequently created as recorded
 below, but its secret has not entered production custody; an app registration
-does not make its planned secret reference runnable. Slack app registration
-remains pending and has no persistent app ID. Inventory/overlay activation
+does not make its planned secret reference runnable. Slack app registration is
+now recorded below, with verified production secret custody but no authorized
+installation or grant. Inventory/overlay activation
 remains separate from registration metadata. The QA overlay admits GitHub and
 Notion only in addition to the previously supported choices; Slack/Atlassian
 remain rejected even through the
@@ -107,19 +108,29 @@ setup status is recorded independently.
   Secret custody, broker activation, selected-site consent and
   actual Jira operations remain pending. The adapter uses public Jira REST APIs;
   this does not qualify the separate commercial Rovo MCP service.
-- **Slack:** the setup workspace was created, but app creation was not completed
-  because the console required an installation grant. No persistent Slack app ID,
-  client secret or real OAuth grant is recorded. Registration and any subsequent
-  installation/consent remain pending; an existing directory card is not an
-  approval for OpenAgent to use Slack's separate MCP service.
+- **Slack:** OpenAgent app `A0C9XC9JHTK`, client ID
+  `12333069497846.12337417629937`, was created and its saved manifest and OAuth
+  settings were verified in the provider UI. The callback is
+  `https://auth.openagent.uno/v1/oauth/slack_import/callback`. The ten configured
+  user scopes are `channels:read`, `channels:history`, `groups:read`,
+  `groups:history`, `im:read`, `im:history`, `mpim:read`, `mpim:history`,
+  `users:read` and `chat:write`; there are no bot scopes or events. Token rotation
+  is enabled and PKCE is disabled. The client secret was saved and verified in
+  private local custody with mode 0600. It was subsequently merged into encrypted
+  Kubernetes `connector-auth-secrets` as `slack-client-id` and
+  `slack-client-secret`, preserving the other keys; remote/local digest comparison
+  matched without recording secret values here. No installation or real OAuth
+  grant has been authorized, and the app remains inactive in the current
+  restricted GitHub QA broker configuration. Registration does not qualify
+  access to Slack's separate MCP service.
 
 Secret bytes and provider user credentials are not part of this checkpoint or
 repository. Existing production secret keys were preserved. Registration did
 not activate providers; the later image-only infrastructure update is recorded
 separately below.
-The registrations are recorded separately in `registrations/github.json` and
-`registrations/notion.json`, with the incomplete Atlassian state in
-`registrations/atlassian.json`; those files are metadata, not active configuration.
+The registration metadata is recorded separately in `registrations/github.json`,
+`registrations/notion.json`, `registrations/atlassian.json` and
+`registrations/slack.json`; those files are not active configuration.
 The Atlassian row in `providers-reviewed.json` deliberately retains an empty
 client ID and remains inert until secret custody and the separate admission
 checks are satisfied. The registration's existence does not validate that row.
@@ -128,25 +139,51 @@ checks are satisfied. The registration's existence does not validate that row.
 
 An unversioned candidate Auth image
 `sha256:cf5d5bbb3d98eee602915e1d4b8fb641335407c2f9dfd214535c93ea74bfc882`
-was deployed with an image-only update. Configuration and all existing secret
-hashes were preserved; no new consent was obtained.
-HTTPS `/healthz` returned 200 while readiness remained 503 under the existing
-restricted ClickUp QA enrollment configuration. No GitHub, Notion, Slack or
-Atlassian provider was activated. This infrastructure observation does not
-publish Auth `0.1.7`, qualify provider consent or establish general readiness;
-the shared connector artifacts still remain `0.1.3`.
+was initially deployed with an image-only update. Configuration and all existing
+secret hashes were preserved at that step; no new consent was obtained by the
+image update. HTTPS `/healthz` returned 200 while readiness remained 503 under
+the then-active restricted ClickUp QA enrollment configuration.
+
+The later restricted QA configuration is `connector-auth-github-qa-20261016`,
+using the same image digest above. The real standalone source candidate completed
+these GitHub stages on 16 October (UTC): OAuth acquired by the product poll at
+15:18:39; verified repository read at 15:23:24; owner refresh at 15:25:54;
+disposable issue creation/read/closure confirmed at 15:49:10; read after server
+restart at 15:51:16; local disconnect at 15:51:32, with the connection disabled.
+The temporary receiving-server pod was then removed.
+
+The GitHub App installation was restricted to the explicitly approved private
+QA repository, whose Actions were disabled. No model was used. The selected
+repository and the closed issue were also verified in the provider UI. The
+normal certified product connection and ordinary workflows executed the provider
+calls; no synthetic provider client was substituted.
+
+Early result-detail reads exposed a product bug: `ApiProblem(503, warming)`
+escaped the workflow detail handler and became HTTP 500 while its authorized
+history projection was being prepared. Authenticated workflow history returned
+the canonical successful provider results. A narrow handler fix passed a
+separate remote regression on the public
+Core/Storage 22 and Identity 39 dependencies: real signed native certificates,
+503 while warming, then owner 200 with trace and another principal 404 without
+data. It remains a source fix pending receiving-product publication. Using
+history for QA
+does not waive that barrier or qualify the old 500 behavior.
+
+The [product lifecycle receipt](https://github.com/openagent-uno/openagent/blob/main/docs/qualification/github-oauth-2026-10-16.json)
+records source pins and sanitized evidence hashes. Earlier source-only receipts
+retain their cohort-specific flags. No Auth, SDK, runner or receiving-product
+release was published by this QA run; consumer pins remain `0.1.3`. General
+enrollment stays closed. Notion, Slack and Atlassian consent is not implied.
 
 ## Remaining gates
 
-All four providers still need a real, explicitly authorized receiving installation
-and provider consent, reads, permitted reversible writes, refresh, restart and
-disconnect. GitHub also needs explicit repository selection during installation;
-Notion needs explicit page selection. Then qualify/publish the candidate runner
-and SDK, and adopt them in receiving products through their existing public
-contracts. Older installations are not silently upgraded or activated.
-Atlassian additionally requires secret custody and explicit site selection;
-Slack still requires app registration and an authorized installation. No new
-provider is enabled in the active configuration by this source qualification.
+GitHub still needs a qualified runner/SDK release, explicit consumer adoption,
+remaining-tool qualification and native App acceptance. Notion, Slack and
+Atlassian still need an explicitly authorized receiving installation and consent,
+then reads, permitted writes, renewal, restart and disconnect. Notion requires
+explicit page selection; Atlassian needs verified secret custody and site
+selection; Slack needs an authorized installation and separate broker admission.
+Existing installations are never silently upgraded or activated.
 
 The [complete public-directory inventory](../../docs/chatgpt-app-coverage.md)
 retains the remaining services and primary-interface research. Its Popular
