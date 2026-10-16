@@ -140,8 +140,17 @@ def qualify(directory, tests, vet, vulnerability, artifact_receipt, consumer_rec
     require(not (directory / "qualification.json").exists(), "qualification already exists")
     verify_source(manifest)
     verify_payloads(directory, manifest)
+    catalog_bytes = (directory / "catalog.json").read_bytes()
+    catalog = json.loads(catalog_bytes)
+    require(isinstance(catalog, list) and len(catalog) > 0, "empty/invalid release catalog")
+    require(all(isinstance(item, dict) and isinstance(item.get("id"), str) and type(item.get("available")) is bool for item in catalog), "invalid catalog entries")
+    require(len({item["id"] for item in catalog}) == len(catalog), "duplicate catalog identifiers")
+    require([item["id"] for item in catalog if item.get("nativeKind")] == ["custom-mcp"], "custom MCP catalog contract mismatch")
+    official = [item for item in catalog if not item.get("nativeKind")]
+    available = sum(item["available"] for item in official)
     logs = verify_logs(tests, vet, vulnerability, manifest["go_toolchain"])
     receipts = {}
+    native_target = None
     for kind, path in (("artifacts", artifact_receipt), ("consumer", consumer_receipt), ("native_broker", broker_receipt)):
         receipt, record = read_receipt(path)
         require(receipt["source_commit"] == manifest["source_commit"], "receipt source mismatch")
@@ -150,9 +159,15 @@ def qualify(directory, tests, vet, vulnerability, artifact_receipt, consumer_rec
             require(set(receipt["archives"]) == PLATFORMS and receipt["verified_binaries"] == 12, "artifact receipt incomplete")
         elif kind == "consumer":
             require(receipt["adapter"] == manifest["version"] and receipt["native_runner_toolchain"] == manifest["go_toolchain"], "consumer version mismatch")
-            require(receipt["native_catalog"] == 13 and receipt["python_catalog"] == 12 and receipt["available_connectors"] == 10 and receipt["mcp_surface_import"] is True and receipt["broker_network_calls"] == 0, "consumer receipt incomplete")
+            require(receipt["native_catalog"] == len(catalog) and receipt["python_catalog"] == len(official) and receipt["available_connectors"] == available and receipt["mcp_surface_import"] is True and receipt["broker_network_calls"] == 0, "consumer receipt incomplete")
+            require(receipt["catalog_sha256"] == digest(catalog_bytes), "consumer catalog identity mismatch")
+            native_target = receipt["native"]
+            require(native_target in PLATFORMS and not native_target.startswith("win32-"), "unsupported native smoke target")
+            with tarfile.open(directory / f"openagent-connectors-{manifest['version']}-{native_target}.tar.gz") as archive:
+                native_manifest_sha = digest(archive.extractfile("manifest.json").read())
+            require(receipt["bundle_manifest_sha256"] == native_manifest_sha, "native consumer bundle identity mismatch")
         else:
-            require(receipt["native"] == "darwin-arm64" and receipt["health"] == 200 and receipt["readiness"] == 503 and receipt["enrollment"] == "qa" and receipt["unsigned_start"] == 401, "native broker receipt incomplete")
+            require(receipt["native"] == native_target and receipt["health"] == 200 and receipt["readiness"] == 503 and receipt["enrollment"] == "qa" and receipt["unsigned_start"] == 401, "native broker receipt incomplete")
             require(receipt["real_provider_grants"] == 0 and receipt["production_secret_reads"] == 0, "unexpected real-provider evidence")
         receipts[kind] = record
     payloads = {name: dict(value) for name, value in manifest["files"].items()}
@@ -172,13 +187,13 @@ def qualify(directory, tests, vet, vulnerability, artifact_receipt, consumer_rec
         "qualifier_source_url": "https://github.com/openagent-uno/openagent-tools/blob/" + qualifier_commit + "/" + qualifier_path,
         "checks": {"platform_bundles": 6, "compiled_binaries": 12, "payload_checksums": "verified", "race_tests": "passed", "vet": "passed", "govulncheck": {"tool": "v1.6.0", "database": "https://vuln.go.dev", "result": "no vulnerabilities found"}},
         "evidence": {"logs": logs, "receipts": receipts},
-        "coverage": {"native_runtime": ["darwin-arm64 smoke"], "other_platforms": "cross-compilation and checksum/toolchain verification only", "mcp": "published adapter/protocol import smoke; full host transport acceptance separate"},
-        "pending": ["real provider OAuth and dual-server Shopify acceptance", "product-local privacy processing and coordinated product rollout", "Windows/Linux native runtime acceptance", "applicable provider reviews", "production capacity/admission and common app activation"],
+        "coverage": {"native_runtime": [native_target + " smoke"], "other_platforms": "cross-compilation and checksum/toolchain verification only", "mcp": "normally installed candidate adapter/protocol import smoke; full host transport acceptance separate"},
+        "pending": ["real provider OAuth and dual-server Shopify acceptance", "product-local privacy processing and coordinated product rollout", "native runtime acceptance for targets other than " + native_target, "applicable provider reviews", "production capacity/admission and common app activation"],
         "revocation_fence": "calling installation/provider/app grant only; no Google account correlation across aliases or servers",
     }
     attestation_data = (json.dumps(attestation, indent=2) + "\n").encode()
     manifest["release_status"] = STATUS
-    manifest["qualification"] = {"file": "qualification.json", "sha256": digest(attestation_data), "scope": "contract/artifact verification and macOS smoke only"}
+    manifest["qualification"] = {"file": "qualification.json", "sha256": digest(attestation_data), "scope": "contract/artifact verification and " + native_target + " smoke only"}
     manifest["files"]["qualification.json"] = {"bytes": len(attestation_data), "sha256": digest(attestation_data)}
     manifest_data = (json.dumps(manifest, indent=2) + "\n").encode()
     checksums = {name: metadata["sha256"] for name, metadata in manifest["files"].items()}
