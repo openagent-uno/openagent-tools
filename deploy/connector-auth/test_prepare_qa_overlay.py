@@ -139,8 +139,13 @@ class PrepareQAOverlayTests(unittest.TestCase):
             self.assertFalse(row["pkce"])
             self.assertNotIn("revocation_url", row)
         slack = json.loads((module.BASE / "registrations/slack.json").read_text())
-        self.assertFalse(slack["broker_enabled"])
+        self.assertTrue(slack["qa_only"])
         self.assertFalse(slack["common_enrollment_enabled"])
+        self.assertEqual(set(slack["configured_user_scopes"]), {
+            "channels:read", "channels:history", "groups:read", "groups:history",
+            "im:read", "im:history", "mpim:read", "mpim:history", "users:read", "chat:write",
+        })
+        self.assertEqual(len(slack["configured_user_scopes"]), 10)
 
 
 if __name__ == "__main__":

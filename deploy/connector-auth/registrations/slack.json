@@ -24,7 +24,7 @@
   "pkce": false,
   "manifest_saved": true,
   "oauth_settings_verified": true,
-  "registration_status": "created-production-secret-configured-not-installed",
+  "registration_status": "limited-qa-lifecycle-qualified",
   "local_secret_custody_verified": true,
   "production_secret_configured": true,
   "secret_reference": {
@@ -32,15 +32,17 @@
     "client_id_key": "slack-client-id",
     "client_secret_key": "slack-client-secret"
   },
-  "broker_enabled": false,
-  "installation_authorized": false,
-  "real_oauth_grant": false,
+  "broker_enabled": true,
+  "installation_authorized": true,
+  "real_oauth_grant": true,
   "common_enrollment_enabled": false,
-  "real_provider_qualification": false,
+  "real_provider_qualification": true,
   "notes": [
-    "The confidential client secret is held in private local custody and encrypted production secret storage; no secret bytes or private workspace identifiers are recorded here.",
-    "Production secret custody was verified after a merge preserving other secret keys; the app remains inactive in the current restricted GitHub QA broker configuration.",
-    "No installation or provider grant has been authorized.",
-    "Registration does not activate the reviewed provider inventory or qualify access to Slack's separate MCP service."
-  ]
+    "The confidential client secret remains in encrypted production secret storage; no secret bytes or private workspace identifiers are recorded here.",
+    "A restricted QA installation completed consent, scoped reads, approved message create/read/delete with cleanup, owner refresh, post-restart read and local disconnect; its owned runtime was stopped.",
+    "An initial refresh returned 503. The reviewed broker compatibility fix and explicit reconsent preceded the successful refresh; the earlier failure is retained in the lifecycle evidence.",
+    "The limited real-provider qualification does not enable common enrollment, publish candidate artifacts, qualify remaining tools or grant access to Slack's separate MCP service."
+  ],
+  "qa_only": true,
+  "qualification_scope": "One authorized receiving installation and explicitly approved QA resources; not full tool or native App acceptance"
 }
