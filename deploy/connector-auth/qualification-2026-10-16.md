@@ -1,10 +1,18 @@
 # Shared connector source/registration checkpoint — 16 October 2026
 
-The shared library/runner source candidate is **0.1.4**, with 17 GitHub,
-8 Notion, 9 Slack and 9 Atlassian/Jira typed operations. The integrated candidate
-passed Go test, vet and runner build on a remote worker. Published artifacts and
-consumer pins remain **0.1.3**. This is not real-provider acceptance, a native
-platform qualification or a common-enrollment release.
+The shared SDK/runner **0.1.4 is now published**, from clean source
+`709e6634edbf71c6d53711b01482a0509eb7bfa0`, with 17 GitHub, 8 Notion,
+9 Slack and 9 Atlassian/Jira typed operations. Its bounded Linux qualification
+passed race/vet/govulncheck, six platform bundles, normal wheel installation and
+native Linux x64 runner/broker smoke. Other targets have cross-compilation,
+checksum and toolchain coverage only. The
+[publication receipt](../../docs/connector-release-0.1.4-publication.json)
+links the public manifest and exact asset digests. Consumer version pins and
+real provider acceptance remain independent. GitHub, Notion and Slack completed
+limited standalone lifecycles recorded in the
+[product receipts](https://openagent.uno/guide/chatgpt-apps); Jira remains pending.
+Common enrollment is closed. The earlier source cohorts below remain historical
+evidence, rather than proof for a different runtime or provider grant.
 
 ## Earlier GitHub/Notion source qualification
 

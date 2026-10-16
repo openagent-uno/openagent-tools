@@ -1,0 +1,67 @@
+{
+  "status": "published-and-public-manifest-byte-verified",
+  "source_commit": "709e6634edbf71c6d53711b01482a0509eb7bfa0",
+  "url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.4",
+  "published_at": "2026-10-16T19:00:14Z",
+  "assets": [
+    {
+      "name": "catalog.json",
+      "bytes": 12149,
+      "digest": "sha256:964cf46c08012a8655dd6d06f4b06d04a60236f3a8617a66c5e81b03ad6e40ed"
+    },
+    {
+      "name": "manifest.json",
+      "bytes": 1977,
+      "digest": "sha256:b8aa9fec6f5fc495b13325ad5c2db0a6a7ed5f1b450ad484401bc31629e0fd41"
+    },
+    {
+      "name": "openagent-connectors-0.1.4-darwin-arm64.tar.gz",
+      "bytes": 6755485,
+      "digest": "sha256:650826a1b79e7dad82f3099f91c81e147187e15faeb1eb2615cec920dc68dde0"
+    },
+    {
+      "name": "openagent-connectors-0.1.4-darwin-x64.tar.gz",
+      "bytes": 7340382,
+      "digest": "sha256:21dbddb2e13ecee9ebc7446ccb6211cea1900bcf3c3c67f41edb69165c101f73"
+    },
+    {
+      "name": "openagent-connectors-0.1.4-linux-arm64.tar.gz",
+      "bytes": 6512133,
+      "digest": "sha256:901358d2e2e2c44493e13cab5c973c1bb54b388138f4c287e3074ae77b408fef"
+    },
+    {
+      "name": "openagent-connectors-0.1.4-linux-x64.tar.gz",
+      "bytes": 7228357,
+      "digest": "sha256:af559b7fae4ef75188b6b6c0db0e4f0bf733b2941eb05a28da65511e9f209d8a"
+    },
+    {
+      "name": "openagent-connectors-0.1.4-win32-arm64.tar.gz",
+      "bytes": 6574395,
+      "digest": "sha256:e65ae4b33720fd35e4a93802b3f259cfa619023a40d3564b7a94e823aaa2b138"
+    },
+    {
+      "name": "openagent-connectors-0.1.4-win32-x64.tar.gz",
+      "bytes": 7378236,
+      "digest": "sha256:c83ef7fcb72db62fe797bddc5922c32e0ba95cbbc7f977eb37ec24289f2603c1"
+    },
+    {
+      "name": "openagent_connectors-0.1.4-py3-none-any.whl",
+      "bytes": 9048,
+      "digest": "sha256:7a5920c04cbed25037755185b30376df1cfb5bcb6e38921ce3a15c62e76a8603"
+    },
+    {
+      "name": "qualification.json",
+      "bytes": 4064,
+      "digest": "sha256:f3251081ca395bef5beb7b955843615a69ac779a40601016d16b055e62feb568"
+    },
+    {
+      "name": "SHA256SUMS",
+      "bytes": 1022,
+      "digest": "sha256:0b94c0c97d4f92885c53a1d330e8d59eddcc056ee2c11a1077f68f87cd844333"
+    }
+  ],
+  "public_manifest_sha256": "b8aa9fec6f5fc495b13325ad5c2db0a6a7ed5f1b450ad484401bc31629e0fd41",
+  "common_enrollment_activated": false,
+  "format": 1,
+  "scope": "Shared SDK/runner artifact publication; product adoption and common enrollment separate"
+}
