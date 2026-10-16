@@ -108,3 +108,55 @@ func TestSlackInitialExchangeStillRequiresUserScopes(t *testing.T) {
 		t.Fatal("initial exchange accepted missing user scopes")
 	}
 }
+
+func TestSlackRefreshImplicitIdentifyKeepsEffectiveGrantBounded(t *testing.T) {
+	prior := []string{"channels:read", "channels:history", "groups:read", "groups:history", "im:read", "im:history", "mpim:read", "mpim:history", "users:read", "chat:write"}
+	for _, tc := range []struct {
+		name, extra     string
+		initial, reject bool
+	}{
+		{name: "refresh_implicit", extra: "identify"},
+		{name: "initial_stays_strict", extra: "identify", initial: true, reject: true},
+		{name: "files", extra: "identify,files:read", reject: true},
+		{name: "admin", extra: "identify,admin", reject: true},
+		{name: "identity_basic", extra: "identify,identity.basic", reject: true},
+		{name: "duplicate_identify", extra: "identify,identify", reject: true},
+		{name: "duplicate_existing", extra: "identify,channels:read", reject: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			calls := 0
+			p, e, _ := workspaceProtocolFixture(t, "slack_import", func(w http.ResponseWriter, r *http.Request) {
+				calls++
+				user := map[string]any{"access_token": "xoxe.xoxp-next", "refresh_token": "refresh-next", "expires_in": 43200, "token_type": "user", "scope": strings.Join(prior, ",") + "," + tc.extra}
+				body := map[string]any{"ok": true}
+				if tc.initial {
+					body["authed_user"] = user
+					body["team"] = map[string]string{"id": "T12345678"}
+				} else {
+					for key, value := range user {
+						body[key] = value
+					}
+				}
+				_ = json.NewEncoder(w).Encode(body)
+			})
+			p.Scopes = append([]string{}, prior...)
+			var token Token
+			var err error
+			if tc.initial {
+				token, err = e.Exchange(context.Background(), p, "fixture-code", "", "", prior)
+			} else {
+				token, err = e.Refresh(context.Background(), p, "old-refresh", "T12345678", prior)
+			}
+			if calls != 1 {
+				t.Fatal("unexpected provider request count")
+			}
+			if tc.reject {
+				if !errors.Is(err, ErrAuthentication) {
+					t.Fatal("unapproved or duplicate scope accepted")
+				}
+			} else if err != nil || len(token.Scopes) != len(prior) || !approvedScopes(Provider{Scopes: prior}, token.Scopes) || !approvedScopes(Provider{Scopes: token.Scopes}, prior) || token.ExternalID != "T12345678" {
+				t.Fatal("implicit identify changed the effective grant")
+			}
+		})
+	}
+}

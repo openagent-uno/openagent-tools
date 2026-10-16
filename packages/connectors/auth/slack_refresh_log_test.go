@@ -85,3 +85,31 @@ func TestSlackScopeLessRefreshKeepsReplacementBinding(t *testing.T) {
 		}
 	}
 }
+
+func TestSlackImplicitIdentifyRefreshKeepsReplacementBinding(t *testing.T) {
+	f := newFixture(t)
+	a := f.client(t, "A")
+	p := f.server.Providers["shopify"]
+	p.ID, p.AppID = "slack_import", "slack:fixture"
+	p.Scopes = []string{"channels:read", "channels:history", "groups:read", "groups:history", "im:read", "im:history", "mpim:read", "mpim:history", "users:read", "chat:write"}
+	f.server.Providers[p.ID] = p
+	token := oauth.Token{AccessToken: "xoxp-old", RefreshToken: "refresh-old", AppID: p.AppID, Scopes: p.Scopes, ExternalID: "T12345678"}
+	if err := f.server.bindToken(a.Identity.ID(), p.ID, token); err != nil {
+		t.Fatal(err)
+	}
+	calls := 0
+	f.server.Engine.Client = doerFunc(func(*http.Request) (*http.Response, error) {
+		calls++
+		return fixtureResponse(200, `{"ok":true,"access_token":"xoxe.xoxp-next","refresh_token":"refresh-next","expires_in":43200,"token_type":"user","scope":"channels:read,channels:history,groups:read,groups:history,im:read,im:history,mpim:read,mpim:history,users:read,chat:write,identify"}`), nil
+	})
+	next, err := a.Refresh(context.Background(), p.ID, token)
+	if err != nil || calls != 1 || !sameScopes(next.Token.Scopes, token.Scopes) || next.Token.ExternalID != token.ExternalID {
+		t.Fatal("implicit identify changed the approved grant")
+	}
+	for _, raw := range []string{next.Token.AccessToken, next.Token.RefreshToken} {
+		binding, found := f.server.Store.snapshot().TokenBindings[f.server.tokenHash(p.AppID, p.ID, raw)]
+		if !found || !sameScopes(binding.Scopes, token.Scopes) || binding.Installation != a.Identity.ID() || binding.Provider != p.ID || binding.ExternalID != token.ExternalID {
+			t.Fatal("replacement binding changed after implicit identify")
+		}
+	}
+}

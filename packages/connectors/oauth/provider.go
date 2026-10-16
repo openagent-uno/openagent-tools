@@ -459,6 +459,30 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	if wire.Scope != "" {
 		granted = strings.Fields(strings.ReplaceAll(wire.Scope, ",", " "))
 	}
+	if p.ID == "slack_import" && previous != "" {
+		// Slack may report its implicit identify permission during rotation.
+		// Keep the effective grant bounded to the previously approved scopes.
+		seen := map[string]bool{}
+		for _, scope := range granted {
+			if seen[scope] {
+				return Token{}, failure("scopes", "scope_config")
+			}
+			seen[scope] = true
+		}
+		requestedIdentify := false
+		for _, scope := range scopes {
+			requestedIdentify = requestedIdentify || scope == "identify"
+		}
+		if !requestedIdentify {
+			filtered := make([]string, 0, len(granted))
+			for _, scope := range granted {
+				if scope != "identify" {
+					filtered = append(filtered, scope)
+				}
+			}
+			granted = filtered
+		}
+	}
 	if !approvedScopes(p, granted) {
 		return Token{}, failure("scopes", "scope_config")
 	}
