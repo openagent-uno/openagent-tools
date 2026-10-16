@@ -94,8 +94,8 @@
   },
   {
     "id": "slack_import",
-    "app_id": "slack_import:registration-pending",
-    "client_id": "",
+    "app_id": "slack_import:12333069497846.12337417629937",
+    "client_id": "12333069497846.12337417629937",
     "secret_file": "/secrets/slack-client-secret",
     "authorization_url": "https://slack.com/oauth/v2/authorize",
     "token_url": "https://slack.com/api/oauth.v2.access",

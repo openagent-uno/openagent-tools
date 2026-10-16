@@ -11,7 +11,9 @@ import re
 
 
 BASE = Path(__file__).resolve().parent
-QA_PROVIDERS = ("clickup", "gmail", "google_drive", "google_analytics", "shopify", "github", "notion")
+QA_PROVIDERS = ("clickup", "gmail", "google_drive", "google_analytics", "shopify", "github", "notion", "slack_import")
+SLACK_QA_CLIENT_ID = "12333069497846.12337417629937"
+SLACK_QA_INSTALLATION = "2339c00b5f5bc1d0b78606920323613c1894172e4af172701d8c6adcd7ba0da6"
 
 
 def prepare(provider, installations, shops, image, output):
@@ -23,6 +25,8 @@ def prepare(provider, installations, shops, image, output):
         raise ValueError("one to fifty distinct installation fingerprints are required")
     if any(not re.fullmatch(r"[0-9a-f]{64}", value) for value in installations):
         raise ValueError("installation fingerprints must be lowercase SHA-256 hex")
+    if provider == "slack_import" and installations != [SLACK_QA_INSTALLATION]:
+        raise ValueError("Slack QA is limited to the reviewed installation")
     if len(shops) > 10 or len(set(shops)) != len(shops):
         raise ValueError("at most ten distinct dedicated QA shops are allowed")
     if any(not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.myshopify\.com", value) for value in shops):
@@ -35,6 +39,19 @@ def prepare(provider, installations, shops, image, output):
         raise ValueError("select one reviewed provider")
     if not selected[0].get("client_id") or not selected[0].get("app_id") or "registration-pending" in selected[0]["app_id"]:
         raise ValueError("provider registration must be complete before QA")
+    if provider == "slack_import":
+        registration = json.loads((BASE / "registrations/slack.json").read_text())
+        row = selected[0]
+        if (row["client_id"] != SLACK_QA_CLIENT_ID or row["app_id"] != "slack_import:" + SLACK_QA_CLIENT_ID
+                or registration.get("client_id") != SLACK_QA_CLIENT_ID or registration.get("provider") != provider
+                or row["redirect_uri"] != "https://auth.openagent.uno/v1/oauth/slack_import/callback"
+                or registration.get("callback_url") != row["redirect_uri"]
+                or row["scopes"] != registration.get("configured_user_scopes")
+                or registration.get("configured_bot_scopes") != [] or row["pkce"] is not False
+                or registration.get("pkce") is not False or registration.get("token_rotation_enabled") is not True
+                or registration.get("oauth_settings_verified") is not True
+                or registration.get("production_secret_configured") is not True):
+            raise ValueError("Slack QA must match the reviewed existing user-token app registration")
     # A previous immutable bootstrap image does not implement QA admission.
     digest = image.split("@sha256:")[1]
     if digest == "f5cb0256ef28919ccf2f3e27a47bdb5c87931a27d7e3197f870fb1a1a81f2777":

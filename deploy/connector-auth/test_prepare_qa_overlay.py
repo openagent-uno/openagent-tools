@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest.mock import patch
 
 spec = importlib.util.spec_from_file_location("qa_overlay", Path(__file__).with_name("prepare-qa-overlay.py"))
 module = importlib.util.module_from_spec(spec)
@@ -69,22 +70,77 @@ class PrepareQAOverlayTests(unittest.TestCase):
                 self.assertEqual(json.loads((output / "qa-enrollment.json").read_text()), {"installations": ["b" * 64]})
                 self.assertNotIn("--legacy-shopify-webhooks", (output / "resources.yaml").read_text())
 
-    def test_pending_slack_and_atlassian_cannot_be_selected_even_programmatically(self):
-        for provider in ("slack_import", "atlassian", "arbitrary"):
+    def test_pending_atlassian_and_unknown_cannot_be_selected_even_programmatically(self):
+        for provider in ("atlassian", "arbitrary"):
             with self.subTest(provider=provider):
                 with self.assertRaises(ValueError):
                     module.prepare(provider, ["b" * 64], [], self.image, self.output)
                 self.assertFalse(self.output.exists())
 
-    def test_candidate_metadata_does_not_activate_bootstrap_or_invent_registrations(self):
+    def test_slack_uses_only_existing_registration_and_single_reviewed_recipient(self):
+        module.prepare("slack_import", [module.SLACK_QA_INSTALLATION], [], self.image, self.output)
+        rows = json.loads((self.output / "providers.json").read_text())
+        registration = json.loads((module.BASE / "registrations/slack.json").read_text())
+        self.assertEqual(len(rows), 1)
+        self.assertEqual(rows[0]["id"], "slack_import")
+        self.assertEqual(rows[0]["client_id"], "12333069497846.12337417629937")
+        self.assertEqual(rows[0]["app_id"], "slack_import:" + registration["client_id"])
+        self.assertEqual(rows[0]["authorization_url"], "https://slack.com/oauth/v2/authorize")
+        self.assertEqual(rows[0]["token_url"], "https://slack.com/api/oauth.v2.access")
+        self.assertEqual(rows[0]["secret_file"], "/secrets/slack-client-secret")
+        self.assertEqual(rows[0]["scopes"], registration["configured_user_scopes"])
+        self.assertEqual(json.loads((self.output / "qa-enrollment.json").read_text()),
+                         {"installations": [module.SLACK_QA_INSTALLATION]})
+        resources = (self.output / "resources.yaml").read_text()
+        self.assertIn("type: Recreate", resources)
+        self.assertNotIn("--legacy-shopify-webhooks", resources)
+
+    def test_slack_other_or_additional_recipients_never_write_output(self):
+        for identities in (["b" * 64], [module.SLACK_QA_INSTALLATION, "b" * 64], []):
+            with self.subTest(identities=identities):
+                with self.assertRaises(ValueError):
+                    module.prepare("slack_import", identities, [], self.image, self.output)
+                self.assertFalse(self.output.exists())
+
+    def test_slack_registration_or_user_token_contract_drift_never_writes_output(self):
+        for change in ("client", "callback", "scope", "bot", "rotation", "custody"):
+            with self.subTest(change=change), tempfile.TemporaryDirectory() as directory:
+                base = Path(directory)
+                (base / "registrations").mkdir()
+                rows = json.loads((module.BASE / "providers-reviewed.json").read_text())
+                registration = json.loads((module.BASE / "registrations/slack.json").read_text())
+                slack = next(row for row in rows if row["id"] == "slack_import")
+                if change == "client":
+                    slack["client_id"] = "different-client"
+                elif change == "callback":
+                    registration["callback_url"] = "https://example.invalid/callback"
+                elif change == "scope":
+                    slack["scopes"] = slack["scopes"] + ["admin"]
+                elif change == "bot":
+                    registration["configured_bot_scopes"] = ["chat:write"]
+                elif change == "rotation":
+                    registration["token_rotation_enabled"] = False
+                else:
+                    registration["production_secret_configured"] = False
+                (base / "providers-reviewed.json").write_text(json.dumps(rows))
+                (base / "registrations/slack.json").write_text(json.dumps(registration))
+                with patch.object(module, "BASE", base):
+                    with self.assertRaises(ValueError):
+                        module.prepare("slack_import", [module.SLACK_QA_INSTALLATION], [], self.image, self.output)
+                self.assertFalse(self.output.exists())
+
+    def test_candidate_metadata_does_not_activate_bootstrap_or_jira(self):
         self.assertIn("'providers.json=[]'", (module.BASE / "kustomization.yaml").read_text())
         rows = json.loads((module.BASE / "providers-reviewed.json").read_text())
-        for provider in ("slack_import", "atlassian"):
+        for provider in ("atlassian",):
             row = next(item for item in rows if item["id"] == provider)
             self.assertEqual(row["client_id"], "")
             self.assertEqual(row["app_id"], provider + ":registration-pending")
             self.assertFalse(row["pkce"])
             self.assertNotIn("revocation_url", row)
+        slack = json.loads((module.BASE / "registrations/slack.json").read_text())
+        self.assertFalse(slack["broker_enabled"])
+        self.assertFalse(slack["common_enrollment_enabled"])
 
 
 if __name__ == "__main__":

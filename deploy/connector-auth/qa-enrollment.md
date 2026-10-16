@@ -15,6 +15,16 @@ after credentials are saved. Postiz is deliberately absent until a real app
 exists. Google scopes are split by connector; choosing Gmail does not ask for
 Drive or Analytics access.
 
+The reviewed source inventory also contains the existing OpenAgent GitHub and
+Notion registrations and Slack's already created OpenAgent app. Slack QA uses
+`--provider slack_import` and is further limited to the single reviewed
+installation fingerprint in `prepare-qa-overlay.py`; adding a different or
+additional recipient is rejected. Before producing files, the preparer checks
+the existing Slack registration, callback, user scopes, token rotation and
+production secret custody. This source preparation grants no Slack access and
+does not apply a deployment. Atlassian remains outside QA admission pending
+secret custody. Bootstrap still configures zero providers.
+
 ## Admission and readiness
 
 Supply `--qa-enrollment=/config/qa-enrollment.json` at startup. The strict JSON
