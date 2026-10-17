@@ -237,6 +237,44 @@ func TestCoinGeckoValidatesPricesAndGlobalDataNotHTTP200(t *testing.T) {
 	}
 }
 
+// Regression for an actual global-response ticker rejected by the initial
+// candidate. It must not broaden request identifiers or currency-map keys.
+func TestCoinGeckoGlobalTickerUnderscoresRemainOutputOnly(t *testing.T) {
+	for _, ticker := range []string{"figr_heloc", "figr-heloc"} {
+		payload := coinGeckoOutput(true)
+		payload["data"].(map[string]any)["data"].(map[string]any)["market_cap_percentage"] = map[string]any{ticker: 1.25}
+		base := &keylessDoer{t: t, result: coinGeckoResultJSON(t, payload)}
+		adapter, _ := NewKeylessMCPAdapter("coingecko", base)
+		if _, err := adapter.Invoke(context.Background(), keylessInvocation(t, adapter, 1, `{}`)); err != nil || len(base.requests) != 3 {
+			t.Fatal("valid provider ticker rejected")
+		}
+	}
+	if coinGeckoList([]any{"figr_heloc"}, false) {
+		t.Fatal("output ticker broadened request coin identifiers")
+	}
+	for _, field := range []string{"total_market_cap", "total_volume", "market_cap_percentage"} {
+		for _, key := range []string{"btc/path", "btc\nheader", "_btc", "btc_", strings.Repeat("a", 65)} {
+			payload := coinGeckoOutput(true)
+			payload["data"].(map[string]any)["data"].(map[string]any)[field] = map[string]any{key: 1.25}
+			base := &keylessDoer{t: t, result: coinGeckoResultJSON(t, payload)}
+			adapter, _ := NewKeylessMCPAdapter("coingecko", base)
+			if _, err := adapter.Invoke(context.Background(), keylessInvocation(t, adapter, 1, `{}`)); err == nil {
+				t.Fatal("invalid output key accepted")
+			}
+		}
+		if field == "market_cap_percentage" {
+			continue
+		}
+		payload := coinGeckoOutput(true)
+		payload["data"].(map[string]any)["data"].(map[string]any)[field] = map[string]any{"figr_heloc": 1.25}
+		base := &keylessDoer{t: t, result: coinGeckoResultJSON(t, payload)}
+		adapter, _ := NewKeylessMCPAdapter("coingecko", base)
+		if _, err := adapter.Invoke(context.Background(), keylessInvocation(t, adapter, 1, `{}`)); err == nil {
+			t.Fatal("ticker rule broadened output currency keys")
+		}
+	}
+}
+
 func TestCoinGeckoTransportBoundsDuplicateEnvelopeAndQuotaNoReplay(t *testing.T) {
 	for _, mutate := range []func(*http.Response){
 		func(r *http.Response) { r.Header.Set("MCP-Session-Id", strings.Repeat("x", 257)) },

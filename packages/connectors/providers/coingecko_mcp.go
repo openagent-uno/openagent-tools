@@ -23,6 +23,10 @@ const coinGeckoMaxResponse = 256 << 10
 
 var coinGeckoID = regexp.MustCompile(coinGeckoIDPattern)
 
+// Market-share keys are provider tickers, not request coin identifiers. The
+// observed global response includes figr_heloc; keep underscores output-only.
+var coinGeckoTicker = regexp.MustCompile(`^[a-z0-9]+([-_][a-z0-9]+)*$`)
+
 func coinGeckoList(value any, currencies bool) bool {
 	list, ok := value.([]any)
 	maximum := 10
@@ -313,7 +317,11 @@ func validCoinGeckoGlobal(response map[string]any) bool {
 			return false
 		}
 		for key, value := range values {
-			if len(key) > 64 || !coinGeckoID.MatchString(key) || !coinGeckoNumber(value, true, false) {
+			validKey := coinGeckoID.MatchString(key)
+			if field == "market_cap_percentage" {
+				validKey = coinGeckoTicker.MatchString(key)
+			}
+			if len(key) > 64 || !validKey || !coinGeckoNumber(value, true, false) {
 				return false
 			}
 		}
