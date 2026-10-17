@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	"github.com/openagent-uno/openagent-tools/packages/connectors/domain"
@@ -23,7 +24,9 @@ const keylessMCPMaxResponse = 4 << 20
 // exa-labs/exa-mcp-server e9c3b0126a3373eb1aeaca162e84d0791ff4c7f7
 // firecrawl/firecrawl-mcp-server 26a23f28ec22241cb16e2115f27a6370ce2a00e0
 // Hosted keyless contracts: https://exa.ai/docs/get-started/exa-mcp and
-// https://docs.firecrawl.dev/mcp-server/keyless. No paid/authenticated fallback.
+// https://docs.firecrawl.dev/mcp-server/keyless. Parallel metadata snapshot:
+// docs/qualification/parallel-search-interface-2026-10-17.json (protocol 2025-06-18,
+// server 1.27.0). No paid/authenticated fallback.
 type keylessMCPTool struct {
 	name, remote, description string
 	properties                map[string]any
@@ -59,6 +62,25 @@ func NewKeylessMCPAdapter(provider string, doer HTTPDoer) (*KeylessMCPAdapter, e
 		a.tools = []keylessMCPTool{
 			{"files.firecrawl.search", "firecrawl_search", "Search the public web with Firecrawl. Keyless provider limits apply.", map[string]any{"query": query, "limit": limit}, []string{"query"}},
 			{"files.firecrawl.scrape", "firecrawl_scrape", "Read a public page as Markdown with Firecrawl. Keyless provider limits apply.", map[string]any{"url": webURL, "onlyMainContent": map[string]any{"type": "boolean"}}, []string{"url"}},
+		}
+	case "coingecko":
+		a.endpoint = "https://mcp.api.coingecko.com/mcp"
+		a.tools = []keylessMCPTool{
+			{"files.coingecko.price", "execute", "Read public coin prices and update timestamps for exact coin identifiers and currencies.", map[string]any{"ids": map[string]any{"type": "array", "minItems": 1, "maxItems": 10, "uniqueItems": true, "items": map[string]any{"type": "string", "minLength": 1, "maxLength": 64, "pattern": coinGeckoIDPattern}}, "currencies": map[string]any{"type": "array", "minItems": 1, "maxItems": 3, "uniqueItems": true, "items": map[string]any{"type": "string", "enum": []string{"usd", "eur", "gbp"}}}}, []string{"ids", "currencies"}},
+			{"files.coingecko.global", "execute", "Read public global cryptocurrency market counts, aggregates and update time.", map[string]any{}, []string{}},
+		}
+	case "context7":
+		a.endpoint = "https://mcp.context7.com/mcp"
+		a.tools = []keylessMCPTool{
+			{"files.context7.resolve_library", "resolve-library-id", "Find public library documentation identifiers with Context7. Anonymous provider limits apply.", map[string]any{"query": query, "library_name": map[string]any{"type": "string", "minLength": 1, "maxLength": 256}}, []string{"query", "library_name"}},
+			{"files.context7.query_docs", "query-docs", "Read public documentation and code examples for an exact Context7 library identifier.", map[string]any{"library_id": map[string]any{"type": "string", "minLength": 4, "maxLength": 384, "pattern": context7LibraryIDPattern}, "query": query, "language": map[string]any{"type": "string", "minLength": 1, "maxLength": 64}}, []string{"library_id", "query"}},
+		}
+	case "parallel_search":
+		a.endpoint = "https://search.parallel.ai/mcp"
+		searchQueries := map[string]any{"type": "array", "minItems": 1, "maxItems": 3, "items": map[string]any{"type": "string", "minLength": 1, "maxLength": 512}}
+		a.tools = []keylessMCPTool{
+			{"files.parallel.search", "web_search", "Search the public web with Parallel Search. Anonymous provider limits apply.", map[string]any{"objective": query, "search_queries": searchQueries}, []string{"objective", "search_queries"}},
+			{"files.parallel.fetch", "web_fetch", "Read excerpts from up to five public pages with Parallel Search. Every requested URL must succeed.", map[string]any{"urls": map[string]any{"type": "array", "minItems": 1, "maxItems": 5, "uniqueItems": true, "items": webURL}, "objective": map[string]any{"type": "string", "minLength": 1, "maxLength": 200}, "search_queries": searchQueries}, []string{"urls"}},
 		}
 	default:
 		return nil, domain.ErrUnsupported
@@ -113,6 +135,11 @@ func (a *KeylessMCPAdapter) arguments(inv domain.Invocation) (keylessMCPTool, ma
 	if len(inv.Arguments) == 0 || len(inv.Arguments) > keylessMCPMaxRequest {
 		return tool, nil, domain.ErrInvalidArguments
 	}
+	if a.provider == "coingecko" {
+		if _, err := decodeCoinGeckoJSON(inv.Arguments); err != nil {
+			return tool, nil, domain.ErrInvalidArguments
+		}
+	}
 	decoder := json.NewDecoder(bytes.NewReader(inv.Arguments))
 	decoder.UseNumber()
 	var args map[string]any
@@ -148,6 +175,31 @@ func (a *KeylessMCPAdapter) arguments(inv domain.Invocation) (keylessMCPTool, ma
 		case "query":
 			s, ok := value.(string)
 			valid = ok && strings.TrimSpace(s) != "" && utf8.ValidString(s) && utf8.RuneCountInString(s) <= 2048 && !strings.ContainsRune(s, 0)
+		case "ids":
+			valid = coinGeckoList(value, false)
+		case "currencies":
+			valid = coinGeckoList(value, true)
+		case "library_name":
+			valid = keylessMCPText(value, 256)
+		case "library_id":
+			text, ok := value.(string)
+			valid = ok && len(text) <= 384 && context7LibraryID.MatchString(text)
+		case "language":
+			valid = keylessMCPText(value, 64)
+		case "objective":
+			maximum := 2048
+			if tool.remote == "web_fetch" {
+				maximum = 200
+			}
+			valid = keylessMCPText(value, maximum)
+		case "search_queries":
+			queries, ok := value.([]any)
+			valid = ok && len(queries) >= 1 && len(queries) <= 3
+			for _, query := range queries {
+				if !keylessMCPText(query, 512) {
+					valid = false
+				}
+			}
 		case "numResults", "limit", "maxCharacters":
 			n, ok := value.(json.Number)
 			maximum := int64(10)
@@ -178,7 +230,36 @@ func (a *KeylessMCPAdapter) arguments(inv domain.Invocation) (keylessMCPTool, ma
 	if a.provider == "firecrawl" && tool.remote == "firecrawl_scrape" {
 		args["formats"] = []string{"markdown"}
 	}
+	if a.provider == "context7" {
+		if tool.remote == "resolve-library-id" {
+			args["libraryName"] = args["library_name"]
+			delete(args, "library_name")
+		} else {
+			args["libraryId"] = args["library_id"]
+			delete(args, "library_id")
+		}
+	}
+	if a.provider == "parallel_search" && tool.remote == "web_fetch" {
+		seen := map[string]bool{}
+		for _, value := range args["urls"].([]any) {
+			rawURL := value.(string)
+			if seen[rawURL] {
+				return tool, nil, domain.ErrInvalidArguments
+			}
+			seen[rawURL] = true
+		}
+		// Neither credentials, analytics identifiers nor search overrides come
+		// from arguments/config. Keep the anonymous excerpt-only profile fixed.
+		args["full_content"] = false
+		args["allow_live_fetch"] = true
+	}
 	return tool, args, nil
+}
+
+func keylessMCPText(value any, maximum int) bool {
+	text, ok := value.(string)
+	return ok && strings.TrimSpace(text) != "" && utf8.ValidString(text) &&
+		utf8.RuneCountInString(text) <= maximum && !strings.ContainsRune(text, 0)
 }
 
 func keylessPublicURL(raw string) bool {
@@ -214,6 +295,16 @@ func (a *KeylessMCPAdapter) Invoke(ctx context.Context, inv domain.Invocation) (
 	if err != nil {
 		return domain.Result{}, err
 	}
+	remoteArguments := arguments
+	if a.provider == "coingecko" {
+		remoteArguments, err = compileCoinGeckoArguments(tool.name, arguments)
+		if err != nil {
+			return domain.Result{}, err
+		}
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+		defer cancel()
+	}
 	protocol := keylessMCPProtocol
 	initID := inv.ID + ":initialize"
 	init, session, reqBytes, respBytes, status, providerID, err := a.call(ctx, map[string]any{
@@ -240,7 +331,7 @@ func (a *KeylessMCPAdapter) Invoke(ctx context.Context, inv domain.Invocation) (
 	}
 	callID := inv.ID + ":call"
 	raw, _, sent, received, status, providerID, err := a.call(ctx, map[string]any{
-		"jsonrpc": "2.0", "id": callID, "method": "tools/call", "params": map[string]any{"name": tool.remote, "arguments": arguments},
+		"jsonrpc": "2.0", "id": callID, "method": "tools/call", "params": map[string]any{"name": tool.remote, "arguments": remoteArguments},
 	}, session, protocol, true)
 	reqBytes += sent
 	respBytes += received
@@ -248,6 +339,18 @@ func (a *KeylessMCPAdapter) Invoke(ctx context.Context, inv domain.Invocation) (
 		return domain.Result{}, err
 	}
 	result, err := keylessMCPResult(raw, callID)
+	if err == nil && a.provider == "coingecko" {
+		result, err = decodeCoinGeckoResult(result, tool.name, arguments)
+	}
+	if err == nil && a.provider == "parallel_search" {
+		err = validateParallelMCPResult(result, tool.remote, arguments)
+	}
+	if err == nil && a.provider == "context7" {
+		err = validateContext7MCPResult(result)
+		if err == nil {
+			result = map[string]any{"content": result["content"]}
+		}
+	}
 	if err != nil {
 		return domain.Result{}, &domain.ProviderError{Kind: "provider_operation_error", StatusCode: status, Attempts: 1, RequestBytes: reqBytes, ResponseBytes: respBytes}
 	}
@@ -291,7 +394,11 @@ func (a *KeylessMCPAdapter) call(ctx context.Context, payload map[string]any, se
 	if response.Request != nil && (response.Request.URL == nil || response.Request.URL.String() != a.endpoint) {
 		return nil, "", int64(len(body)), 0, response.StatusCode, "", &domain.ProviderError{Kind: "provider_redirect_error", Attempts: 1}
 	}
-	data, tooLarge, err := readBounded(response.Body, keylessMCPMaxResponse)
+	maximum := keylessMCPMaxResponse
+	if a.provider == "coingecko" {
+		maximum = coinGeckoMaxResponse
+	}
+	data, tooLarge, err := readBounded(response.Body, maximum)
 	providerID := providerRequestID(response.Header)
 	failure := func(kind string) (json.RawMessage, string, int64, int64, int, string, error) {
 		return nil, "", int64(len(body)), int64(len(data)), response.StatusCode, providerID, &domain.ProviderError{Kind: kind, StatusCode: response.StatusCode, ProviderID: providerID, Attempts: 1, RequestBytes: int64(len(body)), ResponseBytes: int64(len(data))}
@@ -315,6 +422,9 @@ func (a *KeylessMCPAdapter) call(ctx context.Context, payload map[string]any, se
 		return nil, newSession, int64(len(body)), 0, response.StatusCode, providerID, nil
 	}
 	raw, err := decodeMCPBody(data, response.Header.Get("Content-Type"))
+	if err == nil && a.provider == "coingecko" {
+		err = validateCoinGeckoMCPBody(data, raw, response.Header.Get("Content-Type"))
+	}
 	if err != nil {
 		return failure("provider_protocol_error")
 	}

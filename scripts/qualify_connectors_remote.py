@@ -22,6 +22,16 @@ PUBLIC_BASELINES = (
 HOST_TOOLS_INDEX = "a0f85b84e6d98f525c466126df7a5de9437d9628127607517a94f1b61b1889e0"
 PROTOCOL = "openagent_tool_protocol-1.0.0b1-py3-none-any.whl"
 PROTOCOL_SHA = "3d4c266eb8e51552408c70448ad7c466a6cb8fa7263939412ce4069c8b73cef2"
+SDK15_OFFICIAL_IDS = frozenset({
+    "atlassian", "billingbear", "clickup", "exa", "firecrawl", "github", "gmail",
+    "google-analytics", "google-drive", "imap_smtp", "notion", "pipeboard", "postiz",
+    "replio", "shopify", "slack-import",
+})
+SDK16_KEYLESS = {
+    "parallel-search": ("parallel_search", {"files.parallel.search", "files.parallel.fetch"}),
+    "context7": ("context7", {"files.context7.resolve_library", "files.context7.query_docs"}),
+    "coingecko": ("coingecko", {"files.coingecko.price", "files.coingecko.global"}),
+}
 
 
 def sha(data):
@@ -30,6 +40,58 @@ def sha(data):
 
 def write(path, value):
     path.write_text(json.dumps(value, indent=2) + "\n")
+
+
+def verify_catalog_cohort(version, catalog):
+    """Bind the new cohort by identities/contracts, never just its cardinality.
+
+    Older immutable releases retain their content-bound catalog checks in the
+    artifact/native qualifiers; this does not rewrite their existing receipts.
+    """
+    if not isinstance(catalog, list) or any(not isinstance(row, dict) for row in catalog):
+        raise ValueError("invalid release catalog")
+    ids = [row.get("id") for row in catalog]
+    if any(not isinstance(value, str) or not value for value in ids) or len(ids) != len(set(ids)):
+        raise ValueError("invalid or duplicate catalog identifiers")
+    custom = [row for row in catalog if row.get("nativeKind")]
+    if len(custom) != 1 or custom[0].get("id") != "custom-mcp" or custom[0]["nativeKind"] != "custom_mcp":
+        raise ValueError("custom MCP catalog contract mismatch")
+    official = {row["id"]: row for row in catalog if not row.get("nativeKind")}
+    expected = {"0.1.5": SDK15_OFFICIAL_IDS,
+                "0.1.6": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS)}.get(version)
+    if expected is not None and set(official) != expected:
+        raise ValueError("release catalog identities differ from the reviewed cohort")
+    if version == "0.1.6":
+        for identifier, (provider, tools) in SDK16_KEYLESS.items():
+            row = official[identifier]
+            reads = row.get("readTools")
+            if (row.get("provider") != provider or row.get("auth") != "none"
+                    or row.get("capability") != "files" or row.get("available") is not True
+                    or row.get("agentTools") != [] or not isinstance(reads, list)
+                    or any(not isinstance(tool, str) for tool in reads)
+                    or len(reads) != len(tools) or set(reads) != tools):
+                raise ValueError("new keyless connector contract differs from the reviewed cohort")
+    return {"sdk_version": version, "official_ids": sorted(official), "official_count": len(official),
+            "custom_ids": ["custom-mcp"], "exact_version_cohort": expected is not None}
+
+
+def source_sdk_version(source, expected=None):
+    go = re.search(r'const Version = "(\d+\.\d+\.\d+)"',
+                   (source / "packages/connectors/catalog.go").read_text())
+    python = re.search(r'^version = "(\d+\.\d+\.\d+)"',
+                       (source / "packages/connectors-python/pyproject.toml").read_text(), re.MULTILINE)
+    if not go or not python or go[1] != python[1] or expected is not None and go[1] != expected:
+        raise ValueError("SDK source version differs from the reviewed release")
+    return go[1]
+
+
+def verify_source_python_catalog(source, version, catalog):
+    """SDK16's offline source fallback must not be repaired only in the build snapshot."""
+    if version != "0.1.6":
+        return
+    path = source / "packages/connectors-python/src/openagent_connectors/catalog.json"
+    if json.loads(path.read_bytes()) != {"version": version, "connectors": catalog}:
+        raise ValueError("Source Python fallback catalog differs from the generated SDK catalog")
 
 
 def fetch(url, limit=16 << 20):
@@ -141,6 +203,7 @@ def main():
     parser.add_argument("--source", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--auth-version", help="Optional independently reviewed Auth candidate version; no Auth assets by default")
+    parser.add_argument("--expected-sdk-version", help="Optional operator-reviewed version pin; older invocations remain supported")
     args = parser.parse_args()
     source, output = args.source.resolve(), args.output.resolve()
     system = {"Darwin": "darwin", "Linux": "linux"}.get(platform.system())
@@ -148,13 +211,16 @@ def main():
     assert system is not None and arch is not None, "Only native Linux/macOS arm64/x64 workers are supported"
     native_target = system + "-" + arch
     assert args.auth_version is None or re.fullmatch(r"\d+\.\d+\.\d+", args.auth_version)
+    assert args.expected_sdk_version is None or re.fullmatch(r"\d+\.\d+\.\d+", args.expected_sdk_version)
+    sdk_version = source_sdk_version(source, args.expected_sdk_version)
     output.mkdir(exist_ok=False)
     evidence = output / "evidence"
     evidence.mkdir()
     temporary = output.parent / "qualification-private"
     temporary.mkdir(mode=0o700, exist_ok=False)
-    env = dict(os.environ, GOMAXPROCS="1", GOMEMLIMIT="1GiB", GOFLAGS="-p=1", GOTOOLCHAIN="go1.26.9", GOWORK="off",
-               UV_CONCURRENT_BUILDS="1", UV_CONCURRENT_DOWNLOADS="4", UV_CONCURRENT_INSTALLS="2")
+    env = dict(os.environ, GOMAXPROCS="1", GOMEMLIMIT="1GiB", GOFLAGS="-p=1", GOTOOLCHAIN="local", GOWORK="off",
+               UV_CONCURRENT_BUILDS="1", UV_CONCURRENT_DOWNLOADS="1", UV_CONCURRENT_INSTALLS="1")
+    assert subprocess.check_output(["go", "env", "GOVERSION"], cwd=source / "packages/connectors", env=env, text=True).strip() == "go1.26.9"
 
     def run(command, name, cwd=source):
         with (evidence / (name + ".log")).open("w") as log:
@@ -169,7 +235,7 @@ def main():
           "runner": native_target,
           "run_url": (os.environ["GITHUB_SERVER_URL"] + "/" + os.environ["GITHUB_REPOSITORY"] +
                      "/actions/runs/" + os.environ["GITHUB_RUN_ID"]) if os.environ.get("GITHUB_RUN_ID") else None,
-          "go_toolchain": "go1.26.9", "parallel_jobs": 1, "gomaxprocs": 1,
+          "go_toolchain": "go1.26.9", "sdk_version": sdk_version, "parallel_jobs": 1, "gomaxprocs": 1,
           "publication": False, "real_provider_grants": 0})
     try:
         module = source / "packages/connectors"
@@ -182,8 +248,16 @@ def main():
         qualifier = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(qualifier)
         manifest = json.loads((bundles / "manifest.json").read_text())
+        if manifest["version"] != sdk_version:
+            raise ValueError("Built SDK version differs from the reviewed source")
         qualifier.verify_source(manifest)
         qualifier.verify_payloads(bundles, manifest)
+        catalog_bytes = (bundles / "catalog.json").read_bytes()
+        catalog = json.loads(catalog_bytes)
+        cohort = verify_catalog_cohort(sdk_version, catalog)
+        verify_source_python_catalog(source, sdk_version, catalog)
+        cohort["catalog_sha256"] = sha(catalog_bytes)
+        write(evidence / "catalog-cohort.json", cohort)
         lock = {"format": 1, "version": manifest["version"],
                 "source_repository": "openagent-uno/openagent-tools",
                 "source_ref": "connectors-v" + manifest["version"],
@@ -197,7 +271,8 @@ def main():
         write(evidence / "acquisition-lock.json", lock)
         write(evidence / "artifacts.json", {"source_commit": commit,
               "source_sha256": manifest["source_sha256"], "go_toolchain": "go1.26.9",
-              "dirty_snapshot": False, "archives": sorted(lock["platforms"]), "verified_binaries": 12})
+              "dirty_snapshot": False, "archives": sorted(lock["platforms"]), "verified_binaries": 12,
+              "catalog_cohort": cohort})
         wheelhouse = temporary / "public-wheelhouse"
         write(evidence / "public-closure.json", public_closure(wheelhouse))
         sdk_env, host_env = temporary / "sdk-env", temporary / "host-env"
@@ -236,6 +311,7 @@ def main():
         if args.auth_version is not None:
             auth_assets(source, bundles, output, evidence, commit, args.auth_version, native_target)
         write(evidence / "status.json", {"source_commit": commit, "qualified": True,
+              "sdk_version": sdk_version, "official_ids": cohort["official_ids"],
               "native": [native_target], "other_targets": "cross-compilation only",
               "real_provider_grants": 0, "public_enrollment": False})
     finally:

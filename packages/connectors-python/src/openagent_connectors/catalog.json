@@ -1,6 +1,54 @@
 {
-  "version": "0.1.5",
+  "version": "0.1.6",
   "connectors": [
+    {
+      "id": "coingecko",
+      "name": "CoinGecko",
+      "description": "Read public cryptocurrency prices and global market aggregates through fixed, read-only MCP operations. Provider free-use limits apply.",
+      "category": "Data",
+      "auth": "none",
+      "icon": "bar-chart-2",
+      "capability": "files",
+      "provider": "coingecko",
+      "readTools": [
+        "files.coingecko.price",
+        "files.coingecko.global"
+      ],
+      "agentTools": [],
+      "available": true
+    },
+    {
+      "id": "context7",
+      "name": "Context7",
+      "description": "Find public library documentation and code examples through Context7's anonymous MCP service. Provider free-use limits apply.",
+      "category": "Developer",
+      "auth": "none",
+      "icon": "book-open",
+      "capability": "files",
+      "provider": "context7",
+      "readTools": [
+        "files.context7.resolve_library",
+        "files.context7.query_docs"
+      ],
+      "agentTools": [],
+      "available": true
+    },
+    {
+      "id": "parallel-search",
+      "name": "Parallel Search",
+      "description": "Search the public web and read page excerpts through Parallel's anonymous MCP service. Provider free-use limits apply.",
+      "category": "Data",
+      "auth": "none",
+      "icon": "search",
+      "capability": "files",
+      "provider": "parallel_search",
+      "readTools": [
+        "files.parallel.search",
+        "files.parallel.fetch"
+      ],
+      "agentTools": [],
+      "available": true
+    },
     {
       "id": "exa",
       "name": "Exa",

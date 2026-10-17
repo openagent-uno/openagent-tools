@@ -14,13 +14,15 @@ import (
 )
 
 type keylessDoer struct {
-	t          *testing.T
-	requests   []*http.Request
-	calls      []map[string]any
-	quota      bool
-	sse        bool
-	result     string
-	initResult string
+	t           *testing.T
+	requests    []*http.Request
+	calls       []map[string]any
+	quota       bool
+	quotaMethod string
+	sessionless bool
+	sse         bool
+	result      string
+	initResult  string
 }
 
 func (d *keylessDoer) Do(request *http.Request) (*http.Response, error) {
@@ -28,7 +30,7 @@ func (d *keylessDoer) Do(request *http.Request) (*http.Response, error) {
 	if request.Header.Get("Authorization") != "" || request.Header.Get("X-API-Key") != "" || request.Header.Get("Cookie") != "" {
 		d.t.Fatal("keyless request carried credentials")
 	}
-	if request.URL.Host != "mcp.exa.ai" && request.URL.Host != "mcp.firecrawl.dev" {
+	if request.URL.Host != "mcp.exa.ai" && request.URL.Host != "mcp.firecrawl.dev" && request.URL.Host != "search.parallel.ai" && request.URL.Host != "mcp.context7.com" && request.URL.Host != "mcp.api.coingecko.com" {
 		d.t.Fatal("unreviewed endpoint")
 	}
 	if request.URL.Host == "mcp.exa.ai" && request.URL.String() != "https://mcp.exa.ai/mcp?tools=web_search_exa,web_fetch_exa" {
@@ -36,6 +38,15 @@ func (d *keylessDoer) Do(request *http.Request) (*http.Response, error) {
 	}
 	if request.URL.Host == "mcp.firecrawl.dev" && request.URL.String() != "https://mcp.firecrawl.dev/v2/mcp" {
 		d.t.Fatal("Firecrawl endpoint changed")
+	}
+	if request.URL.Host == "search.parallel.ai" && request.URL.String() != "https://search.parallel.ai/mcp" {
+		d.t.Fatal("Parallel endpoint changed")
+	}
+	if request.URL.Host == "mcp.context7.com" && request.URL.String() != "https://mcp.context7.com/mcp" {
+		d.t.Fatal("Context7 endpoint changed")
+	}
+	if request.URL.Host == "mcp.api.coingecko.com" && request.URL.String() != "https://mcp.api.coingecko.com/mcp" {
+		d.t.Fatal("CoinGecko endpoint changed")
 	}
 	var payload map[string]any
 	if json.NewDecoder(request.Body).Decode(&payload) != nil {
@@ -45,7 +56,7 @@ func (d *keylessDoer) Do(request *http.Request) (*http.Response, error) {
 	status := http.StatusOK
 	body := ""
 	header := http.Header{"Content-Type": []string{"application/json"}}
-	if d.quota {
+	if d.quota && (d.quotaMethod == "" || payload["method"] == d.quotaMethod) {
 		status = http.StatusTooManyRequests
 		body = `{"error":"daily keyless limit"}`
 	} else {
@@ -59,11 +70,13 @@ func (d *keylessDoer) Do(request *http.Request) (*http.Response, error) {
 				result = `{"protocolVersion":"2025-06-18","capabilities":{"tools":{}},"serverInfo":{"name":"fixture","version":"1"}}`
 			}
 			body = fmt.Sprintf(`{"jsonrpc":"2.0","id":%q,"result":%s}`, payload["id"], result)
-			header.Set("MCP-Session-Id", "session-fixture")
+			if !d.sessionless {
+				header.Set("MCP-Session-Id", "session-fixture")
+			}
 		case "notifications/initialized":
 			status = http.StatusAccepted
 		case "tools/call":
-			if request.Header.Get("MCP-Session-Id") != "session-fixture" {
+			if (!d.sessionless && request.Header.Get("MCP-Session-Id") != "session-fixture") || (d.sessionless && request.Header.Get("MCP-Session-Id") != "") {
 				d.t.Fatal("initialized session not used")
 			}
 			result := d.result

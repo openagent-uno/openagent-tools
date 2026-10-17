@@ -2,7 +2,7 @@ package connectors
 
 import "encoding/json"
 
-const Version = "0.1.5"
+const Version = "0.1.6"
 
 type Item struct {
 	ID                string   `json:"id"`
@@ -24,6 +24,21 @@ type CatalogEntry struct {
 }
 
 var catalogEntries = []CatalogEntry{
+	{Item: Item{
+		ID: "coingecko", Name: "CoinGecko", Description: "Read public cryptocurrency prices and global market aggregates through fixed, read-only MCP operations. Provider free-use limits apply.",
+		Category: "Data", Auth: "none", Icon: "bar-chart-2", Capability: "files", Provider: "coingecko",
+		ReadTools: []string{"files.coingecko.price", "files.coingecko.global"}, AgentTools: []string{},
+	}},
+	{Item: Item{
+		ID: "context7", Name: "Context7", Description: "Find public library documentation and code examples through Context7's anonymous MCP service. Provider free-use limits apply.",
+		Category: "Developer", Auth: "none", Icon: "book-open", Capability: "files", Provider: "context7",
+		ReadTools: []string{"files.context7.resolve_library", "files.context7.query_docs"}, AgentTools: []string{},
+	}},
+	{Item: Item{
+		ID: "parallel-search", Name: "Parallel Search", Description: "Search the public web and read page excerpts through Parallel's anonymous MCP service. Provider free-use limits apply.",
+		Category: "Data", Auth: "none", Icon: "search", Capability: "files", Provider: "parallel_search",
+		ReadTools: []string{"files.parallel.search", "files.parallel.fetch"}, AgentTools: []string{},
+	}},
 	{Item: Item{
 		ID: "exa", Name: "Exa", Description: "Search the public web and fetch page content through Exa's keyless MCP service. Provider free-use limits apply.",
 		Category: "Data", Auth: "none", Icon: "search", Capability: "files", Provider: "exa",
