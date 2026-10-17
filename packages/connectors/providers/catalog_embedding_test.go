@@ -51,7 +51,7 @@ func TestKeylessReadAuditPreviewBeforeCredentialResolution(t *testing.T) {
 	for _, tc := range []struct{ provider, operation, args string }{
 		{"exa", "files.exa.search", `{"query":"public documentation"}`},
 		{"firecrawl", "files.firecrawl.search", `{"query":"public documentation"}`},
-		{"parallel_search", "files.parallel.search", `{"query":"public documentation"}`},
+		{"parallel_search", "files.parallel.search", `{"objective":"Find documentation","search_queries":["public docs"]}`},
 		{"context7", "files.context7.resolve_library", `{"library_name":"react","query":"effect cleanup"}`},
 		{"coingecko", "files.coingecko.global", `{}`},
 	} {
