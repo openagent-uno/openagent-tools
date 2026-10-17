@@ -42,7 +42,8 @@
     "published_adapter_limited_lifecycle": "Shared adapter artifacts are published and the cited limited provider lifecycle passed; this is not full tool coverage, native App acceptance or ChatGPT feature parity.",
     "public_common_oauth_beta": "The broker exposes public consent for this provider; local host authorization and provider consent remain required. Configuration readiness is not a new OAuth lifecycle qualification.",
     "qualified_keyless_candidate_unpublished": "SDK source qualification and the four cited limited keyless read calls passed. Release artifacts, receiving-product adoption and its lifecycle acceptance remain pending.",
-    "published_keyless_sdk_receiving_product_pending": "SDK 0.1.5 artifacts are publicly published and digest-verified; remote source qualification and four limited keyless reads passed. Receiving-product release and lifecycle acceptance remain pending."
+    "published_keyless_sdk_receiving_product_pending": "SDK 0.1.5 artifacts are publicly published and digest-verified; remote source qualification and four limited keyless reads passed. Receiving-product release and lifecycle acceptance remain pending.",
+    "published_keyless_product_limited_lifecycle": "SDK0.1.5 and server/CLI42 are public; the cited limited receiving-product lifecycle passed on beta41. Beta42 preserves that provider implementation and separately passed 149 installed fixtures, 15 acquisition cases and a fresh cross-filesystem public installer. Native App acceptance, other tools and ChatGPT parity are not qualified."
   },
   "primary_sources": [
     {
@@ -62,7 +63,7 @@
     {
       "id": "exa",
       "name": "Exa",
-      "status": "published_keyless_sdk_receiving_product_pending",
+      "status": "published_keyless_product_limited_lifecycle",
       "typed_operations": 2,
       "candidate_version": "0.1.5",
       "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
@@ -74,7 +75,7 @@
       "agent_tools": [],
       "candidate_artifacts_published": true,
       "real_provider_qualification": false,
-      "note": "SDK 0.1.5 is publicly published with digest-verified artifacts. Remote source qualification and two limited real keyless runner reads passed. Receiving-product release, workflow/App lifecycle and broader provider acceptance remain pending; no paid fallback.",
+      "note": "SDK0.1.5 and server/CLI42 are public. Normal certified CLI/Iroh/gateway workflows passed create, public fetch/scrape before and after real restart, and local disconnect/tombstone/source removal on beta41 (four product reads total). That provider implementation is unchanged in beta42, whose 149 installed fixtures and 15 acquisition cases and fresh cross-filesystem public installer passed without repeating provider calls. Initial41 EXDEV and same-prefix TMPDIR recovery remain historical evidence. Native App19/publication and broader tool parity are not claimed; no paid fallback.",
       "limited_keyless_reads": [
         {
           "tool": "files.exa.search",
@@ -93,12 +94,34 @@
         }
       ],
       "shared_library_public_version": "0.1.5",
-      "published_provider_adapter": true
+      "published_provider_adapter": true,
+      "receiving_product_lifecycle": {
+        "status": "passed",
+        "date": "2026-10-17",
+        "receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b41-2026-10-17.json",
+        "product_release": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.41",
+        "scope": "Two keyless connections and four total public-document reads via normal certified CLI/gateway/workflows, actual server restart/reread and local tombstones/source removal; no native App or all-tool acceptance.",
+        "first_fresh_installer": "failed_EXDEV",
+        "same_prefix_installer_follow_up": "passed_owned_same_mount_TMPDIR",
+        "native_app19_acceptance": "not_claimed",
+        "product42": "public_fixture_qualified_and_fresh_cross_filesystem_installer_passed",
+        "current_product": {
+          "version": "1.1.0b42",
+          "release": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.42",
+          "manifest_sha256": "e6887ceb907bbabe844419d2de90d72c36c48205aa524bc6629f56a80cfb4af8",
+          "installed_fixture_tests": 149,
+          "acquisition_fixture_cases": 15,
+          "fresh_cross_filesystem_installer": "passed",
+          "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product42-public-installer-2026-10-17.json",
+          "provider_calls_during_beta42_qualification": 0,
+          "provider_implementation_unchanged_from_beta41": true
+        }
+      }
     },
     {
       "id": "firecrawl",
       "name": "Firecrawl",
-      "status": "published_keyless_sdk_receiving_product_pending",
+      "status": "published_keyless_product_limited_lifecycle",
       "typed_operations": 2,
       "candidate_version": "0.1.5",
       "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
@@ -110,7 +133,7 @@
       "agent_tools": [],
       "candidate_artifacts_published": true,
       "real_provider_qualification": false,
-      "note": "SDK 0.1.5 is publicly published with digest-verified artifacts. Remote source qualification and two limited real keyless runner reads passed. Receiving-product release, workflow/App lifecycle and broader provider acceptance remain pending; no paid fallback.",
+      "note": "SDK0.1.5 and server/CLI42 are public. Normal certified CLI/Iroh/gateway workflows passed create, public fetch/scrape before and after real restart, and local disconnect/tombstone/source removal on beta41 (four product reads total). That provider implementation is unchanged in beta42, whose 149 installed fixtures and 15 acquisition cases and fresh cross-filesystem public installer passed without repeating provider calls. Initial41 EXDEV and same-prefix TMPDIR recovery remain historical evidence. Native App19/publication and broader tool parity are not claimed; no paid fallback.",
       "limited_keyless_reads": [
         {
           "tool": "files.firecrawl.search",
@@ -128,7 +151,29 @@
         }
       ],
       "shared_library_public_version": "0.1.5",
-      "published_provider_adapter": true
+      "published_provider_adapter": true,
+      "receiving_product_lifecycle": {
+        "status": "passed",
+        "date": "2026-10-17",
+        "receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b41-2026-10-17.json",
+        "product_release": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.41",
+        "scope": "Two keyless connections and four total public-document reads via normal certified CLI/gateway/workflows, actual server restart/reread and local tombstones/source removal; no native App or all-tool acceptance.",
+        "first_fresh_installer": "failed_EXDEV",
+        "same_prefix_installer_follow_up": "passed_owned_same_mount_TMPDIR",
+        "native_app19_acceptance": "not_claimed",
+        "product42": "public_fixture_qualified_and_fresh_cross_filesystem_installer_passed",
+        "current_product": {
+          "version": "1.1.0b42",
+          "release": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.42",
+          "manifest_sha256": "e6887ceb907bbabe844419d2de90d72c36c48205aa524bc6629f56a80cfb4af8",
+          "installed_fixture_tests": 149,
+          "acquisition_fixture_cases": 15,
+          "fresh_cross_filesystem_installer": "passed",
+          "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product42-public-installer-2026-10-17.json",
+          "provider_calls_during_beta42_qualification": 0,
+          "provider_implementation_unchanged_from_beta41": true
+        }
+      }
     },
     {
       "id": "google-drive",
@@ -176,13 +221,16 @@
     {
       "id": "slack-import",
       "name": "Slack",
-      "status": "source_qualified_candidate_unpublished",
+      "status": "published_adapter_limited_lifecycle",
       "typed_operations": 9,
-      "candidate_artifacts_published": false,
-      "real_provider_qualification": false,
-      "note": "9 typed Web API operations; stable slack-import/slack_import identity. App registration not completed; no persistent app ID, real grant or MCP approval.",
-      "shared_library_public_version": "0.1.3",
-      "published_provider_adapter": false
+      "candidate_artifacts_published": true,
+      "real_provider_qualification": true,
+      "note": "SDK0.1.4 publishes nine typed Web API tools under stable slack-import/slack_import identity. The restricted 16 October lifecycle passed consent, approved reads/message create-read-delete, owner refresh after explicit recovery, restart read and local disconnect. Public distribution/common enrollment remain off; other tools/native App/Slack MCP approval are not qualified.",
+      "shared_library_public_version": "0.1.4",
+      "published_provider_adapter": true,
+      "lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/slack-oauth-2026-10-16.json",
+      "public_distribution_enabled": false,
+      "common_oauth_enrollment": "disabled"
     },
     {
       "id": "gmail",
@@ -27037,7 +27085,7 @@
         "https://chatgpt.com/plugins?category=developer-tools"
       ],
       "popular_order": 12,
-      "openagent_status": "published_keyless_sdk_receiving_product_pending",
+      "openagent_status": "published_keyless_product_limited_lifecycle",
       "connector_id": "exa",
       "chatgpt_feature_parity": "not_qualified",
       "access_findings": [
@@ -27049,7 +27097,7 @@
         }
       ],
       "access_status": "documented_interface_requires_integration_qualification",
-      "next_action": "Adopt the public SDK 0.1.5 in the receiving product, then qualify authorized discovery/read/restart/disconnect and connection isolation through its workflow and App. Server 41/App 19 release and acceptance are not established by runner calls.",
+      "next_action": "Keep native App19 publication/acceptance and broader tools/quotas/isolation coverage separate. Beta41 limited provider lifecycle passed; beta42 preserves its provider implementation and passed fresh cross-filesystem installation separately. Do not relabel beta41 calls as beta42 provider tests.",
       "candidate_version": "0.1.5",
       "typed_operations": 2,
       "candidate_artifacts_published": true,
@@ -27078,7 +27126,29 @@
         }
       ],
       "shared_library_public_version": "0.1.5",
-      "published_provider_adapter": true
+      "published_provider_adapter": true,
+      "receiving_product_lifecycle": {
+        "status": "passed",
+        "date": "2026-10-17",
+        "receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b41-2026-10-17.json",
+        "product_release": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.41",
+        "scope": "Two keyless connections and four total public-document reads via normal certified CLI/gateway/workflows, actual server restart/reread and local tombstones/source removal; no native App or all-tool acceptance.",
+        "first_fresh_installer": "failed_EXDEV",
+        "same_prefix_installer_follow_up": "passed_owned_same_mount_TMPDIR",
+        "native_app19_acceptance": "not_claimed",
+        "product42": "public_fixture_qualified_and_fresh_cross_filesystem_installer_passed",
+        "current_product": {
+          "version": "1.1.0b42",
+          "release": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.42",
+          "manifest_sha256": "e6887ceb907bbabe844419d2de90d72c36c48205aa524bc6629f56a80cfb4af8",
+          "installed_fixture_tests": 149,
+          "acquisition_fixture_cases": 15,
+          "fresh_cross_filesystem_installer": "passed",
+          "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product42-public-installer-2026-10-17.json",
+          "provider_calls_during_beta42_qualification": 0,
+          "provider_implementation_unchanged_from_beta41": true
+        }
+      }
     },
     {
       "name": "Examen Civique",
@@ -28951,7 +29021,7 @@
         "https://chatgpt.com/plugins?category=productivity"
       ],
       "popular_order": 10,
-      "openagent_status": "published_keyless_sdk_receiving_product_pending",
+      "openagent_status": "published_keyless_product_limited_lifecycle",
       "connector_id": "firecrawl",
       "chatgpt_feature_parity": "not_qualified",
       "access_findings": [
@@ -28963,7 +29033,7 @@
         }
       ],
       "access_status": "documented_interface_requires_integration_qualification",
-      "next_action": "Adopt the public SDK 0.1.5 in the receiving product, then qualify authorized discovery/read/restart/disconnect and connection isolation through its workflow and App. Server 41/App 19 release and acceptance are not established by runner calls.",
+      "next_action": "Keep native App19 publication/acceptance and broader tools/quotas/isolation coverage separate. Beta41 limited provider lifecycle passed; beta42 preserves its provider implementation and passed fresh cross-filesystem installation separately. Do not relabel beta41 calls as beta42 provider tests.",
       "candidate_version": "0.1.5",
       "typed_operations": 2,
       "candidate_artifacts_published": true,
@@ -28991,7 +29061,29 @@
         }
       ],
       "shared_library_public_version": "0.1.5",
-      "published_provider_adapter": true
+      "published_provider_adapter": true,
+      "receiving_product_lifecycle": {
+        "status": "passed",
+        "date": "2026-10-17",
+        "receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b41-2026-10-17.json",
+        "product_release": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.41",
+        "scope": "Two keyless connections and four total public-document reads via normal certified CLI/gateway/workflows, actual server restart/reread and local tombstones/source removal; no native App or all-tool acceptance.",
+        "first_fresh_installer": "failed_EXDEV",
+        "same_prefix_installer_follow_up": "passed_owned_same_mount_TMPDIR",
+        "native_app19_acceptance": "not_claimed",
+        "product42": "public_fixture_qualified_and_fresh_cross_filesystem_installer_passed",
+        "current_product": {
+          "version": "1.1.0b42",
+          "release": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.42",
+          "manifest_sha256": "e6887ceb907bbabe844419d2de90d72c36c48205aa524bc6629f56a80cfb4af8",
+          "installed_fixture_tests": 149,
+          "acquisition_fixture_cases": 15,
+          "fresh_cross_filesystem_installer": "passed",
+          "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product42-public-installer-2026-10-17.json",
+          "provider_calls_during_beta42_qualification": 0,
+          "provider_implementation_unchanged_from_beta41": true
+        }
+      }
     },
     {
       "name": "Fireflies",
@@ -64555,7 +64647,7 @@
         "https://chatgpt.com/plugins?category=communication"
       ],
       "popular_order": 16,
-      "openagent_status": "source_qualified_candidate_unpublished",
+      "openagent_status": "published_adapter_limited_lifecycle",
       "connector_id": "slack-import",
       "chatgpt_feature_parity": "not_qualified",
       "access_findings": [
@@ -64574,22 +64666,29 @@
         {
           "kind": "public_api",
           "source_url": "https://docs.slack.dev/reference/methods/",
-          "finding": "9 typed Web API operations; stable slack-import/slack_import identity. App registration not completed; no persistent app ID, real grant or MCP approval.",
-          "access_conditions": "Explicit provider app registration and consent, operation scopes and permissions, local authorization and lifecycle acceptance remain separate from source tests."
+          "finding": "Nine typed Web API operations published in SDK0.1.4; stable slack-import/slack_import identity. App registration and the cited limited real OAuth lifecycle passed; public distribution and common enrollment remain disabled.",
+          "access_conditions": "The 16 October receipt qualifies only approved resources/operations and explicit recovery; remaining tools, native App and separate Slack MCP approval are not established."
         }
       ],
       "access_status": "documented_interface_requires_integration_qualification",
-      "next_action": "Finish app registration and authorized installation; qualify user-token consent, API operations, rate limits and lifecycle before publishing. Do not assume separate Slack MCP approval.",
+      "next_action": "Public SDK0.1.4 and the cited restricted 16 October OAuth lifecycle are complete. Distribution/common enrollment remain disabled; qualify remaining tools/native App independently and do not infer Slack MCP approval.",
       "candidate_version": "0.1.4",
       "typed_operations": 9,
-      "candidate_artifacts_published": false,
-      "real_provider_qualification": false,
+      "candidate_artifacts_published": true,
+      "real_provider_qualification": true,
       "registration": {
-        "status": "pending_no_persistent_app_id",
-        "setup_workspace_created": true,
-        "app_id": null,
-        "installation_grant_completed": false
-      }
+        "status": "registered_limited_qa_lifecycle_passed",
+        "app_id": "A0C9XC9JHTK",
+        "installation_grant_completed": true,
+        "public_distribution_enabled": false,
+        "common_enrollment_enabled": false,
+        "qualification_scope": "Restricted approved QA installation only; not public distribution or all-tool acceptance."
+      },
+      "shared_library_public_version": "0.1.4",
+      "published_provider_adapter": true,
+      "lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/slack-oauth-2026-10-16.json",
+      "public_distribution_enabled": false,
+      "common_oauth_enrollment": "disabled"
     },
     {
       "name": "Slashtel",
@@ -80541,7 +80640,7 @@
   ],
   "candidate_catalog": {
     "version": "0.1.5",
-    "state": "published_keyless_sdk_receiving_product_pending",
+    "state": "published_sdk_and_server42_with_limited_beta41_lifecycle",
     "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
     "catalog_path": "packages/connectors/catalog.go",
     "catalog_sha256": "5c1e0cc2d6f20d629304d5b8b194b3aafa3b41a0cf8c84d5591969797cb60024",
@@ -80621,8 +80720,37 @@
       "implemented_official_adapters": 16,
       "generic_custom_mcp_entries": 1,
       "publication_status": "public API asset digests and anonymous manifest verified",
-      "receiving_product_release": "pending",
-      "receiving_product_lifecycle": "pending"
+      "receiving_product_release": "v1.1.0-beta.42",
+      "receiving_product_lifecycle": "passed_limited_on_beta41_unchanged_provider_implementation_in_beta42",
+      "receiving_product_release_url": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.42",
+      "receiving_product_manifest_sha256": "e6887ceb907bbabe844419d2de90d72c36c48205aa524bc6629f56a80cfb4af8",
+      "receiving_product_lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b41-2026-10-17.json",
+      "receiving_product_installer": "fresh_cross_filesystem_public42_install_passed",
+      "native_app19_acceptance": "not_claimed",
+      "product42": "public_149_installed_fixture_tests_15_acquisition_cases_and_fresh_cross_filesystem_installer_passed",
+      "receiving_product_installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product42-public-installer-2026-10-17.json"
+    },
+    "receiving_product_lifecycle": {
+      "status": "passed",
+      "date": "2026-10-17",
+      "receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b41-2026-10-17.json",
+      "product_release": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.41",
+      "scope": "Two keyless connections and four total public-document reads via normal certified CLI/gateway/workflows, actual server restart/reread and local tombstones/source removal; no native App or all-tool acceptance.",
+      "first_fresh_installer": "failed_EXDEV",
+      "same_prefix_installer_follow_up": "passed_owned_same_mount_TMPDIR",
+      "native_app19_acceptance": "not_claimed",
+      "product42": "public_fixture_qualified_and_fresh_cross_filesystem_installer_passed",
+      "current_product": {
+        "version": "1.1.0b42",
+        "release": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.42",
+        "manifest_sha256": "e6887ceb907bbabe844419d2de90d72c36c48205aa524bc6629f56a80cfb4af8",
+        "installed_fixture_tests": 149,
+        "acquisition_fixture_cases": 15,
+        "fresh_cross_filesystem_installer": "passed",
+        "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product42-public-installer-2026-10-17.json",
+        "provider_calls_during_beta42_qualification": 0,
+        "provider_implementation_unchanged_from_beta41": true
+      }
     }
   },
   "previous_candidate_catalog": {
@@ -80667,8 +80795,15 @@
     "implemented_official_adapters": 16,
     "generic_custom_mcp_entries": 1,
     "publication_status": "public API asset digests and anonymous manifest verified",
-    "receiving_product_release": "pending",
-    "receiving_product_lifecycle": "pending"
+    "receiving_product_release": "v1.1.0-beta.42",
+    "receiving_product_lifecycle": "passed_limited_on_beta41_unchanged_provider_implementation_in_beta42",
+    "receiving_product_release_url": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.42",
+    "receiving_product_manifest_sha256": "e6887ceb907bbabe844419d2de90d72c36c48205aa524bc6629f56a80cfb4af8",
+    "receiving_product_lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b41-2026-10-17.json",
+    "receiving_product_installer": "fresh_cross_filesystem_public42_install_passed",
+    "native_app19_acceptance": "not_claimed",
+    "product42": "public_149_installed_fixture_tests_15_acquisition_cases_and_fresh_cross_filesystem_installer_passed",
+    "receiving_product_installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product42-public-installer-2026-10-17.json"
   },
   "common_oauth_availability": {
     "observed_at_utc": "2026-10-17T06:39:42.530986Z",
