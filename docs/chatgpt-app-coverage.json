@@ -16,19 +16,19 @@
     "card_occurrences": 4219,
     "distinct_display_names": 4133,
     "popular_cards": 50,
-    "display_name_groups_with_primary_interface_findings": 23
+    "display_name_groups_with_primary_interface_findings": 26
   },
   "source_catalog": {
     "repository": "https://github.com/openagent-uno/openagent-tools",
     "commit": "05059be75d3a68571a19683c517be4c04da6505f",
     "path": "packages/connectors/catalog.go",
     "sha256": "886f36aa4d750e112af48ef812dfe5119e2d52d83cf8597874fca50f791cda52",
-    "work_in_progress": "Superseded by candidate_catalog source qualification; published 0.1.3 artifact availability is unchanged.",
+    "work_in_progress": "Historical source observation before the 0.1.4 publication; retained without replacing its source digest or counts.",
     "official_catalog_entries": 12,
     "implemented_official_adapters": 10,
     "unavailable_placeholders": 2,
     "generic_custom_mcp_entries": 1,
-    "counts_scope": "Historical published 0.1.3 baseline; not the current 0.1.4 candidate."
+    "counts_scope": "Historical published 0.1.3 baseline only; see published_catalog and candidate_catalog for current states."
   },
   "status_definitions": {
     "implemented_adapter": "Committed source contains provider operations. Does not imply public enrollment, feature parity or end-to-end qualification.",
@@ -37,7 +37,12 @@
     "not_implemented_in_official_catalog": "No official branded connector found in the audited catalog; user-managed custom MCP possibility is not an implemented official connector.",
     "public_interface_not_established_by_this_audit": "Not individually researched or no usable public interface established here; not proof that no API or MCP exists.",
     "documented_interface_requires_integration_qualification": "Primary provider documentation establishes an interface, not successful OpenAgent integration.",
-    "source_qualified_candidate_unpublished": "Integrated candidate passed remote Go test/vet/runner build. No 0.1.4 publication, real OAuth acceptance, native-platform qualification or ChatGPT feature parity is implied."
+    "source_qualified_candidate_unpublished": "Integrated candidate passed remote Go test/vet/runner build. No 0.1.4 publication, real OAuth acceptance, native-platform qualification or ChatGPT feature parity is implied.",
+    "implemented_pending_remote_qualification": "Committed adapter source and reviewed tool scope exist; remote tests, release artifacts and real receiving-product acceptance remain pending.",
+    "published_adapter_limited_lifecycle": "Shared adapter artifacts are published and the cited limited provider lifecycle passed; this is not full tool coverage, native App acceptance or ChatGPT feature parity.",
+    "public_common_oauth_beta": "The broker exposes public consent for this provider; local host authorization and provider consent remain required. Configuration readiness is not a new OAuth lifecycle qualification.",
+    "qualified_keyless_candidate_unpublished": "SDK source qualification and the four cited limited keyless read calls passed. Release artifacts, receiving-product adoption and its lifecycle acceptance remain pending.",
+    "published_keyless_sdk_receiving_product_pending": "SDK 0.1.5 artifacts are publicly published and digest-verified; remote source qualification and four limited keyless reads passed. Receiving-product release and lifecycle acceptance remain pending."
   },
   "primary_sources": [
     {
@@ -55,6 +60,77 @@
   ],
   "current_catalog": [
     {
+      "id": "exa",
+      "name": "Exa",
+      "status": "published_keyless_sdk_receiving_product_pending",
+      "typed_operations": 2,
+      "candidate_version": "0.1.5",
+      "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+      "auth": "none",
+      "read_tools": [
+        "files.exa.search",
+        "files.exa.fetch"
+      ],
+      "agent_tools": [],
+      "candidate_artifacts_published": true,
+      "real_provider_qualification": false,
+      "note": "SDK 0.1.5 is publicly published with digest-verified artifacts. Remote source qualification and two limited real keyless runner reads passed. Receiving-product release, workflow/App lifecycle and broader provider acceptance remain pending; no paid fallback.",
+      "limited_keyless_reads": [
+        {
+          "tool": "files.exa.search",
+          "http_status": 200,
+          "attempts": 1,
+          "duration_ms": 681,
+          "response_bytes": 323,
+          "scope": "API success only; response did not contain the OpenAgent marker, so search relevance was not established."
+        },
+        {
+          "tool": "files.exa.fetch",
+          "http_status": 200,
+          "attempts": 1,
+          "duration_ms": 982,
+          "response_bytes": 1376
+        }
+      ],
+      "shared_library_public_version": "0.1.5",
+      "published_provider_adapter": true
+    },
+    {
+      "id": "firecrawl",
+      "name": "Firecrawl",
+      "status": "published_keyless_sdk_receiving_product_pending",
+      "typed_operations": 2,
+      "candidate_version": "0.1.5",
+      "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+      "auth": "none",
+      "read_tools": [
+        "files.firecrawl.search",
+        "files.firecrawl.scrape"
+      ],
+      "agent_tools": [],
+      "candidate_artifacts_published": true,
+      "real_provider_qualification": false,
+      "note": "SDK 0.1.5 is publicly published with digest-verified artifacts. Remote source qualification and two limited real keyless runner reads passed. Receiving-product release, workflow/App lifecycle and broader provider acceptance remain pending; no paid fallback.",
+      "limited_keyless_reads": [
+        {
+          "tool": "files.firecrawl.search",
+          "http_status": 200,
+          "attempts": 1,
+          "duration_ms": 1544,
+          "response_bytes": 1306
+        },
+        {
+          "tool": "files.firecrawl.scrape",
+          "http_status": 200,
+          "attempts": 1,
+          "duration_ms": 2956,
+          "response_bytes": 6686
+        }
+      ],
+      "shared_library_public_version": "0.1.5",
+      "published_provider_adapter": true
+    },
+    {
       "id": "google-drive",
       "name": "Google Drive",
       "status": "implemented_adapter",
@@ -63,24 +139,28 @@
     {
       "id": "github",
       "name": "GitHub",
-      "status": "source_qualified_candidate_unpublished",
+      "status": "published_adapter_limited_lifecycle",
       "typed_operations": 17,
-      "candidate_artifacts_published": false,
-      "real_provider_qualification": false,
-      "note": "17 typed API operations qualified on a remote source worker; app/secret registered, real consent and release pending.",
-      "shared_library_public_version": "0.1.3",
-      "published_provider_adapter": false
+      "candidate_artifacts_published": true,
+      "real_provider_qualification": true,
+      "note": "Published SDK 0.1.4 adapter; the cited limited standalone lifecycle passed. Public common OAuth configuration enabled 17 October; native App/provider-wide tool coverage remains separate.",
+      "shared_library_public_version": "0.1.4",
+      "published_provider_adapter": true,
+      "common_oauth_enrollment": "public",
+      "common_oauth_availability_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/oauth-public-beta-2026-10-17.json"
     },
     {
       "id": "notion",
       "name": "Notion",
-      "status": "source_qualified_candidate_unpublished",
+      "status": "published_adapter_limited_lifecycle",
       "typed_operations": 8,
-      "candidate_artifacts_published": false,
-      "real_provider_qualification": false,
-      "note": "8 typed API operations qualified on a remote source worker; app/secret registered, real page consent and release pending.",
-      "shared_library_public_version": "0.1.3",
-      "published_provider_adapter": false
+      "candidate_artifacts_published": true,
+      "real_provider_qualification": true,
+      "note": "Published SDK 0.1.4 adapter; the cited limited standalone lifecycle passed. Public common OAuth configuration enabled 17 October; native App/provider-wide tool coverage remains separate.",
+      "shared_library_public_version": "0.1.4",
+      "published_provider_adapter": true,
+      "common_oauth_enrollment": "public",
+      "common_oauth_availability_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/oauth-public-beta-2026-10-17.json"
     },
     {
       "id": "atlassian",
@@ -150,7 +230,9 @@
       "id": "clickup",
       "name": "ClickUp",
       "status": "implemented_adapter",
-      "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance."
+      "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance.",
+      "common_oauth_enrollment": "public",
+      "common_oauth_availability_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/oauth-public-beta-2026-10-17.json"
     },
     {
       "id": "imap_smtp",
@@ -19006,7 +19088,9 @@
         }
       ],
       "access_status": "documented_interface_requires_integration_qualification",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
+      "next_action": "Use public common OAuth with workspace consent and local host permissions; broader tool coverage and receiving-host acceptance remain separate.",
+      "common_oauth_enrollment": "public",
+      "common_oauth_availability_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/oauth-public-beta-2026-10-17.json"
     },
     {
       "name": "Clics",
@@ -19728,9 +19812,16 @@
       "openagent_status": "not_implemented_in_official_catalog",
       "connector_id": null,
       "chatgpt_feature_parity": "not_qualified",
-      "access_findings": [],
-      "access_status": "public_interface_not_established_by_this_audit",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
+      "access_findings": [
+        {
+          "kind": "public_mcp",
+          "source_url": "https://docs.coingecko.com/ai-integration/mcp-server",
+          "finding": "Potential typed public price/global-data reads through fixed reviewed SDK expressions such as simple.price.get/global.get; no account, wallet, trading or arbitrary TypeScript interface.",
+          "access_conditions": "none; The current MCP exposes an execute code tool rather than legacy per-endpoint tools. Before implementation, freeze its exact schema and prove compiled-only templates cannot accept code/URLs/methods. Confirm chosen methods exist in the free subset; paid/full tool sets excluded."
+        }
+      ],
+      "access_status": "documented_interface_requires_integration_qualification",
+      "next_action": "Research only: freeze exact upstream schema and bounded read-only mapping before implementation; no connector availability is claimed."
     },
     {
       "name": "CoinMarketCap",
@@ -20494,9 +20585,16 @@
       "openagent_status": "not_implemented_in_official_catalog",
       "connector_id": null,
       "chatgpt_feature_parity": "not_qualified",
-      "access_findings": [],
-      "access_status": "public_interface_not_established_by_this_audit",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
+      "access_findings": [
+        {
+          "kind": "public_mcp",
+          "source_url": "https://github.com/upstash/context7/blob/master/packages/mcp/README.md",
+          "finding": "Public library documentation only; bounded library name/query and canonical library ID, no private repositories or ingestion.",
+          "access_conditions": "none for documented basic usage; Anonymous rate limits; OAuth/API keys for higher limits/private libraries are excluded. Freeze current tool schema; renamed query-docs is required."
+        }
+      ],
+      "access_status": "documented_interface_requires_integration_qualification",
+      "next_action": "Research only: freeze exact upstream schema and bounded read-only mapping before implementation; no connector availability is claimed."
     },
     {
       "name": "Contextick",
@@ -26939,19 +27037,48 @@
         "https://chatgpt.com/plugins?category=developer-tools"
       ],
       "popular_order": 12,
-      "openagent_status": "not_implemented_in_official_catalog",
-      "connector_id": null,
+      "openagent_status": "published_keyless_sdk_receiving_product_pending",
+      "connector_id": "exa",
       "chatgpt_feature_parity": "not_qualified",
       "access_findings": [
         {
           "kind": "public_mcp",
           "source_url": "https://exa.ai/docs/get-started/exa-mcp",
-          "finding": "Official remote MCP offers keyless, OAuth and API-key modes.",
-          "access_conditions": "Free rate-limited keyless entry; authenticated usage, billing and tool scope vary."
+          "finding": "Official hosted MCP supports keyless web_search_exa and web_fetch_exa; the compiled integration exposes only those two tools.",
+          "access_conditions": "Free rate-limited anonymous use; no sign-in or API key. Agent runs and authenticated billing modes are excluded."
         }
       ],
       "access_status": "documented_interface_requires_integration_qualification",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
+      "next_action": "Adopt the public SDK 0.1.5 in the receiving product, then qualify authorized discovery/read/restart/disconnect and connection isolation through its workflow and App. Server 41/App 19 release and acceptance are not established by runner calls.",
+      "candidate_version": "0.1.5",
+      "typed_operations": 2,
+      "candidate_artifacts_published": true,
+      "real_provider_qualification": false,
+      "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+      "auth": "none",
+      "read_tools": [
+        "files.exa.search",
+        "files.exa.fetch"
+      ],
+      "limited_keyless_reads": [
+        {
+          "tool": "files.exa.search",
+          "http_status": 200,
+          "attempts": 1,
+          "duration_ms": 681,
+          "response_bytes": 323,
+          "scope": "API success only; response did not contain the OpenAgent marker, so search relevance was not established."
+        },
+        {
+          "tool": "files.exa.fetch",
+          "http_status": 200,
+          "attempts": 1,
+          "duration_ms": 982,
+          "response_bytes": 1376
+        }
+      ],
+      "shared_library_public_version": "0.1.5",
+      "published_provider_adapter": true
     },
     {
       "name": "Examen Civique",
@@ -28824,19 +28951,47 @@
         "https://chatgpt.com/plugins?category=productivity"
       ],
       "popular_order": 10,
-      "openagent_status": "not_implemented_in_official_catalog",
-      "connector_id": null,
+      "openagent_status": "published_keyless_sdk_receiving_product_pending",
+      "connector_id": "firecrawl",
       "chatgpt_feature_parity": "not_qualified",
       "access_findings": [
         {
           "kind": "public_mcp",
-          "source_url": "https://docs.firecrawl.dev/mcp-server",
-          "finding": "Official MCP server setup is documented.",
-          "access_conditions": "Provider account, permissions, usage limits and terms require verification for the chosen integration."
+          "source_url": "https://docs.firecrawl.dev/mcp-server/keyless",
+          "finding": "Official hosted keyless MCP supports Search, Scrape and Parse; the compiled integration exposes only Search and URL Scrape as Markdown.",
+          "access_conditions": "Free per-IP daily request/credit limits; no account or API key. Parse/upload, actions, agents and authenticated/paid fallbacks are excluded."
         }
       ],
       "access_status": "documented_interface_requires_integration_qualification",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
+      "next_action": "Adopt the public SDK 0.1.5 in the receiving product, then qualify authorized discovery/read/restart/disconnect and connection isolation through its workflow and App. Server 41/App 19 release and acceptance are not established by runner calls.",
+      "candidate_version": "0.1.5",
+      "typed_operations": 2,
+      "candidate_artifacts_published": true,
+      "real_provider_qualification": false,
+      "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+      "auth": "none",
+      "read_tools": [
+        "files.firecrawl.search",
+        "files.firecrawl.scrape"
+      ],
+      "limited_keyless_reads": [
+        {
+          "tool": "files.firecrawl.search",
+          "http_status": 200,
+          "attempts": 1,
+          "duration_ms": 1544,
+          "response_bytes": 1306
+        },
+        {
+          "tool": "files.firecrawl.scrape",
+          "http_status": 200,
+          "attempts": 1,
+          "duration_ms": 2956,
+          "response_bytes": 6686
+        }
+      ],
+      "shared_library_public_version": "0.1.5",
+      "published_provider_adapter": true
     },
     {
       "name": "Fireflies",
@@ -31975,7 +32130,7 @@
         "https://chatgpt.com/plugins?category=developer-tools"
       ],
       "popular_order": 6,
-      "openagent_status": "source_qualified_candidate_unpublished",
+      "openagent_status": "published_adapter_limited_lifecycle",
       "connector_id": "github",
       "chatgpt_feature_parity": "not_qualified",
       "access_findings": [
@@ -31988,16 +32143,21 @@
         {
           "kind": "public_api",
           "source_url": "https://docs.github.com/en/rest",
-          "finding": "17 typed API operations qualified on a remote source worker; app/secret registered, real consent and release pending.",
+          "finding": "Published SDK 0.1.4 adapter; the cited limited standalone lifecycle passed. Public common OAuth configuration enabled 17 October; native App/provider-wide tool coverage remains separate.",
           "access_conditions": "Explicit provider app registration and consent, operation scopes and permissions, local authorization and lifecycle acceptance remain separate from source tests."
         }
       ],
       "access_status": "documented_interface_requires_integration_qualification",
-      "next_action": "Complete explicit repository consent, real read/authorized write/refresh/restart/disconnect, then qualify and publish the candidate.",
+      "next_action": "Use public common OAuth with explicit provider consent; qualify remaining tools, native App operations and receiving-host deployment separately.",
       "candidate_version": "0.1.4",
       "typed_operations": 17,
-      "candidate_artifacts_published": false,
-      "real_provider_qualification": false
+      "candidate_artifacts_published": true,
+      "real_provider_qualification": true,
+      "common_oauth_enrollment": "public",
+      "common_oauth_availability_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/oauth-public-beta-2026-10-17.json",
+      "shared_library_public_version": "0.1.4",
+      "published_provider_adapter": true,
+      "note": "Published SDK 0.1.4 adapter; the cited limited standalone lifecycle passed. Public common OAuth configuration enabled 17 October; native App/provider-wide tool coverage remains separate."
     },
     {
       "name": "GitLab (Beta)",
@@ -49285,7 +49445,7 @@
         "https://chatgpt.com/plugins?category=productivity"
       ],
       "popular_order": 15,
-      "openagent_status": "source_qualified_candidate_unpublished",
+      "openagent_status": "published_adapter_limited_lifecycle",
       "connector_id": "notion",
       "chatgpt_feature_parity": "not_qualified",
       "access_findings": [
@@ -49298,16 +49458,21 @@
         {
           "kind": "public_api",
           "source_url": "https://developers.notion.com/reference/versioning",
-          "finding": "8 typed API operations qualified on a remote source worker; app/secret registered, real page consent and release pending.",
+          "finding": "Published SDK 0.1.4 adapter; the cited limited standalone lifecycle passed. Public common OAuth configuration enabled 17 October; native App/provider-wide tool coverage remains separate.",
           "access_conditions": "Explicit provider app registration and consent, operation scopes and permissions, local authorization and lifecycle acceptance remain separate from source tests."
         }
       ],
       "access_status": "documented_interface_requires_integration_qualification",
-      "next_action": "Complete explicit page consent, real read/authorized write/refresh/restart/disconnect, then qualify and publish the candidate.",
+      "next_action": "Use public common OAuth with explicit provider consent; qualify remaining tools, native App operations and receiving-host deployment separately.",
       "candidate_version": "0.1.4",
       "typed_operations": 8,
-      "candidate_artifacts_published": false,
-      "real_provider_qualification": false
+      "candidate_artifacts_published": true,
+      "real_provider_qualification": true,
+      "common_oauth_enrollment": "public",
+      "common_oauth_availability_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/oauth-public-beta-2026-10-17.json",
+      "shared_library_public_version": "0.1.4",
+      "published_provider_adapter": true,
+      "note": "Published SDK 0.1.4 adapter; the cited limited standalone lifecycle passed. Public common OAuth configuration enabled 17 October; native App/provider-wide tool coverage remains separate."
     },
     {
       "name": "Notit",
@@ -51878,9 +52043,16 @@
       "openagent_status": "not_implemented_in_official_catalog",
       "connector_id": null,
       "chatgpt_feature_parity": "not_qualified",
-      "access_findings": [],
-      "access_status": "public_interface_not_established_by_this_audit",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
+      "access_findings": [
+        {
+          "kind": "public_mcp",
+          "source_url": "https://docs.parallel.ai/integrations/mcp/search-mcp",
+          "finding": "Bounded public web research; anonymous fast mode. Any session_id is host-derived per conversation, never model-controlled; no authenticated overrides.",
+          "access_conditions": "none; Shared anonymous quotas and bounded excerpts; freeze actual tool schema and qualify the hosted service before advertising availability."
+        }
+      ],
+      "access_status": "documented_interface_requires_integration_qualification",
+      "next_action": "Research only: freeze exact upstream schema and bounded read-only mapping before implementation; no connector availability is claimed."
     },
     {
       "name": "Pararius",
@@ -80368,6 +80540,92 @@
     "Shared Shopify remains gated; unknown historical or unsupported derived content is not silently marked compliant."
   ],
   "candidate_catalog": {
+    "version": "0.1.5",
+    "state": "published_keyless_sdk_receiving_product_pending",
+    "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+    "catalog_path": "packages/connectors/catalog.go",
+    "catalog_sha256": "5c1e0cc2d6f20d629304d5b8b194b3aafa3b41a0cf8c84d5591969797cb60024",
+    "official_catalog_entries": 16,
+    "implemented_official_adapters": 16,
+    "unavailable_placeholders": 0,
+    "generic_custom_mcp_entries": 1,
+    "new_typed_operations": {
+      "Exa": 2,
+      "Firecrawl": 2
+    },
+    "auth": "none; explicit credential kind only, with an authorized connection",
+    "remote_checks": {
+      "go_test_race": "passed",
+      "go_vet": "passed",
+      "govulncheck": "passed",
+      "six_platform_twelve_binaries": "passed",
+      "python_adapter": "passed",
+      "native_runtime_smoke": "passed",
+      "previous_server39_acquisition": "passed"
+    },
+    "candidate_artifacts_published": true,
+    "real_provider_qualification": false,
+    "native_os_qualification": false,
+    "limited_keyless_reads": {
+      "date": "2026-10-17",
+      "status": "passed",
+      "scope": "Four bounded real calls through the runner; not receiving-product workflow/App lifecycle or provider-wide parity. API success and relevance remain separate.",
+      "providers": {
+        "exa": [
+          {
+            "tool": "files.exa.search",
+            "http_status": 200,
+            "attempts": 1,
+            "duration_ms": 681,
+            "response_bytes": 323,
+            "scope": "API success only; response did not contain the OpenAgent marker, so search relevance was not established."
+          },
+          {
+            "tool": "files.exa.fetch",
+            "http_status": 200,
+            "attempts": 1,
+            "duration_ms": 982,
+            "response_bytes": 1376
+          }
+        ],
+        "firecrawl": [
+          {
+            "tool": "files.firecrawl.search",
+            "http_status": 200,
+            "attempts": 1,
+            "duration_ms": 1544,
+            "response_bytes": 1306
+          },
+          {
+            "tool": "files.firecrawl.scrape",
+            "http_status": 200,
+            "attempts": 1,
+            "duration_ms": 2956,
+            "response_bytes": 6686
+          }
+        ]
+      }
+    },
+    "native_os_qualification_scope": "A limited native runtime smoke passed; six-platform native execution and receiving-product App acceptance are not claimed.",
+    "previous_public_version": "0.1.4",
+    "public_release_binding": {
+      "version": "0.1.5",
+      "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+      "release_url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.5",
+      "release_id": 415640019,
+      "assets": 11,
+      "manifest_sha256": "d65a794b91e6b0a3f085dd332dd1aeee2c76b2415260241cc9bc6193ecb39752",
+      "catalog_sha256": "bf6102e8f0aaec29b64e106f0883f634b7917014c9430ecd44affc877e1f5a8f",
+      "catalog_bytes": 13019,
+      "qualification_receipt": "docs/connector-keyless-0.1.5-qualification.json",
+      "implemented_official_adapters": 16,
+      "generic_custom_mcp_entries": 1,
+      "publication_status": "public API asset digests and anonymous manifest verified",
+      "receiving_product_release": "pending",
+      "receiving_product_lifecycle": "pending"
+    }
+  },
+  "previous_candidate_catalog": {
     "version": "0.1.4",
     "state": "source_qualified_unpublished",
     "source_commit": null,
@@ -80393,6 +80651,105 @@
     "common_provider_activation": false,
     "real_provider_qualification": false,
     "native_os_qualification": false,
-    "qualified_source_index_sha256": "1f7f60a41354903508625ae35cebd11be3f38e7462ee4a70b222a0d395f490c4"
+    "qualified_source_index_sha256": "1f7f60a41354903508625ae35cebd11be3f38e7462ee4a70b222a0d395f490c4",
+    "historical_snapshot_note": "Historical 0.1.4 source qualification checkpoint before publication; published_catalog records the later public release."
+  },
+  "published_catalog": {
+    "version": "0.1.5",
+    "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+    "release_url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.5",
+    "release_id": 415640019,
+    "assets": 11,
+    "manifest_sha256": "d65a794b91e6b0a3f085dd332dd1aeee2c76b2415260241cc9bc6193ecb39752",
+    "catalog_sha256": "bf6102e8f0aaec29b64e106f0883f634b7917014c9430ecd44affc877e1f5a8f",
+    "catalog_bytes": 13019,
+    "qualification_receipt": "docs/connector-keyless-0.1.5-qualification.json",
+    "implemented_official_adapters": 16,
+    "generic_custom_mcp_entries": 1,
+    "publication_status": "public API asset digests and anonymous manifest verified",
+    "receiving_product_release": "pending",
+    "receiving_product_lifecycle": "pending"
+  },
+  "common_oauth_availability": {
+    "observed_at_utc": "2026-10-17T06:39:42.530986Z",
+    "service": "https://auth.openagent.uno",
+    "providers": [
+      "clickup",
+      "github",
+      "notion"
+    ],
+    "enrollment": "public",
+    "configuration_checkpoint": "public-beta3",
+    "receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/oauth-public-beta-2026-10-17.json",
+    "scope": "Configuration rollout and readiness only; no new grants and no broader provider lifecycle or throughput qualification."
+  },
+  "next_provider_research": {
+    "observed_date": "2026-10-17",
+    "state": "read_only_research_not_implemented",
+    "ranking": "Editorial Popular order when present, then feasibility; no adoption ranking inferred.",
+    "candidates": [
+      {
+        "name": "Parallel Search",
+        "priority_reason": "Popular editorial position17; first eligible unimplemented keyless candidate in the remaining Popular order.",
+        "endpoint": "https://search.parallel.ai/mcp",
+        "source_urls": [
+          "https://docs.parallel.ai/integrations/mcp/search-mcp",
+          "https://github.com/parallel-web/search-mcp"
+        ],
+        "tools": [
+          "web_search",
+          "web_fetch"
+        ],
+        "scope": "Bounded public web research; anonymous fast mode. Any session_id is host-derived per conversation, never model-controlled; no authenticated overrides.",
+        "auth": "none",
+        "barriers": "Shared anonymous quotas and bounded excerpts; freeze actual tool schema and qualify the hosted service before advertising availability."
+      },
+      {
+        "name": "Context7",
+        "priority_reason": "Present in Developer Tools; no Popular position recorded. Useful public documentation subset without account enrollment.",
+        "endpoint": "https://mcp.context7.com/mcp",
+        "source_urls": [
+          "https://github.com/upstash/context7/blob/master/packages/mcp/README.md",
+          "https://github.com/upstash/context7/blob/master/docs/resources/all-clients.mdx"
+        ],
+        "tools": [
+          "resolve-library-id",
+          "query-docs"
+        ],
+        "scope": "Public library documentation only; bounded library name/query and canonical library ID, no private repositories or ingestion.",
+        "auth": "none for documented basic usage",
+        "barriers": "Anonymous rate limits; OAuth/API keys for higher limits/private libraries are excluded. Freeze current tool schema; renamed query-docs is required."
+      },
+      {
+        "name": "CoinGecko",
+        "priority_reason": "Present in Finance; no Popular position recorded. Vendor documents a general keyless MCP endpoint.",
+        "endpoint": "https://mcp.api.coingecko.com/mcp",
+        "source_urls": [
+          "https://docs.coingecko.com/ai-integration/mcp-server",
+          "https://docs.coingecko.com/ai-integration/mcp-tools"
+        ],
+        "tools": [
+          "search_docs",
+          "execute (only compiled read-only SDK templates; never model-supplied code)"
+        ],
+        "scope": "Potential typed public price/global-data reads through fixed reviewed SDK expressions such as simple.price.get/global.get; no account, wallet, trading or arbitrary TypeScript interface.",
+        "auth": "none",
+        "barriers": "The current MCP exposes an execute code tool rather than legacy per-endpoint tools. Before implementation, freeze its exact schema and prove compiled-only templates cannot accept code/URLs/methods. Confirm chosen methods exist in the free subset; paid/full tool sets excluded."
+      }
+    ],
+    "excluded_examples": [
+      {
+        "name": "Blockscout Blockchain Data",
+        "source_url": "https://github.com/blockscout/mcp-server",
+        "reason": "Current official general-client setup requires a PRO API key from the Developer Portal, even on its free tier; this adds registration and is outside this no-registration batch."
+      }
+    ]
+  },
+  "previous_published_catalog": {
+    "version": "0.1.4",
+    "source_commit": "709e6634edbf71c6d53711b01482a0509eb7bfa0",
+    "release_url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.4",
+    "publication_receipt": "docs/connector-release-0.1.4-publication.json",
+    "implemented_official_adapters": 14
   }
 }

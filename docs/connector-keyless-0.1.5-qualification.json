@@ -1,0 +1,185 @@
+{
+  "status": "passed",
+  "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+  "runner_sha256": "d9af78163d00385df455e55b32a970c2eb2bb958791cf951afcc78efa470a170",
+  "normal_runner": true,
+  "credentials": {
+    "kind": "none"
+  },
+  "oauth_identity": false,
+  "provider_content_persisted": false,
+  "provider_account_created": false,
+  "automatic_retry": false,
+  "calls": [
+    {
+      "provider": "exa",
+      "tool": "files.exa.search",
+      "duration_ms": 681,
+      "attempts": 1,
+      "status": "passed",
+      "provider_http_status": 200,
+      "provider_attempts": 1,
+      "request_bytes": 437,
+      "response_bytes": 1523,
+      "output_sha256": "8918d3a72f6cd765a51df441075612467083c4c3d48d48d1e7ae8e206e752e90",
+      "output_bytes": 323,
+      "output_present": true,
+      "openagent_reference_present": false,
+      "result_metadata": {
+        "provider": "exa",
+        "protocol": "mcp",
+        "snapshot": "compiled-read-only-v1",
+        "remote_tool": "web_search_exa"
+      }
+    },
+    {
+      "provider": "exa",
+      "tool": "files.exa.fetch",
+      "duration_ms": 982,
+      "attempts": 1,
+      "status": "passed",
+      "provider_http_status": 200,
+      "provider_attempts": 1,
+      "request_bytes": 422,
+      "response_bytes": 2576,
+      "output_sha256": "1b7714870d4cfb8303e274d6e51feb67967367a63b2e69d5078d167282d15094",
+      "output_bytes": 1376,
+      "output_present": true,
+      "openagent_reference_present": true,
+      "result_metadata": {
+        "provider": "exa",
+        "protocol": "mcp",
+        "snapshot": "compiled-read-only-v1",
+        "remote_tool": "web_fetch_exa"
+      }
+    },
+    {
+      "provider": "firecrawl",
+      "tool": "files.firecrawl.search",
+      "duration_ms": 1544,
+      "attempts": 1,
+      "status": "passed",
+      "provider_http_status": 200,
+      "provider_attempts": 1,
+      "request_bytes": 434,
+      "response_bytes": 3197,
+      "output_sha256": "cd82f8e47695b172e027c8a35beded7eda9f11deaf9b3dd96415617059896bb8",
+      "output_bytes": 1306,
+      "output_present": true,
+      "openagent_reference_present": true,
+      "result_metadata": {
+        "provider": "firecrawl",
+        "protocol": "mcp",
+        "snapshot": "compiled-read-only-v1",
+        "remote_tool": "firecrawl_search"
+      }
+    },
+    {
+      "provider": "firecrawl",
+      "tool": "files.firecrawl.scrape",
+      "duration_ms": 2956,
+      "attempts": 1,
+      "status": "passed",
+      "provider_http_status": 200,
+      "provider_attempts": 1,
+      "request_bytes": 447,
+      "response_bytes": 8577,
+      "output_sha256": "c123bc4f42aaf81090dfbf2e959542e92e1301a7e06e197f989741d119a578cd",
+      "output_bytes": 6686,
+      "output_present": true,
+      "openagent_reference_present": true,
+      "result_metadata": {
+        "provider": "firecrawl",
+        "protocol": "mcp",
+        "snapshot": "compiled-read-only-v1",
+        "remote_tool": "firecrawl_scrape"
+      }
+    }
+  ],
+  "at": "2026-10-17T06:56:02.729753+00:00",
+  "runner_exit": 0,
+  "format": 1,
+  "sdk_version": "0.1.5",
+  "sdk_manifest_sha256": "d65a794b91e6b0a3f085dd332dd1aeee2c76b2415260241cc9bc6193ecb39752",
+  "scope": "Four actual keyless runner reads of public web content; no installed-product/native App/OAuth acceptance; Exa search success does not establish result relevance",
+  "public_resource": "https://openagent.uno",
+  "sdk_release": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.5",
+  "publication": {
+    "status": "published-and-verified",
+    "url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.5",
+    "release_id": 415640019,
+    "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+    "assets": 11,
+    "all_api_digests_match": true,
+    "anonymous_manifest_sha256": "d65a794b91e6b0a3f085dd332dd1aeee2c76b2415260241cc9bc6193ecb39752"
+  },
+  "request_scope": {
+    "format": 1,
+    "scope": "four approved public read calls through the exact candidate normal runner",
+    "helper_sha256": "766bab82c7b1e48bc9302426da965ca0b28cd3e55f7a6d544d7350ba07967b7c",
+    "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+    "keyless_receipt_sha256": "a01ec4fd3996bce10ad5d4083155324b831429addfbc04550af6922072e96c8e",
+    "calls": [
+      {
+        "tool": "files.exa.search",
+        "arguments": {
+          "query": "OpenAgent documentation site:openagent.uno",
+          "numResults": 2
+        },
+        "credential_kind": "none",
+        "attempts": 1,
+        "provider_http_status": 200,
+        "output_sha256": "8918d3a72f6cd765a51df441075612467083c4c3d48d48d1e7ae8e206e752e90",
+        "output_present": true,
+        "openagent_reference_present": false
+      },
+      {
+        "tool": "files.exa.fetch",
+        "arguments": {
+          "urls": [
+            "https://openagent.uno"
+          ],
+          "maxCharacters": 3000
+        },
+        "credential_kind": "none",
+        "attempts": 1,
+        "provider_http_status": 200,
+        "output_sha256": "1b7714870d4cfb8303e274d6e51feb67967367a63b2e69d5078d167282d15094",
+        "output_present": true,
+        "openagent_reference_present": true
+      },
+      {
+        "tool": "files.firecrawl.search",
+        "arguments": {
+          "query": "OpenAgent documentation site:openagent.uno",
+          "limit": 2
+        },
+        "credential_kind": "none",
+        "attempts": 1,
+        "provider_http_status": 200,
+        "output_sha256": "cd82f8e47695b172e027c8a35beded7eda9f11deaf9b3dd96415617059896bb8",
+        "output_present": true,
+        "openagent_reference_present": true
+      },
+      {
+        "tool": "files.firecrawl.scrape",
+        "arguments": {
+          "url": "https://openagent.uno",
+          "onlyMainContent": true
+        },
+        "credential_kind": "none",
+        "attempts": 1,
+        "provider_http_status": 200,
+        "output_sha256": "c123bc4f42aaf81090dfbf2e959542e92e1301a7e06e197f989741d119a578cd",
+        "output_present": true,
+        "openagent_reference_present": true
+      }
+    ],
+    "search_relevance_qualified": false,
+    "provider_content_exported": false,
+    "writes": 0,
+    "model_invocations": 0,
+    "accounts_created": 0,
+    "automatic_retry": false
+  }
+}
