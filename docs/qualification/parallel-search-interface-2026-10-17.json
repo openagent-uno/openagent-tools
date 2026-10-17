@@ -1,0 +1,280 @@
+{
+  "schema": 1,
+  "status": "preparation_metadata_only",
+  "observed_at_utc": "2026-10-17T08:06:39.332660+00:00",
+  "provider_name": "Parallel Search",
+  "implementation": {
+    "adapter_present": false,
+    "catalog_entry_present": false,
+    "published": false,
+    "operation_qualified": false,
+    "candidate_version_assigned": false
+  },
+  "official_sources": [
+    "https://docs.parallel.ai/integrations/mcp/search-mcp",
+    "https://github.com/parallel-web/search-mcp"
+  ],
+  "observation": {
+    "endpoint": "https://search.parallel.ai/mcp",
+    "authentication": "none",
+    "protocol_version": "2025-06-18",
+    "server": {
+      "name": "Parallel Web Search MCP Server",
+      "version": "1.27.0",
+      "websiteUrl": "https://parallel.ai"
+    },
+    "tools": [
+      {
+        "name": "web_search",
+        "input_schema_structural_projection": {
+          "properties": {
+            "objective": {
+              "type": "string"
+            },
+            "search_queries": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "session_id": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "model_name": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          "required": [
+            "objective",
+            "search_queries"
+          ],
+          "type": "object"
+        },
+        "projection_note": "Descriptions, titles and examples removed; all remaining structural fields are copied from observed tools/list. This is a projection, not the full-schema digest input.",
+        "observed_full_input_schema_sha256": "0daaf9101a92d5357ff55c3e6a89737994dc40c9f96e7930b176e3227bfc700f",
+        "observed_output_schema_sha256": "422f92f4c25f90b96f51eb2de0e6f1dabbfa2389cf59391feb4a9b900b92d7a8",
+        "advertised_output": {
+          "required": [
+            "search_id",
+            "results",
+            "session_id"
+          ],
+          "properties": [
+            "search_id",
+            "results",
+            "warnings",
+            "usage",
+            "session_id"
+          ],
+          "result_required": [
+            "url",
+            "excerpts"
+          ],
+          "result_properties": [
+            "url",
+            "title",
+            "publish_date",
+            "excerpts"
+          ]
+        },
+        "advertised_annotations": {
+          "title": "Web search",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true
+        }
+      },
+      {
+        "name": "web_fetch",
+        "input_schema_structural_projection": {
+          "properties": {
+            "urls": {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            "objective": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "search_queries": {
+              "anyOf": [
+                {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            },
+            "full_content": {
+              "default": false,
+              "type": "boolean"
+            },
+            "allow_live_fetch": {
+              "default": true,
+              "type": "boolean"
+            },
+            "session_id": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "model_name": {
+              "type": "string",
+              "maxLength": 100
+            }
+          },
+          "required": [
+            "urls"
+          ],
+          "type": "object"
+        },
+        "projection_note": "Descriptions, titles and examples removed; all remaining structural fields are copied from observed tools/list. This is a projection, not the full-schema digest input.",
+        "observed_full_input_schema_sha256": "5e4b444a1239999397b1feda8e6900628c988aeed94658284b4cd8cec91c5ee5",
+        "observed_output_schema_sha256": "d214dfaf0ec7db79bba418e9085e89f712c638350ce5fcc1c8afc707de52be65",
+        "advertised_output": {
+          "required": [
+            "extract_id",
+            "results",
+            "errors",
+            "session_id"
+          ],
+          "properties": [
+            "extract_id",
+            "results",
+            "errors",
+            "warnings",
+            "usage",
+            "session_id"
+          ],
+          "result_required": [
+            "url",
+            "excerpts"
+          ],
+          "result_properties": [
+            "url",
+            "title",
+            "publish_date",
+            "excerpts",
+            "full_content"
+          ],
+          "per_url_error_required": [
+            "url",
+            "error_type",
+            "http_status_code",
+            "content"
+          ],
+          "interpretation": "Advertised output can contain per-URL errors. A future HTTP200 response alone must not be accepted as proof of a successful requested-page read."
+        },
+        "advertised_annotations": {
+          "title": "Web fetch",
+          "readOnlyHint": true,
+          "destructiveHint": false,
+          "idempotentHint": true,
+          "openWorldHint": true
+        }
+      }
+    ],
+    "next_cursor_present": false,
+    "other_advertised_capabilities_imported": false
+  },
+  "acquisition": {
+    "requests": [
+      {
+        "method": "initialize",
+        "http_status": 200,
+        "response_bytes": 2970,
+        "response_sha256": "931ce8768d2dc18d798e7b7ba986c8bc7c47eb9bb003e94ead174b7ad6a0f5c6",
+        "content_type": "application/json",
+        "session_header_present": true
+      },
+      {
+        "method": "notifications/initialized",
+        "http_status": 202,
+        "response_bytes": 0,
+        "response_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "content_type": "",
+        "session_header_present": true
+      },
+      {
+        "method": "tools/list",
+        "http_status": 200,
+        "response_bytes": 13620,
+        "response_sha256": "787f7c631063cfd2749ee4666f008f09307581561ab292e7d73344e5c404fc8e",
+        "content_type": "application/json",
+        "session_header_present": true
+      }
+    ],
+    "request_count": 3,
+    "tools_calls": 0,
+    "provider_queries": 0,
+    "accounts_created": 0,
+    "oauth_grants": 0,
+    "protocol_session_value_persisted": false,
+    "maximum_response_bytes": 1048576,
+    "network_timeout_seconds": 20,
+    "redirects_allowed": false
+  },
+  "evidence": {
+    "sanitized_fixture_sha256": "a6f85330a95917a3ae525ba4dc94c47f33dbabd10ef9ab263f11928b1bb1d4de",
+    "sanitized_fixture_bytes": 23598,
+    "full_input_and_output_schema_digest_encoding": "UTF-8 JSON with sorted keys, compact separators, ensure_ascii=false; no trailing newline",
+    "fixture_contents": "Initialization protocol/capabilities/serverInfo and tool metadata; initialization instructions and transport session values omitted. Provider descriptions treated as untrusted data.",
+    "fixture_publication": "Only this sanitized interface summary is committed; the full metadata snapshot remains private."
+  },
+  "proposed_subset_not_implemented": {
+    "catalog_id": "parallel-search",
+    "provider_id": "parallel_search",
+    "capability": "files",
+    "auth": "none",
+    "operation_mapping": {
+      "files.parallel.search": "web_search",
+      "files.parallel.fetch": "web_fetch"
+    },
+    "local_limits_proposed": {
+      "search_objective_max_characters": 2048,
+      "fetch_objective_max_characters": 200,
+      "search_queries_min_items": 1,
+      "search_queries_max_items": 3,
+      "query_max_characters": 512,
+      "urls_min_items": 1,
+      "urls_max_items": 5,
+      "public_url_max_characters": 2048
+    },
+    "fixed_fetch_arguments_proposed": {
+      "full_content": false,
+      "allow_live_fetch": true
+    },
+    "limitations_note": "Local bounds are proposed OpenAgent policy. The observed upstream input schema does not encode query counts, URL counts or objective lengths; its descriptions separately mention at least one search query, up to 20 URLs and fetch objective <=200 characters.",
+    "session_and_model_policy": "Do not expose session_id/model_name to model arguments. Inputs are optional; the advertised output says an ID is generated when omitted and recommends subsequent reuse. Resolve a trusted stable-session policy before live operation acceptance; current product connector bindings do not propagate Principal.SessionID.",
+    "official_icon_metadata": {
+      "light": "https://assets.parallel.ai/dark-parallel-avatar-270.png",
+      "dark": "https://assets.parallel.ai/white-parallel-avatar-270.png",
+      "advertised_size": "270x270",
+      "downloaded_or_bundled": false
+    }
+  },
+  "next_steps": [
+    "Review this observed interface and choose the compiled bounded two-tool subset; do not dynamically import additional tools, resources or prompts.",
+    "Resolve trusted session correlation without model-controlled identifiers or per-call quota identity rotation.",
+    "Extend the existing keyless adapter, catalog, fixed-provider registration and isolation/quota fixtures; preserve explicit no-auth credentials, fixed endpoint, one attempt and existing response bounds.",
+    "Add the receiving-product trusted binding and a bundled official icon with source/digest; keep normal connection authorization and disconnect semantics.",
+    "Qualify remotely, then perform explicitly authorized normal-product search/fetch, result validation, restart and disconnect; publish availability only after versioned artifacts and product acceptance."
+  ],
+  "boundary": "Only three anonymous metadata requests were made. No search/fetch operation, quota behavior, output payload, SDK implementation, receiving-product acceptance or release is qualified."
+}
