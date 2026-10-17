@@ -21,6 +21,22 @@
   "production_secret_configured": false,
   "common_enrollment_enabled": false,
   "real_provider_qualification": false,
+  "record_type": "metadata-only-not-broker-configuration",
+  "prepared_provider_requires_separate_activation_review": {
+    "id": "atlassian",
+    "app_id": "atlassian:nShjjeUGI1OrLWnmBshOEe8nS9JIfURl",
+    "client_id": "nShjjeUGI1OrLWnmBshOEe8nS9JIfURl",
+    "secret_file": "/secrets/atlassian-client-secret",
+    "authorization_url": "https://auth.atlassian.com/authorize",
+    "token_url": "https://auth.atlassian.com/oauth/token",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/atlassian/callback",
+    "scopes": [
+      "read:jira-work",
+      "write:jira-work",
+      "offline_access"
+    ],
+    "pkce": false
+  },
   "notes": [
     "Resource-level restricts accessible-resources to consented sites. The host independently verifies and stores cloud_id.",
     "No API grant has been authorized.",

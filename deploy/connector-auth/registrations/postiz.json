@@ -1,0 +1,35 @@
+{
+  "format": 1,
+  "provider": "postiz",
+  "app_name": "OpenAgent",
+  "client_id": "pca_Tp9WBESJqgEqDK6bDUxX0OhUWYgjNLnV",
+  "callback_url": "https://auth.openagent.uno/v1/oauth/postiz/callback",
+  "registration_status": "existing-registration-staged-rotation-required",
+  "record_type": "metadata-only-not-broker-configuration",
+  "common_enrollment_enabled": false,
+  "real_provider_qualification": false,
+  "secret_rotation_required_before_activation": true,
+  "secret_reference": {
+    "namespace": "openagent-connectors",
+    "name": "connector-auth-secrets",
+    "client_id_key": "postiz-client-id",
+    "key": "postiz-client-secret",
+    "mount_path": "/secrets/postiz-client-secret"
+  },
+  "prepared_provider_requires_separate_activation_review": {
+    "id": "postiz",
+    "app_id": "postiz:pca_Tp9WBESJqgEqDK6bDUxX0OhUWYgjNLnV",
+    "client_id": "pca_Tp9WBESJqgEqDK6bDUxX0OhUWYgjNLnV",
+    "secret_file": "/secrets/postiz-client-secret",
+    "authorization_url": "https://platform.postiz.com/oauth/authorize",
+    "token_url": "https://api.postiz.com/oauth/token",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/postiz/callback",
+    "scopes": [],
+    "pkce": false
+  },
+  "notes": [
+    "Reuse the existing registration. This record does not read credentials or enable the provider.",
+    "Exchange uses the registered callback and JSON confidential-client authentication; no refresh is claimed.",
+    "Credential rotation and protected readback must precede activation; actual consent and product acceptance remain pending."
+  ]
+}

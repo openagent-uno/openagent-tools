@@ -19,9 +19,12 @@ Register the OpenAgent recipient/service/domain, public connector/privacy docume
 - ClickUp: `https://auth.openagent.uno/v1/oauth/clickup/callback`.
 - Google: `/v1/oauth/gmail/callback`, `/v1/oauth/google_drive/callback`, `/v1/oauth/google_analytics/callback` on the same origin. Keep Gmail restricted-scope verification and any required security assessment as release gates.
 - Shopify: `/v1/oauth/shopify/callback`; all four mandatory/privacy lifecycle topics delivered to `/v1/webhooks/shopify`. Require expiring offline tokens, reviewed managed-install scopes and authenticated merchant consent. A shared app/shop grant is coordinated centrally.
-- Postiz: `/v1/oauth/postiz/callback`, after an actual client registration replaces the pending placeholder.
-- GitHub candidate: `/v1/oauth/github/callback`. The registered OpenAgent Connectors GitHub App uses expiring user tokens and selected-repository installation; its fine-grained repository permissions are configured in the app, not OAuth scope strings. The separate private app key is held in its own unmounted production Secret. Do not enable the provider before real user-token/refresh and host qualification.
-- Notion candidate: `/v1/oauth/notion/callback`. The registered OpenAgent public connection uses `owner=user`, page selection and no OAuth scope strings; token/refresh requests require Basic client authentication, JSON and `Notion-Version: 2026-03-11`. Marketplace listing is unpublished. Do not enable the provider before real consent and host qualification.
+- Postiz: the existing OpenAgent registration uses `/v1/oauth/postiz/callback`.
+  Its credentials are staged, but the provider stays disabled until the client
+  secret is rotated and verified in protected custody, followed by real product
+  acceptance. Reuse this registration; do not create another account or app.
+- GitHub: `/v1/oauth/github/callback`. The registered OpenAgent Connectors GitHub App uses expiring user tokens and selected-repository installation; its fine-grained repository permissions are configured in the app, not OAuth scope strings. The separate private app key is held in its own unmounted production Secret. Its limited user-token, refresh and host lifecycle passed; common enrollment is open in the three-provider public beta. Remaining tool coverage and native App provider acceptance are separate.
+- Notion: `/v1/oauth/notion/callback`. The registered OpenAgent public connection uses `owner=user`, page selection and no OAuth scope strings; token/refresh requests require Basic client authentication, JSON and `Notion-Version: 2026-03-11`. Marketplace listing is unpublished. Its limited selected-page consent and host lifecycle passed; common enrollment is open in the three-provider public beta. Remaining tools and native App provider acceptance are separate.
 
 Preserve old callback registrations and old app identity for existing credentials. Do not rename/switch app credentials implicitly: a host's encrypted credential records its issuer. Reusing an existing registration under the OpenAgent brand needs provider confirmation and an explicit migration design; creating a new registration does not invalidate old connections.
 
@@ -32,6 +35,15 @@ The user selected reuse of the existing ClickUp app instead of creating a second
 Shopify also reuses the existing provider app; do not create a new app or rotate its credentials. `registrations/shopify.json` records the released `openagent-branding-20261012` version on the same app (401590648833), with the name OpenAgent and both the legacy and shared callbacks. The released version preserves the embedded page, existing webhook delivery, required scopes and optional `read_orders`. Central privacy delivery must preserve obligations for legacy recipients before replacing webhook endpoints. Registration metadata is not an active broker configuration.
 
 Provider JSON is an array of `oauth.Provider`, with `id`, stable `app_id` (include client-registration identity), `client_id`, `secret_file`, `authorization_url`, `token_url`, `redirect_uri`, `scopes`, `pkce`, optional `revocation_url`. Shopify URL templates use `{shop}`, never unvalidated arbitrary tenant URLs. The secret paths refer to `/secrets/<filename>`. Google uses PKCE/offline consent; ClickUp uses JSON code exchange. Never add unsupported placeholder providers to the active config.
+
+There is no per-row `enabled` or `disabled` field: every row passed to the broker
+is validated at startup and opens its referenced secret. An unrecognized field
+does not disable a row. `registrations/postiz.json` and
+`registrations/atlassian.json` therefore keep their prepared provider rows nested
+inside metadata-only registration records, outside the loadable provider array.
+They are not deployment inputs. Postiz still requires credential rotation;
+Atlassian still requires verified secret custody and selected-site consent.
+Neither record changes the active provider configuration or QA admission choices.
 
 After approval, create a reviewed config overlay, switch readiness to `/readyz`, dry-run, deploy, and test canceled/replayed/misdirected consent; locally revoked roles/device sessions; concurrent Shopify rotation; offline/missing-envelope recovery; broker restart; duplicate and late webhooks. Test real read/authorized write/refresh/restart/disconnect visually in each supported receiving product. Confirm direct product API egress and absence of broker token persistence. Only then opt each host into new consents with `OPENAGENT_CONNECTOR_AUTH_IDENTITY_FILE`, `OPENAGENT_CONNECTOR_AUTH_URL`, `OPENAGENT_CONNECTOR_AUTH_PROVIDERS`.
 
