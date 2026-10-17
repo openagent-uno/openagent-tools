@@ -91,6 +91,14 @@ func NewKeylessMCPAdapter(provider string, doer HTTPDoer) (*KeylessMCPAdapter, e
 func (a *KeylessMCPAdapter) Provider() string              { return a.provider }
 func (a *KeylessMCPAdapter) Capability() domain.Capability { return domain.Files }
 func (a *KeylessMCPAdapter) CredentialFree()               {}
+
+// Preview keeps the common embedding contract without introducing an action
+// surface. This adapter offers only reads; it cannot prepare an approved write,
+// even when a caller forges operation metadata. No provider request is made.
+func (a *KeylessMCPAdapter) Preview(domain.Invocation) (domain.ActionPreview, error) {
+	return domain.ActionPreview{}, domain.ErrDenied
+}
+
 func (a *KeylessMCPAdapter) Operations() []domain.Operation {
 	operations := make([]domain.Operation, 0, len(a.tools))
 	endpoint, _ := url.Parse(a.endpoint)
