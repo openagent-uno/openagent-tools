@@ -398,7 +398,7 @@ func (a *KeylessMCPAdapter) call(ctx context.Context, payload map[string]any, se
 	if a.provider == "coingecko" {
 		maximum = coinGeckoMaxResponse
 	}
-	data, tooLarge, err := readBounded(response.Body, maximum)
+	data, tooLarge, err := readBounded(response.Body, int64(maximum))
 	providerID := providerRequestID(response.Header)
 	failure := func(kind string) (json.RawMessage, string, int64, int64, int, string, error) {
 		return nil, "", int64(len(body)), int64(len(data)), response.StatusCode, providerID, &domain.ProviderError{Kind: kind, StatusCode: response.StatusCode, ProviderID: providerID, Attempts: 1, RequestBytes: int64(len(body)), ResponseBytes: int64(len(data))}
