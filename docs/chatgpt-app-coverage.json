@@ -43,7 +43,8 @@
     "public_common_oauth_beta": "The broker exposes public consent for this provider; local host authorization and provider consent remain required. Configuration readiness is not a new OAuth lifecycle qualification.",
     "qualified_keyless_candidate_unpublished": "SDK source qualification and the four cited limited keyless read calls passed. Release artifacts, receiving-product adoption and its lifecycle acceptance remain pending.",
     "published_keyless_sdk_receiving_product_pending": "SDK 0.1.5 artifacts are publicly published and digest-verified; remote source qualification and four limited keyless reads passed. Receiving-product release and lifecycle acceptance remain pending.",
-    "published_keyless_product_limited_lifecycle": "SDK0.1.5 and server/CLI42 are public; the cited limited receiving-product lifecycle passed on beta41. Beta42 preserves that provider implementation and separately passed 149 installed fixtures, 15 acquisition cases and a fresh cross-filesystem public installer. Native App acceptance, other tools and ChatGPT parity are not qualified."
+    "published_keyless_product_limited_lifecycle": "SDK0.1.5 and server/CLI42 are public; the cited limited receiving-product lifecycle passed on beta41. Beta42 preserves that provider implementation and separately passed 149 installed fixtures, 15 acquisition cases and a fresh cross-filesystem public installer. Native App acceptance, other tools and ChatGPT parity are not qualified.",
+    "published_keyless_sdk_limited_reads": "SDK0.1.6 canonical qualification,11 verified public assets and six limited SDK reads passed. Public server/CLI43 additionally passed157 installed fixtures, fresh normal installer and six workflow reads over three connections/restart/disconnect. App20 publication/GUI, other tools and full provider/ChatGPT parity remain separate gates."
   },
   "primary_sources": [
     {
@@ -133,12 +134,220 @@
   ],
   "current_catalog": [
     {
+      "id": "coingecko",
+      "name": "CoinGecko",
+      "status": "published_keyless_sdk_limited_reads",
+      "provider": "coingecko",
+      "auth": "none",
+      "capability": "files",
+      "typed_operations": 2,
+      "read_tools": [
+        "files.coingecko.price",
+        "files.coingecko.global"
+      ],
+      "agent_tools": [],
+      "shared_library_public_version": "0.1.6",
+      "source_commit": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
+      "published_provider_adapter": true,
+      "candidate_artifacts_published": true,
+      "limited_keyless_reads": [
+        {
+          "tool": "files.coingecko.price",
+          "provider_http_status": 200,
+          "provider_attempts": 1,
+          "duration_ms": 1756,
+          "output_bytes": 104,
+          "output_sha256": "ded947c997ba8aa168f72160f096cb6372cb191bb813acd41fb4af4a5bdb7ced",
+          "semantic_checks": {
+            "compiled_schema_valid": true,
+            "bitcoin_usd_finite_nonnegative": true,
+            "timestamp_valid": true,
+            "timestamp_age_seconds": 22.2,
+            "timestamp_within_one_hour": true
+          }
+        },
+        {
+          "tool": "files.coingecko.global",
+          "provider_http_status": 200,
+          "provider_attempts": 1,
+          "duration_ms": 1197,
+          "output_bytes": 3700,
+          "output_sha256": "482e1a03d7bb2dbdaa6347cc34c754d39e792e33726c882194575ed56a5ee148",
+          "semantic_checks": {
+            "compiled_schema_valid": true,
+            "global_active_coins_positive": true,
+            "global_markets_positive": true,
+            "total_market_cap_usd_finite_positive": true,
+            "total_volume_usd_finite_positive": true,
+            "timestamp_valid": true,
+            "timestamp_age_seconds": 294.4,
+            "timestamp_within_one_hour": true
+          }
+        }
+      ],
+      "qualification_receipt": "docs/connector-keyless-0.1.6-qualification.json",
+      "receiving_product43": {
+        "version": "1.1.0b43",
+        "status": "public_157_installed_fixtures_and_normal_installer_passed",
+        "source_commit": "276704b2be1f403c9e2796e04c5c3e31530690c1",
+        "release_url": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.43",
+        "release_id": 415703940,
+        "manifest_sha256": "0458e049e3bfeafafff7c677670bdc30eeeb7a70ec8e93eac1742f6e45ba5e63",
+        "sdk_version": "0.1.6",
+        "installed_fixture_tests": 157,
+        "source_acquisition_cases": 15,
+        "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product43-public-installer-2026-10-17.json",
+        "lifecycle_status": "passed_limited_six_workflow_reads_three_connections",
+        "lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b43-2026-10-17.json",
+        "native_app20": "pending_publication_and_gui_acceptance"
+      },
+      "native_app20": "pending",
+      "chatgpt_feature_parity": "not_qualified",
+      "receiving_product_operation": "files.coingecko.global",
+      "receiving_product_reads": 2,
+      "receiving_product_metrics": "Workflow result bytes/SHA only; provider HTTP/attempt observations null."
+    },
+    {
+      "id": "context7",
+      "name": "Context7",
+      "status": "published_keyless_sdk_limited_reads",
+      "provider": "context7",
+      "auth": "none",
+      "capability": "files",
+      "typed_operations": 2,
+      "read_tools": [
+        "files.context7.resolve_library",
+        "files.context7.query_docs"
+      ],
+      "agent_tools": [],
+      "shared_library_public_version": "0.1.6",
+      "source_commit": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
+      "published_provider_adapter": true,
+      "candidate_artifacts_published": true,
+      "limited_keyless_reads": [
+        {
+          "tool": "files.context7.resolve_library",
+          "provider_http_status": 200,
+          "provider_attempts": 1,
+          "duration_ms": 1831,
+          "output_bytes": 1723,
+          "output_sha256": "30c7db1892708ca202f6655ca11516e5072f9528d25ae4cc6fd39077655d711e",
+          "semantic_checks": {
+            "returned_library_id_field_recognized": true,
+            "returned_react_id_selected_without_guessing": true,
+            "selection_rule": "preferred_actual_returned_public_doc",
+            "selected_id_sha256": "56010dda77bd833bd0e99109708cc9eabad12cf467ab12f37b42689a0df85d18"
+          }
+        },
+        {
+          "tool": "files.context7.query_docs",
+          "provider_http_status": 200,
+          "provider_attempts": 1,
+          "duration_ms": 2484,
+          "output_bytes": 3972,
+          "output_sha256": "be13dcea6f844b138061a461e293133fc27fc7e0c1b88dda5a54d583e10cd9f5",
+          "semantic_checks": {
+            "text_nonempty": true,
+            "useeffect_marker_present": true,
+            "cleanup_marker_present": true
+          }
+        }
+      ],
+      "qualification_receipt": "docs/connector-keyless-0.1.6-qualification.json",
+      "receiving_product43": {
+        "version": "1.1.0b43",
+        "status": "public_157_installed_fixtures_and_normal_installer_passed",
+        "source_commit": "276704b2be1f403c9e2796e04c5c3e31530690c1",
+        "release_url": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.43",
+        "release_id": 415703940,
+        "manifest_sha256": "0458e049e3bfeafafff7c677670bdc30eeeb7a70ec8e93eac1742f6e45ba5e63",
+        "sdk_version": "0.1.6",
+        "installed_fixture_tests": 157,
+        "source_acquisition_cases": 15,
+        "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product43-public-installer-2026-10-17.json",
+        "lifecycle_status": "passed_limited_six_workflow_reads_three_connections",
+        "lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b43-2026-10-17.json",
+        "native_app20": "pending_publication_and_gui_acceptance"
+      },
+      "native_app20": "pending",
+      "chatgpt_feature_parity": "not_qualified",
+      "receiving_product_operation": "files.context7.query_docs",
+      "receiving_product_reads": 2,
+      "receiving_product_metrics": "Workflow result bytes/SHA only; provider HTTP/attempt observations null."
+    },
+    {
+      "id": "parallel-search",
+      "name": "Parallel Search",
+      "status": "published_keyless_sdk_limited_reads",
+      "provider": "parallel_search",
+      "auth": "none",
+      "capability": "files",
+      "typed_operations": 2,
+      "read_tools": [
+        "files.parallel.search",
+        "files.parallel.fetch"
+      ],
+      "agent_tools": [],
+      "shared_library_public_version": "0.1.6",
+      "source_commit": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
+      "published_provider_adapter": true,
+      "candidate_artifacts_published": true,
+      "limited_keyless_reads": [
+        {
+          "tool": "files.parallel.search",
+          "provider_http_status": 200,
+          "provider_attempts": 1,
+          "duration_ms": 923,
+          "output_bytes": 50546,
+          "output_sha256": "0b50be13814ca2339280f2878748ef26a5a27a25892769c03a08073667f43fd7",
+          "semantic_checks": {
+            "react_dev_result_present": true,
+            "nonempty_excerpts_present": true
+          }
+        },
+        {
+          "tool": "files.parallel.fetch",
+          "provider_http_status": 200,
+          "provider_attempts": 1,
+          "duration_ms": 630,
+          "output_bytes": 18453,
+          "output_sha256": "33d6dea59c5ffdf2da4ce08d302868847db5531b29b9930d8b63d95d4397e892",
+          "semantic_checks": {
+            "requested_url_present": true,
+            "excerpts_nonempty": true,
+            "openagent_marker_present": true
+          }
+        }
+      ],
+      "qualification_receipt": "docs/connector-keyless-0.1.6-qualification.json",
+      "receiving_product43": {
+        "version": "1.1.0b43",
+        "status": "public_157_installed_fixtures_and_normal_installer_passed",
+        "source_commit": "276704b2be1f403c9e2796e04c5c3e31530690c1",
+        "release_url": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.43",
+        "release_id": 415703940,
+        "manifest_sha256": "0458e049e3bfeafafff7c677670bdc30eeeb7a70ec8e93eac1742f6e45ba5e63",
+        "sdk_version": "0.1.6",
+        "installed_fixture_tests": 157,
+        "source_acquisition_cases": 15,
+        "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product43-public-installer-2026-10-17.json",
+        "lifecycle_status": "passed_limited_six_workflow_reads_three_connections",
+        "lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b43-2026-10-17.json",
+        "native_app20": "pending_publication_and_gui_acceptance"
+      },
+      "native_app20": "pending",
+      "chatgpt_feature_parity": "not_qualified",
+      "receiving_product_operation": "files.parallel.fetch",
+      "receiving_product_reads": 2,
+      "receiving_product_metrics": "Workflow result bytes/SHA only; provider HTTP/attempt observations null."
+    },
+    {
       "id": "exa",
       "name": "Exa",
       "status": "published_keyless_product_limited_lifecycle",
       "typed_operations": 2,
-      "candidate_version": "0.1.5",
-      "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+      "candidate_version": "0.1.6",
+      "source_commit": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
       "auth": "none",
       "read_tools": [
         "files.exa.search",
@@ -165,7 +374,7 @@
           "output_bytes": 1376
         }
       ],
-      "shared_library_public_version": "0.1.5",
+      "shared_library_public_version": "0.1.6",
       "published_provider_adapter": true,
       "receiving_product_lifecycle": {
         "status": "passed",
@@ -192,15 +401,20 @@
           "provider_calls_during_beta42_qualification": 0,
           "provider_implementation_unchanged_from_beta41": true
         }
-      }
+      },
+      "included_in_current_sdk": "0.1.6",
+      "historical_adapter_checkpoint_sdk": "0.1.5",
+      "limited_reads_sdk_version": "0.1.5",
+      "limited_reads_source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+      "limited_reads_receipt": "docs/connector-keyless-0.1.5-qualification.json"
     },
     {
       "id": "firecrawl",
       "name": "Firecrawl",
       "status": "published_keyless_product_limited_lifecycle",
       "typed_operations": 2,
-      "candidate_version": "0.1.5",
-      "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+      "candidate_version": "0.1.6",
+      "source_commit": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
       "auth": "none",
       "read_tools": [
         "files.firecrawl.search",
@@ -226,7 +440,7 @@
           "output_bytes": 6686
         }
       ],
-      "shared_library_public_version": "0.1.5",
+      "shared_library_public_version": "0.1.6",
       "published_provider_adapter": true,
       "receiving_product_lifecycle": {
         "status": "passed",
@@ -253,13 +467,20 @@
           "provider_calls_during_beta42_qualification": 0,
           "provider_implementation_unchanged_from_beta41": true
         }
-      }
+      },
+      "included_in_current_sdk": "0.1.6",
+      "historical_adapter_checkpoint_sdk": "0.1.5",
+      "limited_reads_sdk_version": "0.1.5",
+      "limited_reads_source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+      "limited_reads_receipt": "docs/connector-keyless-0.1.5-qualification.json"
     },
     {
       "id": "google-drive",
       "name": "Google Drive",
       "status": "implemented_adapter",
-      "note": "Adapter implemented; public Google consent/scope verification remains a separate gate."
+      "note": "Adapter implemented; public Google consent/scope verification remains a separate gate.",
+      "included_in_current_sdk": "0.1.6",
+      "shared_library_public_version": "0.1.6"
     },
     {
       "id": "github",
@@ -269,10 +490,12 @@
       "candidate_artifacts_published": true,
       "real_provider_qualification": true,
       "note": "Published SDK 0.1.4 adapter; the cited limited standalone lifecycle passed. Public common OAuth configuration enabled 17 October; native App/provider-wide tool coverage remains separate.",
-      "shared_library_public_version": "0.1.4",
+      "shared_library_public_version": "0.1.6",
       "published_provider_adapter": true,
       "common_oauth_enrollment": "public",
-      "common_oauth_availability_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/oauth-public-beta-2026-10-17.json"
+      "common_oauth_availability_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/oauth-public-beta-2026-10-17.json",
+      "included_in_current_sdk": "0.1.6",
+      "historical_adapter_checkpoint_sdk": "0.1.4"
     },
     {
       "id": "notion",
@@ -282,21 +505,25 @@
       "candidate_artifacts_published": true,
       "real_provider_qualification": true,
       "note": "Published SDK 0.1.4 adapter; the cited limited standalone lifecycle passed. Public common OAuth configuration enabled 17 October; native App/provider-wide tool coverage remains separate.",
-      "shared_library_public_version": "0.1.4",
+      "shared_library_public_version": "0.1.6",
       "published_provider_adapter": true,
       "common_oauth_enrollment": "public",
-      "common_oauth_availability_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/oauth-public-beta-2026-10-17.json"
+      "common_oauth_availability_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/oauth-public-beta-2026-10-17.json",
+      "included_in_current_sdk": "0.1.6",
+      "historical_adapter_checkpoint_sdk": "0.1.4"
     },
     {
       "id": "atlassian",
       "name": "Atlassian",
-      "status": "source_qualified_candidate_unpublished",
+      "status": "implemented_adapter",
       "typed_operations": 9,
-      "candidate_artifacts_published": false,
+      "candidate_artifacts_published": true,
       "real_provider_qualification": false,
-      "note": "9 typed Jira REST operations qualified on a remote source worker; app/callback/two classic scopes saved, secret custody and real site consent pending. No Confluence/Rovo MCP parity.",
-      "shared_library_public_version": "0.1.3",
-      "published_provider_adapter": false
+      "note": "Nine typed Jira REST operations are published, including current SDK0.1.6. Real tenant/site consent, secret custody and broader lifecycle/native App acceptance remain pending; no Confluence/Rovo MCP parity.",
+      "shared_library_public_version": "0.1.6",
+      "published_provider_adapter": true,
+      "included_in_current_sdk": "0.1.6",
+      "first_public_sdk": "0.1.4"
     },
     {
       "id": "slack-import",
@@ -306,53 +533,69 @@
       "candidate_artifacts_published": true,
       "real_provider_qualification": true,
       "note": "SDK0.1.4 publishes nine typed Web API tools under stable slack-import/slack_import identity. The restricted 16 October lifecycle passed consent, approved reads/message create-read-delete, owner refresh after explicit recovery, restart read and local disconnect. Public distribution/common enrollment remain off; other tools/native App/Slack MCP approval are not qualified.",
-      "shared_library_public_version": "0.1.4",
+      "shared_library_public_version": "0.1.6",
       "published_provider_adapter": true,
       "lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/slack-oauth-2026-10-16.json",
       "public_distribution_enabled": false,
-      "common_oauth_enrollment": "disabled"
+      "common_oauth_enrollment": "disabled",
+      "included_in_current_sdk": "0.1.6",
+      "historical_adapter_checkpoint_sdk": "0.1.4"
     },
     {
       "id": "gmail",
       "name": "Gmail",
       "status": "implemented_adapter",
-      "note": "Adapter implemented; public Google consent/scope verification remains a separate gate."
+      "note": "Adapter implemented; public Google consent/scope verification remains a separate gate.",
+      "included_in_current_sdk": "0.1.6",
+      "shared_library_public_version": "0.1.6"
     },
     {
       "id": "postiz",
       "name": "Postiz",
       "status": "implemented_adapter",
-      "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance."
+      "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance.",
+      "included_in_current_sdk": "0.1.6",
+      "shared_library_public_version": "0.1.6"
     },
     {
       "id": "pipeboard",
       "name": "Pipeboard Ads",
       "status": "implemented_adapter",
-      "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance."
+      "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance.",
+      "included_in_current_sdk": "0.1.6",
+      "shared_library_public_version": "0.1.6"
     },
     {
       "id": "shopify",
       "name": "Shopify",
       "status": "implemented_adapter",
-      "note": "Adapter implemented; common enrollment off pending shared-store lifecycle and product privacy qualification."
+      "note": "Adapter implemented; common enrollment off pending shared-store lifecycle and product privacy qualification.",
+      "included_in_current_sdk": "0.1.6",
+      "shared_library_public_version": "0.1.6"
     },
     {
       "id": "replio",
       "name": "Replio",
       "status": "implemented_adapter",
-      "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance."
+      "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance.",
+      "included_in_current_sdk": "0.1.6",
+      "shared_library_public_version": "0.1.6"
     },
     {
       "id": "billingbear",
       "name": "BillingBear",
       "status": "implemented_adapter",
-      "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance."
+      "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance.",
+      "included_in_current_sdk": "0.1.6",
+      "shared_library_public_version": "0.1.6"
     },
     {
       "id": "google-analytics",
       "name": "Google Analytics",
       "status": "implemented_adapter",
-      "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance."
+      "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance.",
+      "included_in_current_sdk": "0.1.6",
+      "shared_library_public_version": "0.1.6"
     },
     {
       "id": "clickup",
@@ -360,13 +603,17 @@
       "status": "implemented_adapter",
       "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance.",
       "common_oauth_enrollment": "public",
-      "common_oauth_availability_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/oauth-public-beta-2026-10-17.json"
+      "common_oauth_availability_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/oauth-public-beta-2026-10-17.json",
+      "included_in_current_sdk": "0.1.6",
+      "shared_library_public_version": "0.1.6"
     },
     {
       "id": "imap_smtp",
       "name": "IMAP Email",
       "status": "implemented_adapter",
-      "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance."
+      "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance.",
+      "included_in_current_sdk": "0.1.6",
+      "shared_library_public_version": "0.1.6"
     },
     {
       "id": "custom-mcp",
@@ -19937,19 +20184,80 @@
         "https://chatgpt.com/plugins?category=finance"
       ],
       "popular_order": null,
-      "openagent_status": "not_implemented_in_official_catalog",
-      "connector_id": null,
+      "openagent_status": "published_keyless_sdk_limited_reads",
+      "connector_id": "coingecko",
       "chatgpt_feature_parity": "not_qualified",
       "access_findings": [
         {
           "kind": "public_mcp",
           "source_url": "https://docs.coingecko.com/ai-integration/mcp-server",
-          "finding": "Potential typed public price/global-data reads through fixed reviewed SDK expressions such as simple.price.get/global.get; no account, wallet, trading or arbitrary TypeScript interface.",
-          "access_conditions": "none; The current MCP exposes an execute code tool rather than legacy per-endpoint tools. Before implementation, freeze its exact schema and prove compiled-only templates cannot accept code/URLs/methods. Confirm chosen methods exist in the free subset; paid/full tool sets excluded."
+          "finding": "Only fixed compiled price/global SDK reads are exposed as typed OpenAgent operations, never caller TypeScript, import, URL, intent or method/options.",
+          "access_conditions": "Anonymous fixed endpoint, maxRetries0/timeout10000 compiled, bounded session in RAM. Two actual reads passed on2ec7; output ticker-map fix is distinct from caller ID validation. Paid/account/trading tools excluded."
         }
       ],
       "access_status": "documented_interface_requires_integration_qualification",
-      "next_action": "Research only: freeze exact upstream schema and bounded read-only mapping before implementation; no connector availability is claimed."
+      "next_action": "SDK0.1.6 and server/CLI43 are public. Two limited SDK reads per provider passed; one approved operation per provider passed twice via ordinary product43 workflow across real restart/disconnect. App20 publication/GUI, other operations and full parity remain pending.",
+      "shared_library_public_version": "0.1.6",
+      "source_commit": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
+      "auth": "none",
+      "read_tools": [
+        "files.coingecko.price",
+        "files.coingecko.global"
+      ],
+      "typed_operations": 2,
+      "published_provider_adapter": true,
+      "candidate_artifacts_published": true,
+      "limited_keyless_reads": [
+        {
+          "tool": "files.coingecko.price",
+          "provider_http_status": 200,
+          "provider_attempts": 1,
+          "duration_ms": 1756,
+          "output_bytes": 104,
+          "output_sha256": "ded947c997ba8aa168f72160f096cb6372cb191bb813acd41fb4af4a5bdb7ced",
+          "semantic_checks": {
+            "compiled_schema_valid": true,
+            "bitcoin_usd_finite_nonnegative": true,
+            "timestamp_valid": true,
+            "timestamp_age_seconds": 22.2,
+            "timestamp_within_one_hour": true
+          }
+        },
+        {
+          "tool": "files.coingecko.global",
+          "provider_http_status": 200,
+          "provider_attempts": 1,
+          "duration_ms": 1197,
+          "output_bytes": 3700,
+          "output_sha256": "482e1a03d7bb2dbdaa6347cc34c754d39e792e33726c882194575ed56a5ee148",
+          "semantic_checks": {
+            "compiled_schema_valid": true,
+            "global_active_coins_positive": true,
+            "global_markets_positive": true,
+            "total_market_cap_usd_finite_positive": true,
+            "total_volume_usd_finite_positive": true,
+            "timestamp_valid": true,
+            "timestamp_age_seconds": 294.4,
+            "timestamp_within_one_hour": true
+          }
+        }
+      ],
+      "qualification_receipt": "docs/connector-keyless-0.1.6-qualification.json",
+      "receiving_product43": {
+        "version": "1.1.0b43",
+        "status": "public_157_installed_fixtures_and_normal_installer_passed",
+        "source_commit": "276704b2be1f403c9e2796e04c5c3e31530690c1",
+        "release_url": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.43",
+        "release_id": 415703940,
+        "manifest_sha256": "0458e049e3bfeafafff7c677670bdc30eeeb7a70ec8e93eac1742f6e45ba5e63",
+        "sdk_version": "0.1.6",
+        "installed_fixture_tests": 157,
+        "source_acquisition_cases": 15,
+        "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product43-public-installer-2026-10-17.json",
+        "lifecycle_status": "passed_limited_six_workflow_reads_three_connections",
+        "lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b43-2026-10-17.json",
+        "native_app20": "pending_publication_and_gui_acceptance"
+      }
     },
     {
       "name": "CoinMarketCap",
@@ -20710,19 +21018,74 @@
         "https://chatgpt.com/plugins?category=developer-tools"
       ],
       "popular_order": null,
-      "openagent_status": "not_implemented_in_official_catalog",
-      "connector_id": null,
+      "openagent_status": "published_keyless_sdk_limited_reads",
+      "connector_id": "context7",
       "chatgpt_feature_parity": "not_qualified",
       "access_findings": [
         {
           "kind": "public_mcp",
           "source_url": "https://github.com/upstash/context7/blob/master/packages/mcp/README.md",
           "finding": "Public library documentation only; bounded library name/query and canonical library ID, no private repositories or ingestion.",
-          "access_conditions": "none for documented basic usage; Anonymous rate limits; OAuth/API keys for higher limits/private libraries are excluded. Freeze current tool schema; renamed query-docs is required."
+          "access_conditions": "Compiled resolve-library-id/query-docs read subset with explicit none credential. Actual returned library identity selected and queried successfully; anonymous quotas and other features remain separate."
         }
       ],
       "access_status": "documented_interface_requires_integration_qualification",
-      "next_action": "Research only: freeze exact upstream schema and bounded read-only mapping before implementation; no connector availability is claimed."
+      "next_action": "SDK0.1.6 and server/CLI43 are public. Two limited SDK reads per provider passed; one approved operation per provider passed twice via ordinary product43 workflow across real restart/disconnect. App20 publication/GUI, other operations and full parity remain pending.",
+      "shared_library_public_version": "0.1.6",
+      "source_commit": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
+      "auth": "none",
+      "read_tools": [
+        "files.context7.resolve_library",
+        "files.context7.query_docs"
+      ],
+      "typed_operations": 2,
+      "published_provider_adapter": true,
+      "candidate_artifacts_published": true,
+      "limited_keyless_reads": [
+        {
+          "tool": "files.context7.resolve_library",
+          "provider_http_status": 200,
+          "provider_attempts": 1,
+          "duration_ms": 1831,
+          "output_bytes": 1723,
+          "output_sha256": "30c7db1892708ca202f6655ca11516e5072f9528d25ae4cc6fd39077655d711e",
+          "semantic_checks": {
+            "returned_library_id_field_recognized": true,
+            "returned_react_id_selected_without_guessing": true,
+            "selection_rule": "preferred_actual_returned_public_doc",
+            "selected_id_sha256": "56010dda77bd833bd0e99109708cc9eabad12cf467ab12f37b42689a0df85d18"
+          }
+        },
+        {
+          "tool": "files.context7.query_docs",
+          "provider_http_status": 200,
+          "provider_attempts": 1,
+          "duration_ms": 2484,
+          "output_bytes": 3972,
+          "output_sha256": "be13dcea6f844b138061a461e293133fc27fc7e0c1b88dda5a54d583e10cd9f5",
+          "semantic_checks": {
+            "text_nonempty": true,
+            "useeffect_marker_present": true,
+            "cleanup_marker_present": true
+          }
+        }
+      ],
+      "qualification_receipt": "docs/connector-keyless-0.1.6-qualification.json",
+      "receiving_product43": {
+        "version": "1.1.0b43",
+        "status": "public_157_installed_fixtures_and_normal_installer_passed",
+        "source_commit": "276704b2be1f403c9e2796e04c5c3e31530690c1",
+        "release_url": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.43",
+        "release_id": 415703940,
+        "manifest_sha256": "0458e049e3bfeafafff7c677670bdc30eeeb7a70ec8e93eac1742f6e45ba5e63",
+        "sdk_version": "0.1.6",
+        "installed_fixture_tests": 157,
+        "source_acquisition_cases": 15,
+        "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product43-public-installer-2026-10-17.json",
+        "lifecycle_status": "passed_limited_six_workflow_reads_three_connections",
+        "lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b43-2026-10-17.json",
+        "native_app20": "pending_publication_and_gui_acceptance"
+      }
     },
     {
       "name": "Contextick",
@@ -27178,11 +27541,11 @@
       ],
       "access_status": "documented_interface_requires_integration_qualification",
       "next_action": "App19 is published for six qualified native targets and its Linux x64 marketplace/local keyless controls passed. Qualify other GUI platforms, sandbox security and broader tools/quotas/isolation separately; no provider calls were made by the GUI trial. Beta41 limited provider lifecycle passed; beta42 preserves its provider implementation and passed fresh cross-filesystem installation separately. Do not relabel beta41 calls as beta42 provider tests.",
-      "candidate_version": "0.1.5",
+      "candidate_version": "0.1.6",
       "typed_operations": 2,
       "candidate_artifacts_published": true,
       "real_provider_qualification": false,
-      "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+      "source_commit": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
       "auth": "none",
       "read_tools": [
         "files.exa.search",
@@ -27205,7 +27568,7 @@
           "output_bytes": 1376
         }
       ],
-      "shared_library_public_version": "0.1.5",
+      "shared_library_public_version": "0.1.6",
       "published_provider_adapter": true,
       "receiving_product_lifecycle": {
         "status": "passed",
@@ -27232,7 +27595,11 @@
           "provider_calls_during_beta42_qualification": 0,
           "provider_implementation_unchanged_from_beta41": true
         }
-      }
+      },
+      "included_in_current_sdk": "0.1.6",
+      "limited_reads_sdk_version": "0.1.5",
+      "limited_reads_source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+      "limited_reads_receipt": "docs/connector-keyless-0.1.5-qualification.json"
     },
     {
       "name": "Examen Civique",
@@ -29118,11 +29485,11 @@
       ],
       "access_status": "documented_interface_requires_integration_qualification",
       "next_action": "App19 is published for six qualified native targets and its Linux x64 marketplace/local keyless controls passed. Qualify other GUI platforms, sandbox security and broader tools/quotas/isolation separately; no provider calls were made by the GUI trial. Beta41 limited provider lifecycle passed; beta42 preserves its provider implementation and passed fresh cross-filesystem installation separately. Do not relabel beta41 calls as beta42 provider tests.",
-      "candidate_version": "0.1.5",
+      "candidate_version": "0.1.6",
       "typed_operations": 2,
       "candidate_artifacts_published": true,
       "real_provider_qualification": false,
-      "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+      "source_commit": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
       "auth": "none",
       "read_tools": [
         "files.firecrawl.search",
@@ -29144,7 +29511,7 @@
           "output_bytes": 6686
         }
       ],
-      "shared_library_public_version": "0.1.5",
+      "shared_library_public_version": "0.1.6",
       "published_provider_adapter": true,
       "receiving_product_lifecycle": {
         "status": "passed",
@@ -29171,7 +29538,11 @@
           "provider_calls_during_beta42_qualification": 0,
           "provider_implementation_unchanged_from_beta41": true
         }
-      }
+      },
+      "included_in_current_sdk": "0.1.6",
+      "limited_reads_sdk_version": "0.1.5",
+      "limited_reads_source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+      "limited_reads_receipt": "docs/connector-keyless-0.1.5-qualification.json"
     },
     {
       "name": "Fireflies",
@@ -52293,19 +52664,72 @@
         "https://chatgpt.com/plugins?category=developer-tools"
       ],
       "popular_order": 17,
-      "openagent_status": "not_implemented_in_official_catalog",
-      "connector_id": null,
+      "openagent_status": "published_keyless_sdk_limited_reads",
+      "connector_id": "parallel-search",
       "chatgpt_feature_parity": "not_qualified",
       "access_findings": [
         {
           "kind": "public_mcp",
           "source_url": "https://docs.parallel.ai/integrations/mcp/search-mcp",
-          "finding": "Bounded public web research; anonymous fast mode. Any session_id is host-derived per conversation, never model-controlled; no authenticated overrides.",
-          "access_conditions": "none; Shared anonymous quotas and bounded excerpts; freeze actual tool schema and qualify the hosted service before advertising availability."
+          "finding": "Compiled bounded web_search/web_fetch subset; session_id and model_name are omitted, never selected by the model. Provider may create its own per-call session.",
+          "access_conditions": "Explicit anonymous none credential; fixed official endpoint, bounded schemas, no authenticated or paid fallback. Two actual reads passed on SDK0.1.6; shared quotas and receiving-product acceptance remain separate."
         }
       ],
       "access_status": "documented_interface_requires_integration_qualification",
-      "next_action": "Research only: freeze exact upstream schema and bounded read-only mapping before implementation; no connector availability is claimed."
+      "next_action": "SDK0.1.6 and server/CLI43 are public. Two limited SDK reads per provider passed; one approved operation per provider passed twice via ordinary product43 workflow across real restart/disconnect. App20 publication/GUI, other operations and full parity remain pending.",
+      "shared_library_public_version": "0.1.6",
+      "source_commit": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
+      "auth": "none",
+      "read_tools": [
+        "files.parallel.search",
+        "files.parallel.fetch"
+      ],
+      "typed_operations": 2,
+      "published_provider_adapter": true,
+      "candidate_artifacts_published": true,
+      "limited_keyless_reads": [
+        {
+          "tool": "files.parallel.search",
+          "provider_http_status": 200,
+          "provider_attempts": 1,
+          "duration_ms": 923,
+          "output_bytes": 50546,
+          "output_sha256": "0b50be13814ca2339280f2878748ef26a5a27a25892769c03a08073667f43fd7",
+          "semantic_checks": {
+            "react_dev_result_present": true,
+            "nonempty_excerpts_present": true
+          }
+        },
+        {
+          "tool": "files.parallel.fetch",
+          "provider_http_status": 200,
+          "provider_attempts": 1,
+          "duration_ms": 630,
+          "output_bytes": 18453,
+          "output_sha256": "33d6dea59c5ffdf2da4ce08d302868847db5531b29b9930d8b63d95d4397e892",
+          "semantic_checks": {
+            "requested_url_present": true,
+            "excerpts_nonempty": true,
+            "openagent_marker_present": true
+          }
+        }
+      ],
+      "qualification_receipt": "docs/connector-keyless-0.1.6-qualification.json",
+      "receiving_product43": {
+        "version": "1.1.0b43",
+        "status": "public_157_installed_fixtures_and_normal_installer_passed",
+        "source_commit": "276704b2be1f403c9e2796e04c5c3e31530690c1",
+        "release_url": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.43",
+        "release_id": 415703940,
+        "manifest_sha256": "0458e049e3bfeafafff7c677670bdc30eeeb7a70ec8e93eac1742f6e45ba5e63",
+        "sdk_version": "0.1.6",
+        "installed_fixture_tests": 157,
+        "source_acquisition_cases": 15,
+        "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product43-public-installer-2026-10-17.json",
+        "lifecycle_status": "passed_limited_six_workflow_reads_three_connections",
+        "lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b43-2026-10-17.json",
+        "native_app20": "pending_publication_and_gui_acceptance"
+      }
     },
     {
       "name": "Pararius",
@@ -80949,126 +81373,100 @@
     "Shared Shopify remains gated; unknown historical or unsupported derived content is not silently marked compliant."
   ],
   "candidate_catalog": {
-    "version": "0.1.5",
-    "state": "published_sdk_and_server42_with_limited_beta41_lifecycle",
-    "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+    "version": "0.1.6",
+    "state": "published_sdk19_and_server43_limited_lifecycle_app20_pending",
+    "source_commit": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
     "catalog_path": "packages/connectors/catalog.go",
-    "catalog_sha256": "5c1e0cc2d6f20d629304d5b8b194b3aafa3b41a0cf8c84d5591969797cb60024",
-    "official_catalog_entries": 16,
-    "implemented_official_adapters": 16,
+    "catalog_source_sha256": "030f42be69607886eeb0574c3797529f0ab2877e9e94362b53a3faf6fd776b28",
+    "official_catalog_entries": 19,
+    "implemented_official_adapters": 19,
     "unavailable_placeholders": 0,
     "generic_custom_mcp_entries": 1,
     "new_typed_operations": {
-      "Exa": 2,
-      "Firecrawl": 2
+      "Parallel Search": 2,
+      "Context7": 2,
+      "CoinGecko": 2
     },
-    "auth": "none; explicit credential kind only, with an authorized connection",
+    "auth": "none; explicit credential kind and locally authorized connection",
     "remote_checks": {
+      "qualified": true,
+      "official_count": 19,
+      "custom_count": 1,
       "go_test_race": "passed",
       "go_vet": "passed",
       "govulncheck": "passed",
       "six_platform_twelve_binaries": "passed",
       "python_adapter": "passed",
-      "native_runtime_smoke": "passed",
-      "previous_server39_acquisition": "passed"
+      "native_executed": [
+        "linux-x64"
+      ],
+      "other_targets": "cross-compilation only",
+      "old_server39_acquisition": "passed",
+      "normal_isolated_wheel_install": true,
+      "cross_tenant_invoke": "denied before provider IO"
     },
     "candidate_artifacts_published": true,
-    "real_provider_qualification": false,
-    "native_os_qualification": false,
     "limited_keyless_reads": {
-      "date": "2026-10-17",
       "status": "passed",
-      "scope": "Four bounded real calls through the runner; not receiving-product workflow/App lifecycle or provider-wide parity. API success and relevance remain separate.",
-      "providers": {
-        "exa": [
-          {
-            "tool": "files.exa.search",
-            "http_status": 200,
-            "attempts": 1,
-            "duration_ms": 681,
-            "output_bytes": 323,
-            "scope": "API success only; response did not contain the OpenAgent marker, so search relevance was not established."
-          },
-          {
-            "tool": "files.exa.fetch",
-            "http_status": 200,
-            "attempts": 1,
-            "duration_ms": 982,
-            "output_bytes": 1376
-          }
-        ],
-        "firecrawl": [
-          {
-            "tool": "files.firecrawl.search",
-            "http_status": 200,
-            "attempts": 1,
-            "duration_ms": 1544,
-            "output_bytes": 1306
-          },
-          {
-            "tool": "files.firecrawl.scrape",
-            "http_status": 200,
-            "attempts": 1,
-            "duration_ms": 2956,
-            "output_bytes": 6686
-          }
-        ]
-      }
+      "date": "2026-10-17",
+      "count": 6,
+      "receipt": "docs/connector-keyless-0.1.6-qualification.json",
+      "scope": "Six actual bounded public reads through the exact SDK0.1.6 Linux x64 normal runner; not installed receiving-product workflows/native App/OAuth or full provider parity"
     },
-    "native_os_qualification_scope": "A limited native runtime smoke passed; six-platform native execution and receiving-product App acceptance are not claimed.",
-    "previous_public_version": "0.1.4",
     "public_release_binding": {
-      "version": "0.1.5",
-      "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
-      "release_url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.5",
-      "release_id": 415640019,
+      "version": "0.1.6",
+      "source_commit": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
+      "release_url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.6",
+      "release_id": 415699907,
       "assets": 11,
-      "manifest_sha256": "d65a794b91e6b0a3f085dd332dd1aeee2c76b2415260241cc9bc6193ecb39752",
-      "catalog_sha256": "bf6102e8f0aaec29b64e106f0883f634b7917014c9430ecd44affc877e1f5a8f",
-      "catalog_bytes": 13019,
-      "qualification_receipt": "docs/connector-keyless-0.1.5-qualification.json",
-      "implemented_official_adapters": 16,
+      "manifest_sha256": "a1e87b9469cadfc1c8184e4ad704d0b7ed26ee7233f6145bf15baddfe19789f5",
+      "catalog_sha256": "34a671a2b930c164c948548ee3e1fa0bceb806335bdd47287f4672d0dd6a8d12",
+      "catalog_bytes": 14437,
+      "qualification_receipt": "docs/connector-keyless-0.1.6-qualification.json",
+      "implemented_official_adapters": 19,
       "generic_custom_mcp_entries": 1,
-      "publication_status": "public API asset digests and anonymous manifest verified",
-      "receiving_product_release": "v1.1.0-beta.42",
-      "receiving_product_lifecycle": "passed_limited_on_beta41_unchanged_provider_implementation_in_beta42",
-      "receiving_product_release_url": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.42",
-      "receiving_product_manifest_sha256": "e6887ceb907bbabe844419d2de90d72c36c48205aa524bc6629f56a80cfb4af8",
-      "receiving_product_lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b41-2026-10-17.json",
-      "receiving_product_installer": "fresh_cross_filesystem_public42_install_passed",
-      "native_app19_acceptance": "passed_limited_linux_x64_marketplace_and_local_keyless_controls",
-      "native_app19_publication": "published_six_qualified_native_targets",
-      "native_app19_release_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/app19-native-release-2026-10-17.json",
-      "native_app19_acceptance_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/app19-server42-marketplace-2026-10-17.json",
-      "native_app19_acceptance_limits": "Linux x64 packaged App19/server42: 16 official entries plus 30 registry results; six local icons; Exa/Firecrawl Connect, disable/re-enable and disconnect without credential forms/OAuth. No provider calls, model, mock or source overlay. Hosted --no-sandbox does not qualify sandbox security, Mac/Windows GUI or full tool parity; beta41 provider reads remain separate.",
-      "product42": "public_149_installed_fixture_tests_15_acquisition_cases_and_fresh_cross_filesystem_installer_passed",
-      "receiving_product_installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product42-public-installer-2026-10-17.json"
-    },
-    "receiving_product_lifecycle": {
-      "status": "passed",
-      "date": "2026-10-17",
-      "receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b41-2026-10-17.json",
-      "product_release": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.41",
-      "scope": "Two keyless connections and four total public-document reads via normal certified CLI/gateway/workflows, actual server restart/reread and local tombstones/source removal; no native App or all-tool acceptance.",
-      "first_fresh_installer": "failed_EXDEV",
-      "same_prefix_installer_follow_up": "passed_owned_same_mount_TMPDIR",
-      "native_app19_acceptance": "passed_limited_linux_x64_marketplace_and_local_keyless_controls",
-      "native_app19_publication": "published_six_qualified_native_targets",
-      "native_app19_release_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/app19-native-release-2026-10-17.json",
-      "native_app19_acceptance_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/app19-server42-marketplace-2026-10-17.json",
-      "native_app19_acceptance_limits": "Linux x64 packaged App19/server42: 16 official entries plus 30 registry results; six local icons; Exa/Firecrawl Connect, disable/re-enable and disconnect without credential forms/OAuth. No provider calls, model, mock or source overlay. Hosted --no-sandbox does not qualify sandbox security, Mac/Windows GUI or full tool parity; beta41 provider reads remain separate.",
-      "product42": "public_fixture_qualified_and_fresh_cross_filesystem_installer_passed",
-      "current_product": {
-        "version": "1.1.0b42",
-        "release": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.42",
-        "manifest_sha256": "e6887ceb907bbabe844419d2de90d72c36c48205aa524bc6629f56a80cfb4af8",
-        "installed_fixture_tests": 149,
-        "acquisition_fixture_cases": 15,
-        "fresh_cross_filesystem_installer": "passed",
-        "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product42-public-installer-2026-10-17.json",
-        "provider_calls_during_beta42_qualification": 0,
-        "provider_implementation_unchanged_from_beta41": true
+      "publication_status": "public API asset digests, anonymous manifest and Go proxy Origin verified",
+      "receiving_product43": {
+        "version": "1.1.0b43",
+        "status": "public_157_installed_fixtures_and_normal_installer_passed",
+        "source_commit": "276704b2be1f403c9e2796e04c5c3e31530690c1",
+        "release_url": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.43",
+        "release_id": 415703940,
+        "manifest_sha256": "0458e049e3bfeafafff7c677670bdc30eeeb7a70ec8e93eac1742f6e45ba5e63",
+        "sdk_version": "0.1.6",
+        "installed_fixture_tests": 157,
+        "source_acquisition_cases": 15,
+        "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product43-public-installer-2026-10-17.json",
+        "lifecycle_status": "passed_limited_six_workflow_reads_three_connections",
+        "lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b43-2026-10-17.json",
+        "native_app20": "pending_publication_and_gui_acceptance"
+      },
+      "native_app20": "candidate_not_published_or_gui_qualified",
+      "current_public_products": {
+        "server_cli": "1.1.0b43",
+        "server_cli_sdk": "0.1.6",
+        "app": "1.1.0-beta.19",
+        "app_sdk": "0.1.5",
+        "app20": "candidate; publication and GUI pending",
+        "historical_acceptance_checkpoint": "historical_sdk15_checkpoint.published_catalog"
       }
+    },
+    "real_provider_feature_parity": false,
+    "all_native_platform_execution": false,
+    "receiving_product43": {
+      "version": "1.1.0b43",
+      "status": "public_157_installed_fixtures_and_normal_installer_passed",
+      "source_commit": "276704b2be1f403c9e2796e04c5c3e31530690c1",
+      "release_url": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.43",
+      "release_id": 415703940,
+      "manifest_sha256": "0458e049e3bfeafafff7c677670bdc30eeeb7a70ec8e93eac1742f6e45ba5e63",
+      "sdk_version": "0.1.6",
+      "installed_fixture_tests": 157,
+      "source_acquisition_cases": 15,
+      "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product43-public-installer-2026-10-17.json",
+      "lifecycle_status": "passed_limited_six_workflow_reads_three_connections",
+      "lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b43-2026-10-17.json",
+      "native_app20": "pending_publication_and_gui_acceptance"
     }
   },
   "previous_candidate_catalog": {
@@ -81101,31 +81499,42 @@
     "historical_snapshot_note": "Historical 0.1.4 source qualification checkpoint before publication; published_catalog records the later public release."
   },
   "published_catalog": {
-    "version": "0.1.5",
-    "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
-    "release_url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.5",
-    "release_id": 415640019,
+    "version": "0.1.6",
+    "source_commit": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
+    "release_url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.6",
+    "release_id": 415699907,
     "assets": 11,
-    "manifest_sha256": "d65a794b91e6b0a3f085dd332dd1aeee2c76b2415260241cc9bc6193ecb39752",
-    "catalog_sha256": "bf6102e8f0aaec29b64e106f0883f634b7917014c9430ecd44affc877e1f5a8f",
-    "catalog_bytes": 13019,
-    "qualification_receipt": "docs/connector-keyless-0.1.5-qualification.json",
-    "implemented_official_adapters": 16,
+    "manifest_sha256": "a1e87b9469cadfc1c8184e4ad704d0b7ed26ee7233f6145bf15baddfe19789f5",
+    "catalog_sha256": "34a671a2b930c164c948548ee3e1fa0bceb806335bdd47287f4672d0dd6a8d12",
+    "catalog_bytes": 14437,
+    "qualification_receipt": "docs/connector-keyless-0.1.6-qualification.json",
+    "implemented_official_adapters": 19,
     "generic_custom_mcp_entries": 1,
-    "publication_status": "public API asset digests and anonymous manifest verified",
-    "receiving_product_release": "v1.1.0-beta.42",
-    "receiving_product_lifecycle": "passed_limited_on_beta41_unchanged_provider_implementation_in_beta42",
-    "receiving_product_release_url": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.42",
-    "receiving_product_manifest_sha256": "e6887ceb907bbabe844419d2de90d72c36c48205aa524bc6629f56a80cfb4af8",
-    "receiving_product_lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b41-2026-10-17.json",
-    "receiving_product_installer": "fresh_cross_filesystem_public42_install_passed",
-    "native_app19_acceptance": "passed_limited_linux_x64_marketplace_and_local_keyless_controls",
-    "native_app19_publication": "published_six_qualified_native_targets",
-    "native_app19_release_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/app19-native-release-2026-10-17.json",
-    "native_app19_acceptance_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/app19-server42-marketplace-2026-10-17.json",
-    "native_app19_acceptance_limits": "Linux x64 packaged App19/server42: 16 official entries plus 30 registry results; six local icons; Exa/Firecrawl Connect, disable/re-enable and disconnect without credential forms/OAuth. No provider calls, model, mock or source overlay. Hosted --no-sandbox does not qualify sandbox security, Mac/Windows GUI or full tool parity; beta41 provider reads remain separate.",
-    "product42": "public_149_installed_fixture_tests_15_acquisition_cases_and_fresh_cross_filesystem_installer_passed",
-    "receiving_product_installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product42-public-installer-2026-10-17.json"
+    "publication_status": "public API asset digests, anonymous manifest and Go proxy Origin verified",
+    "receiving_product43": {
+      "version": "1.1.0b43",
+      "status": "public_157_installed_fixtures_and_normal_installer_passed",
+      "source_commit": "276704b2be1f403c9e2796e04c5c3e31530690c1",
+      "release_url": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.43",
+      "release_id": 415703940,
+      "manifest_sha256": "0458e049e3bfeafafff7c677670bdc30eeeb7a70ec8e93eac1742f6e45ba5e63",
+      "sdk_version": "0.1.6",
+      "installed_fixture_tests": 157,
+      "source_acquisition_cases": 15,
+      "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product43-public-installer-2026-10-17.json",
+      "lifecycle_status": "passed_limited_six_workflow_reads_three_connections",
+      "lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b43-2026-10-17.json",
+      "native_app20": "pending_publication_and_gui_acceptance"
+    },
+    "native_app20": "candidate_not_published_or_gui_qualified",
+    "current_public_products": {
+      "server_cli": "1.1.0b43",
+      "server_cli_sdk": "0.1.6",
+      "app": "1.1.0-beta.19",
+      "app_sdk": "0.1.5",
+      "app20": "candidate; publication and GUI pending",
+      "historical_acceptance_checkpoint": "historical_sdk15_checkpoint.published_catalog"
+    }
   },
   "common_oauth_availability": {
     "observed_at_utc": "2026-10-17T06:39:42.530986Z",
@@ -81142,7 +81551,7 @@
   },
   "next_provider_research": {
     "observed_date": "2026-10-17",
-    "state": "read_only_research_not_implemented",
+    "state": "historical_research_now_published_in_sdk16_receiving_product_pending",
     "ranking": "Editorial Popular order when present, then feasibility; no adoption ranking inferred.",
     "candidates": [
       {
@@ -81159,7 +81568,8 @@
         ],
         "scope": "Bounded public web research; anonymous fast mode. Any session_id is host-derived per conversation, never model-controlled; no authenticated overrides.",
         "auth": "none",
-        "barriers": "Shared anonymous quotas and bounded excerpts; freeze actual tool schema and qualify the hosted service before advertising availability."
+        "barriers": "Shared anonymous quotas and bounded excerpts; freeze actual tool schema and qualify the hosted service before advertising availability.",
+        "current_state": "published_sdk16_and_product43_limited_lifecycle_app20_pending"
       },
       {
         "name": "Context7",
@@ -81175,7 +81585,8 @@
         ],
         "scope": "Public library documentation only; bounded library name/query and canonical library ID, no private repositories or ingestion.",
         "auth": "none for documented basic usage",
-        "barriers": "Anonymous rate limits; OAuth/API keys for higher limits/private libraries are excluded. Freeze current tool schema; renamed query-docs is required."
+        "barriers": "Anonymous rate limits; OAuth/API keys for higher limits/private libraries are excluded. Freeze current tool schema; renamed query-docs is required.",
+        "current_state": "published_sdk16_and_product43_limited_lifecycle_app20_pending"
       },
       {
         "name": "CoinGecko",
@@ -81191,7 +81602,8 @@
         ],
         "scope": "Potential typed public price/global-data reads through fixed reviewed SDK expressions such as simple.price.get/global.get; no account, wallet, trading or arbitrary TypeScript interface.",
         "auth": "none",
-        "barriers": "The current MCP exposes an execute code tool rather than legacy per-endpoint tools. Before implementation, freeze its exact schema and prove compiled-only templates cannot accept code/URLs/methods. Confirm chosen methods exist in the free subset; paid/full tool sets excluded."
+        "barriers": "The current MCP exposes an execute code tool rather than legacy per-endpoint tools. Before implementation, freeze its exact schema and prove compiled-only templates cannot accept code/URLs/methods. Confirm chosen methods exist in the free subset; paid/full tool sets excluded.",
+        "current_state": "published_sdk16_and_product43_limited_lifecycle_app20_pending"
       }
     ],
     "excluded_examples": [
@@ -81200,7 +81612,8 @@
         "source_url": "https://github.com/blockscout/mcp-server",
         "reason": "Current official general-client setup requires a PRO API key from the Developer Portal, even on its free tier; this adds registration and is outside this no-registration batch."
       }
-    ]
+    ],
+    "historical_note": "Original research order and conditions retained as historical; the three integrations are now public in SDK0.1.6 and server43 with limited SDK/product lifecycle reads. App20 publication/GUI remains pending."
   },
   "previous_published_catalog": {
     "version": "0.1.4",
@@ -81208,5 +81621,157 @@
     "release_url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.4",
     "publication_receipt": "docs/connector-release-0.1.4-publication.json",
     "implemented_official_adapters": 14
+  },
+  "historical_sdk15_checkpoint": {
+    "candidate_catalog": {
+      "version": "0.1.5",
+      "state": "published_sdk_and_server42_with_limited_beta41_lifecycle",
+      "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+      "catalog_path": "packages/connectors/catalog.go",
+      "catalog_sha256": "5c1e0cc2d6f20d629304d5b8b194b3aafa3b41a0cf8c84d5591969797cb60024",
+      "official_catalog_entries": 16,
+      "implemented_official_adapters": 16,
+      "unavailable_placeholders": 0,
+      "generic_custom_mcp_entries": 1,
+      "new_typed_operations": {
+        "Exa": 2,
+        "Firecrawl": 2
+      },
+      "auth": "none; explicit credential kind only, with an authorized connection",
+      "remote_checks": {
+        "go_test_race": "passed",
+        "go_vet": "passed",
+        "govulncheck": "passed",
+        "six_platform_twelve_binaries": "passed",
+        "python_adapter": "passed",
+        "native_runtime_smoke": "passed",
+        "previous_server39_acquisition": "passed"
+      },
+      "candidate_artifacts_published": true,
+      "real_provider_qualification": false,
+      "native_os_qualification": false,
+      "limited_keyless_reads": {
+        "date": "2026-10-17",
+        "status": "passed",
+        "scope": "Four bounded real calls through the runner; not receiving-product workflow/App lifecycle or provider-wide parity. API success and relevance remain separate.",
+        "providers": {
+          "exa": [
+            {
+              "tool": "files.exa.search",
+              "http_status": 200,
+              "attempts": 1,
+              "duration_ms": 681,
+              "output_bytes": 323,
+              "scope": "API success only; response did not contain the OpenAgent marker, so search relevance was not established."
+            },
+            {
+              "tool": "files.exa.fetch",
+              "http_status": 200,
+              "attempts": 1,
+              "duration_ms": 982,
+              "output_bytes": 1376
+            }
+          ],
+          "firecrawl": [
+            {
+              "tool": "files.firecrawl.search",
+              "http_status": 200,
+              "attempts": 1,
+              "duration_ms": 1544,
+              "output_bytes": 1306
+            },
+            {
+              "tool": "files.firecrawl.scrape",
+              "http_status": 200,
+              "attempts": 1,
+              "duration_ms": 2956,
+              "output_bytes": 6686
+            }
+          ]
+        }
+      },
+      "native_os_qualification_scope": "A limited native runtime smoke passed; six-platform native execution and receiving-product App acceptance are not claimed.",
+      "previous_public_version": "0.1.4",
+      "public_release_binding": {
+        "version": "0.1.5",
+        "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+        "release_url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.5",
+        "release_id": 415640019,
+        "assets": 11,
+        "manifest_sha256": "d65a794b91e6b0a3f085dd332dd1aeee2c76b2415260241cc9bc6193ecb39752",
+        "catalog_sha256": "bf6102e8f0aaec29b64e106f0883f634b7917014c9430ecd44affc877e1f5a8f",
+        "catalog_bytes": 13019,
+        "qualification_receipt": "docs/connector-keyless-0.1.5-qualification.json",
+        "implemented_official_adapters": 16,
+        "generic_custom_mcp_entries": 1,
+        "publication_status": "public API asset digests and anonymous manifest verified",
+        "receiving_product_release": "v1.1.0-beta.42",
+        "receiving_product_lifecycle": "passed_limited_on_beta41_unchanged_provider_implementation_in_beta42",
+        "receiving_product_release_url": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.42",
+        "receiving_product_manifest_sha256": "e6887ceb907bbabe844419d2de90d72c36c48205aa524bc6629f56a80cfb4af8",
+        "receiving_product_lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b41-2026-10-17.json",
+        "receiving_product_installer": "fresh_cross_filesystem_public42_install_passed",
+        "native_app19_acceptance": "passed_limited_linux_x64_marketplace_and_local_keyless_controls",
+        "native_app19_publication": "published_six_qualified_native_targets",
+        "native_app19_release_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/app19-native-release-2026-10-17.json",
+        "native_app19_acceptance_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/app19-server42-marketplace-2026-10-17.json",
+        "native_app19_acceptance_limits": "Linux x64 packaged App19/server42: 16 official entries plus 30 registry results; six local icons; Exa/Firecrawl Connect, disable/re-enable and disconnect without credential forms/OAuth. No provider calls, model, mock or source overlay. Hosted --no-sandbox does not qualify sandbox security, Mac/Windows GUI or full tool parity; beta41 provider reads remain separate.",
+        "product42": "public_149_installed_fixture_tests_15_acquisition_cases_and_fresh_cross_filesystem_installer_passed",
+        "receiving_product_installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product42-public-installer-2026-10-17.json"
+      },
+      "receiving_product_lifecycle": {
+        "status": "passed",
+        "date": "2026-10-17",
+        "receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b41-2026-10-17.json",
+        "product_release": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.41",
+        "scope": "Two keyless connections and four total public-document reads via normal certified CLI/gateway/workflows, actual server restart/reread and local tombstones/source removal; no native App or all-tool acceptance.",
+        "first_fresh_installer": "failed_EXDEV",
+        "same_prefix_installer_follow_up": "passed_owned_same_mount_TMPDIR",
+        "native_app19_acceptance": "passed_limited_linux_x64_marketplace_and_local_keyless_controls",
+        "native_app19_publication": "published_six_qualified_native_targets",
+        "native_app19_release_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/app19-native-release-2026-10-17.json",
+        "native_app19_acceptance_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/app19-server42-marketplace-2026-10-17.json",
+        "native_app19_acceptance_limits": "Linux x64 packaged App19/server42: 16 official entries plus 30 registry results; six local icons; Exa/Firecrawl Connect, disable/re-enable and disconnect without credential forms/OAuth. No provider calls, model, mock or source overlay. Hosted --no-sandbox does not qualify sandbox security, Mac/Windows GUI or full tool parity; beta41 provider reads remain separate.",
+        "product42": "public_fixture_qualified_and_fresh_cross_filesystem_installer_passed",
+        "current_product": {
+          "version": "1.1.0b42",
+          "release": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.42",
+          "manifest_sha256": "e6887ceb907bbabe844419d2de90d72c36c48205aa524bc6629f56a80cfb4af8",
+          "installed_fixture_tests": 149,
+          "acquisition_fixture_cases": 15,
+          "fresh_cross_filesystem_installer": "passed",
+          "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product42-public-installer-2026-10-17.json",
+          "provider_calls_during_beta42_qualification": 0,
+          "provider_implementation_unchanged_from_beta41": true
+        }
+      }
+    },
+    "published_catalog": {
+      "version": "0.1.5",
+      "source_commit": "7967195e9e45502c2d8b4f82414f7da780788045",
+      "release_url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.5",
+      "release_id": 415640019,
+      "assets": 11,
+      "manifest_sha256": "d65a794b91e6b0a3f085dd332dd1aeee2c76b2415260241cc9bc6193ecb39752",
+      "catalog_sha256": "bf6102e8f0aaec29b64e106f0883f634b7917014c9430ecd44affc877e1f5a8f",
+      "catalog_bytes": 13019,
+      "qualification_receipt": "docs/connector-keyless-0.1.5-qualification.json",
+      "implemented_official_adapters": 16,
+      "generic_custom_mcp_entries": 1,
+      "publication_status": "public API asset digests and anonymous manifest verified",
+      "receiving_product_release": "v1.1.0-beta.42",
+      "receiving_product_lifecycle": "passed_limited_on_beta41_unchanged_provider_implementation_in_beta42",
+      "receiving_product_release_url": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.42",
+      "receiving_product_manifest_sha256": "e6887ceb907bbabe844419d2de90d72c36c48205aa524bc6629f56a80cfb4af8",
+      "receiving_product_lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b41-2026-10-17.json",
+      "receiving_product_installer": "fresh_cross_filesystem_public42_install_passed",
+      "native_app19_acceptance": "passed_limited_linux_x64_marketplace_and_local_keyless_controls",
+      "native_app19_publication": "published_six_qualified_native_targets",
+      "native_app19_release_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/app19-native-release-2026-10-17.json",
+      "native_app19_acceptance_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/app19-server42-marketplace-2026-10-17.json",
+      "native_app19_acceptance_limits": "Linux x64 packaged App19/server42: 16 official entries plus 30 registry results; six local icons; Exa/Firecrawl Connect, disable/re-enable and disconnect without credential forms/OAuth. No provider calls, model, mock or source overlay. Hosted --no-sandbox does not qualify sandbox security, Mac/Windows GUI or full tool parity; beta41 provider reads remain separate.",
+      "product42": "public_149_installed_fixture_tests_15_acquisition_cases_and_fresh_cross_filesystem_installer_passed",
+      "receiving_product_installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product42-public-installer-2026-10-17.json"
+    }
   }
 }

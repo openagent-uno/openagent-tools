@@ -1,0 +1,214 @@
+{
+  "format": 1,
+  "status": "passed",
+  "scope": "Six actual bounded public reads through the exact SDK0.1.6 Linux x64 normal runner; not installed receiving-product workflows/native App/OAuth or full provider parity",
+  "source_commit": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
+  "sdk_version": "0.1.6",
+  "sdk_manifest_sha256": "a1e87b9469cadfc1c8184e4ad704d0b7ed26ee7233f6145bf15baddfe19789f5",
+  "runner_sha256": "c31fb35dce1e620c5fa9f4657f972555c4f3deee38624593fe26c303b30ebd14",
+  "helper_sha256": "45659607fa63db26f763e088eabe1c3cc019a1a130162de62f4b8b34c85987b5",
+  "at_utc": "2026-10-17T09:19:53.379688+00:00",
+  "normal_runner": true,
+  "credentials": {
+    "kind": "none"
+  },
+  "source_overlay": false,
+  "model_invocations": 0,
+  "oauth_identity": false,
+  "provider_account_created": false,
+  "direct_provider_http": false,
+  "automatic_retry": false,
+  "provider_content_exported": false,
+  "calls": [
+    {
+      "provider": "parallel_search",
+      "tool": "files.parallel.search",
+      "attempts": 1,
+      "status": "passed",
+      "duration_ms": 923,
+      "provider_http_status": 200,
+      "provider_attempts": 1,
+      "request_bytes": 535,
+      "response_bytes": 53628,
+      "output_bytes": 50546,
+      "output_sha256": "0b50be13814ca2339280f2878748ef26a5a27a25892769c03a08073667f43fd7",
+      "semantic_checks": {
+        "react_dev_result_present": true,
+        "nonempty_excerpts_present": true
+      }
+    },
+    {
+      "provider": "parallel_search",
+      "tool": "files.parallel.fetch",
+      "attempts": 1,
+      "status": "passed",
+      "duration_ms": 630,
+      "provider_http_status": 200,
+      "provider_attempts": 1,
+      "request_bytes": 556,
+      "response_bytes": 21535,
+      "output_bytes": 18453,
+      "output_sha256": "33d6dea59c5ffdf2da4ce08d302868847db5531b29b9930d8b63d95d4397e892",
+      "semantic_checks": {
+        "requested_url_present": true,
+        "excerpts_nonempty": true,
+        "openagent_marker_present": true
+      }
+    },
+    {
+      "provider": "context7",
+      "tool": "files.context7.resolve_library",
+      "attempts": 1,
+      "status": "passed",
+      "duration_ms": 1831,
+      "provider_http_status": 200,
+      "provider_attempts": 1,
+      "request_bytes": 485,
+      "response_bytes": 3173,
+      "output_bytes": 1723,
+      "output_sha256": "30c7db1892708ca202f6655ca11516e5072f9528d25ae4cc6fd39077655d711e",
+      "semantic_checks": {
+        "returned_library_id_field_recognized": true,
+        "returned_react_id_selected_without_guessing": true,
+        "selection_rule": "preferred_actual_returned_public_doc",
+        "selected_id_sha256": "56010dda77bd833bd0e99109708cc9eabad12cf467ab12f37b42689a0df85d18"
+      }
+    },
+    {
+      "provider": "context7",
+      "tool": "files.context7.query_docs",
+      "attempts": 1,
+      "status": "passed",
+      "duration_ms": 2484,
+      "provider_http_status": 200,
+      "provider_attempts": 1,
+      "request_bytes": 525,
+      "response_bytes": 5422,
+      "output_bytes": 3972,
+      "output_sha256": "be13dcea6f844b138061a461e293133fc27fc7e0c1b88dda5a54d583e10cd9f5",
+      "semantic_checks": {
+        "text_nonempty": true,
+        "useeffect_marker_present": true,
+        "cleanup_marker_present": true
+      }
+    },
+    {
+      "provider": "coingecko",
+      "tool": "files.coingecko.price",
+      "attempts": 1,
+      "status": "passed",
+      "duration_ms": 1756,
+      "provider_http_status": 200,
+      "provider_attempts": 1,
+      "request_bytes": 631,
+      "response_bytes": 1570,
+      "output_bytes": 104,
+      "output_sha256": "ded947c997ba8aa168f72160f096cb6372cb191bb813acd41fb4af4a5bdb7ced",
+      "semantic_checks": {
+        "compiled_schema_valid": true,
+        "bitcoin_usd_finite_nonnegative": true,
+        "timestamp_valid": true,
+        "timestamp_age_seconds": 22.2,
+        "timestamp_within_one_hour": true
+      }
+    },
+    {
+      "provider": "coingecko",
+      "tool": "files.coingecko.global",
+      "attempts": 1,
+      "status": "passed",
+      "duration_ms": 1197,
+      "provider_http_status": 200,
+      "provider_attempts": 1,
+      "request_bytes": 544,
+      "response_bytes": 7353,
+      "output_bytes": 3700,
+      "output_sha256": "482e1a03d7bb2dbdaa6347cc34c754d39e792e33726c882194575ed56a5ee148",
+      "semantic_checks": {
+        "compiled_schema_valid": true,
+        "global_active_coins_positive": true,
+        "global_markets_positive": true,
+        "total_market_cap_usd_finite_positive": true,
+        "total_volume_usd_finite_positive": true,
+        "timestamp_valid": true,
+        "timestamp_age_seconds": 294.4,
+        "timestamp_within_one_hour": true
+      }
+    }
+  ],
+  "context7_binding": {
+    "actual_returned_id_used": true,
+    "resolve_and_query_passed": true,
+    "library_id_exported": false,
+    "selected_id_sha256": "56010dda77bd833bd0e99109708cc9eabad12cf467ab12f37b42689a0df85d18"
+  },
+  "runner_exit": 0,
+  "runner_stopped": true,
+  "attempted_runner_reads": 6,
+  "publication": {
+    "status": "published-and-verified",
+    "url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.6",
+    "release_id": 415699907,
+    "published_at": "2026-10-17T09:26:51Z",
+    "source_commit": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
+    "assets": 11,
+    "all_api_digests_match": true,
+    "anonymous_manifest_sha256": "a1e87b9469cadfc1c8184e4ad704d0b7ed26ee7233f6145bf15baddfe19789f5",
+    "go_proxy_info": {
+      "Version": "v0.1.6",
+      "Time": "2026-10-17T09:14:52Z",
+      "Origin": {
+        "VCS": "git",
+        "URL": "https://github.com/openagent-uno/openagent-tools",
+        "Subdir": "packages/connectors",
+        "Hash": "2ec7c114a49b72460addc00fc8e8d6547a683b59",
+        "Ref": "refs/tags/packages/connectors/v0.1.6"
+      }
+    },
+    "checked_at": "2026-10-17T09:27:19.983319+00:00"
+  },
+  "sdk_qualification": {
+    "qualified": true,
+    "official_count": 19,
+    "custom_count": 1,
+    "go_test_race": "passed",
+    "go_vet": "passed",
+    "govulncheck": "passed",
+    "six_platform_twelve_binaries": "passed",
+    "python_adapter": "passed",
+    "native_executed": [
+      "linux-x64"
+    ],
+    "other_targets": "cross-compilation only",
+    "old_server39_acquisition": "passed",
+    "normal_isolated_wheel_install": true,
+    "cross_tenant_invoke": "denied before provider IO"
+  },
+  "history": {
+    "first_candidate_source": "781c7c536f3e88098e125b937c3584dc2655962d",
+    "first_candidate_reads": "Five of six passed; global rejected a real underscore ticker key by an overly narrow output-map validator. This candidate is not the published SDK source.",
+    "diagnosis": "A separately authorized diagnostic observed a successful provider response with valid aggregates; provider data and IDs were not exported.",
+    "fix": "The published source separates bounded output-map ticker grammar from caller coin-ID validation. Caller IDs, compiled SDK code, fixed endpoint, scope and one-attempt policy remain constrained.",
+    "final_candidate": "Full canonical qualification repeated on 2ec7, then all six new actual reads passed; earlier failures are not relabeled as PASS."
+  },
+  "primary_interfaces": [
+    "https://docs.parallel.ai/integrations/mcp/search-mcp",
+    "https://github.com/upstash/context7/blob/master/packages/mcp/README.md",
+    "https://docs.coingecko.com/ai-integration/mcp-server",
+    "https://docs.coingecko.com/ai-integration/mcp-tools"
+  ],
+  "receiving_products": {
+    "public_server_cli": "1.1.0b43",
+    "product_source_commit": "276704b2be1f403c9e2796e04c5c3e31530690c1",
+    "product_manifest_sha256": "0458e049e3bfeafafff7c677670bdc30eeeb7a70ec8e93eac1742f6e45ba5e63",
+    "installed_fixture_tests": 157,
+    "public_installer": "passed_normal_defaults",
+    "installer_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/product43-public-installer-2026-10-17.json",
+    "limited_product_workflow_lifecycle": "passed_six_reads_three_connections_real_restart_disconnect",
+    "lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/keyless-product-1.1.0b43-2026-10-17.json",
+    "current_public_app": "1.1.0-beta.19",
+    "current_public_app_sdk": "0.1.5",
+    "native_app20": "candidate; publication and GUI acceptance pending"
+  },
+  "source_live_receipt_sha256": "4e91d75b38b549063432b17e573db9bb45a3c75d4ad6ceb83912732c05a78c9a"
+}
