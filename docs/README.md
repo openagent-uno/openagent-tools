@@ -5,12 +5,17 @@ records all publicly observed category cards, the editorial Popular order and
 the API/MCP research backlog. Implementation, registration, published artifacts
 and real provider qualification are recorded separately.
 
-The [16 October source checkpoint](../deploy/connector-auth/qualification-2026-10-16.md)
-records remote Go test/vet/build qualification for the unpublished `0.1.4`
-candidate: GitHub 17, Notion 8, Slack 9 and Atlassian/Jira 9 typed operations.
-The source catalog contains 14 official implementations plus Custom MCP;
-published artifacts remain `0.1.3`. Provider registrations, secret custody and
-actual OAuth acceptance remain separate gates.
+The published shared SDK/runner is **0.1.6**, with nineteen official entries.
+The [0.1.6 qualification receipt](connector-keyless-0.1.6-qualification.json)
+records the remote build and actual read boundaries. OpenAgent Server/CLI
+**1.1.0-beta.43** uses those bundles; App **1.1.0-beta.20** is its matching
+native release. The [coverage index](chatgpt-app-coverage.md) links the evidence.
+
+The **0.1.7 source candidate** adds Google Calendar, Outlook Mail and Outlook
+Calendar. Its [candidate contract](connector-calendar-mail-0.1.7-candidate.md)
+describes the operation subsets and remaining test/registration gates. Published
+artifacts remain 0.1.6 until that candidate is qualified. Provider registrations,
+secret custody and actual OAuth acceptance are separate from implementation.
 
 The public capability guide is at
 [openagent.uno](https://openagent.uno/guide/mcp); this repository remains the
@@ -98,3 +103,5 @@ Device-tools `1.0.0b4` lets an explicitly registered server-host browser
 identify itself in MCP instructions and disconnect from an independently
 supervised Chrome without closing that Chrome process. App and CLI behavior
 remains unchanged.
+
+- [Calendar and mail 0.1.7 source candidate](connector-calendar-mail-0.1.7-candidate.md) — operation subsets and remaining acceptance gates.

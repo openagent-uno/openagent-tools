@@ -1369,6 +1369,18 @@ func CatalogWithDoer(doer HTTPDoer, configured ...CatalogOptions) ([]domain.Adap
 		adapters = append(adapters, adapter)
 	}
 	adapters = append(adapters, newIMAPAdapter())
+	calendar, err := NewGoogleCalendarAdapter(doer)
+	if err != nil {
+		return nil, err
+	}
+	adapters = append(adapters, calendar)
+	for _, provider := range []string{"outlook_mail", "outlook_calendar"} {
+		adapter, err := NewMicrosoftGraphAdapter(provider, doer)
+		if err != nil {
+			return nil, err
+		}
+		adapters = append(adapters, adapter)
+	}
 	for _, provider := range []string{"exa", "firecrawl", "parallel_search", "context7", "coingecko"} {
 		adapter, err := NewKeylessMCPAdapter(provider, doer)
 		if err != nil {

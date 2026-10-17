@@ -70,7 +70,11 @@ func (r *Runtime) Tools(binding Binding) ([]domain.Operation, error) {
 	}
 	tools := []domain.Operation{}
 	for _, tool := range adapter.Operations() {
-		if allowed[tool.Name] && !tool.InternalOnly && domain.GrantsScopes(binding.Connection.Scopes, tool.RequiredScopes) {
+		scopesGranted := domain.GrantsScopes(binding.Connection.Scopes, tool.RequiredScopes)
+		if policy, ok := adapter.(domain.OperationScopePolicy); ok {
+			scopesGranted = policy.OperationScopesGranted(binding.Connection.Scopes, tool.Name)
+		}
+		if allowed[tool.Name] && !tool.InternalOnly && scopesGranted {
 			tools = append(tools, tool)
 		}
 	}

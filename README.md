@@ -13,11 +13,14 @@ are published in the repository releases.
 
 [`packages/connectors`](packages/connectors/README.md) owns the shared Go catalog, adapters, runner and authentication broker. The standalone Python/MCP adapter is `packages/connectors-python`; release bundles and checksums are built with `scripts/build_connectors.py`. [Authentication deployment runbook](deploy/connector-auth/README.md).
 
-The unpublished `0.1.4` source candidate includes 17 GitHub, 8 Notion, 9 Slack
-and 9 Atlassian/Jira typed operations. Go test, vet and Auth/runner builds passed
-on a remote worker, as recorded in the
-[workspace candidate receipt](docs/connector-candidate-0.1.4-workspace-qualification.json).
-These source checks do not establish real OAuth or native-platform acceptance.
-Published connector artifacts and consumer pins remain `0.1.3`. See the
-[source and registration checkpoint](deploy/connector-auth/qualification-2026-10-16.md)
-and [complete directory coverage inventory](docs/chatgpt-app-coverage.md).
+The published SDK/runner is **0.1.6**, with nineteen official connector entries.
+OpenAgent Server/CLI **1.1.0-beta.43** uses those exact bundles; App **1.1.0-beta.20**
+was produced by the normal native release workflow. See the
+[coverage and qualification index](docs/chatgpt-app-coverage.md) for the exact
+source, artifact, provider-read and product-runtime boundaries.
+
+The **0.1.7 source candidate** adds Google Calendar, Outlook Mail and Outlook
+Calendar. It is not a published or OAuth-qualified release. See the
+[candidate contract and remaining gates](docs/connector-calendar-mail-0.1.7-candidate.md).
+The directory inventory is a backlog; it does not claim that every ChatGPT app
+has an implemented or authorized OpenAgent integration.

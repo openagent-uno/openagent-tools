@@ -2,7 +2,7 @@ package connectors
 
 import "encoding/json"
 
-const Version = "0.1.6"
+const Version = "0.1.7"
 
 type Item struct {
 	ID                string   `json:"id"`
@@ -24,6 +24,24 @@ type CatalogEntry struct {
 }
 
 var catalogEntries = []CatalogEntry{
+	{Item: Item{
+		ID: "google-calendar", Name: "Google Calendar", Description: "Read calendars and events across connected Google accounts, and create, update or delete authorized events with version checks.",
+		Category: "Productivity", Auth: "oauth", Icon: "calendar", Capability: "files", Provider: "google_calendar",
+		ReadTools:  []string{"files.google_calendar.calendars.list", "files.google_calendar.calendars.get", "files.google_calendar.events.list", "files.google_calendar.events.get"},
+		AgentTools: []string{"files.google_calendar.events.create", "files.google_calendar.events.update", "files.google_calendar.events.delete"},
+	}},
+	{Item: Item{
+		ID: "outlook-mail", Name: "Outlook Mail", Description: "Read Microsoft mail folders, messages and attachments, prepare drafts, and send with separate authorization.",
+		Category: "Communication", Auth: "oauth", Icon: "mail", Capability: "outreach", Provider: "outlook_mail",
+		ReadTools:  []string{"outreach.outlook_mail.folders.list", "outreach.outlook_mail.folders.get", "outreach.outlook_mail.messages.list", "outreach.outlook_mail.messages.get", "outreach.outlook_mail.attachments.list", "outreach.outlook_mail.attachments.get"},
+		AgentTools: []string{"outreach.outlook_mail.drafts.create", "outreach.outlook_mail.drafts.update", "outreach.outlook_mail.messages.send"},
+	}},
+	{Item: Item{
+		ID: "outlook-calendar", Name: "Outlook Calendar", Description: "Read Microsoft calendars and events, and create or edit authorized UTC events. This initial subset does not expand recurrence or invite attendees.",
+		Category: "Productivity", Auth: "oauth", Icon: "calendar", Capability: "files", Provider: "outlook_calendar",
+		ReadTools:  []string{"files.outlook_calendar.calendars.list", "files.outlook_calendar.calendars.get", "files.outlook_calendar.events.list", "files.outlook_calendar.events.get"},
+		AgentTools: []string{"files.outlook_calendar.events.create", "files.outlook_calendar.events.update", "files.outlook_calendar.events.delete"},
+	}},
 	{Item: Item{
 		ID: "coingecko", Name: "CoinGecko", Description: "Read public cryptocurrency prices and global market aggregates through fixed, read-only MCP operations. Provider free-use limits apply.",
 		Category: "Data", Auth: "none", Icon: "bar-chart-2", Capability: "files", Provider: "coingecko",

@@ -14,13 +14,91 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 var ErrAuthentication = errors.New("provider authentication failed")
+
+const GoogleCalendarListScope = "https://www.googleapis.com/auth/calendar.calendarlist.readonly"
+const GoogleCalendarEventsScope = "https://www.googleapis.com/auth/calendar.events"
+const MicrosoftGraphScopePrefix = "https://graph.microsoft.com/"
+
+func microsoftProvider(id string) bool   { return id == "outlook_mail" || id == "outlook_calendar" }
+func calendarOrMicrosoft(id string) bool { return id == "google_calendar" || microsoftProvider(id) }
+
+// Only Microsoft Graph's documented resource-prefix form and exact short names
+// are equivalent. Other providers retain exact scope matching unchanged.
+func microsoftScopes(scopes []string) ([]string, bool) {
+	allowed := map[string]bool{"offline_access": true, "User.Read": true, "Mail.ReadBasic": true, "Mail.Read": true, "Mail.ReadWrite": true, "Mail.Send": true, "Calendars.ReadBasic": true, "Calendars.Read": true, "Calendars.ReadWrite": true}
+	seen := map[string]bool{}
+	result := make([]string, 0, len(scopes))
+	if len(scopes) > 16 {
+		return nil, false
+	}
+	for _, raw := range scopes {
+		scope := strings.TrimPrefix(raw, MicrosoftGraphScopePrefix)
+		if !allowed[scope] || seen[scope] || (scope == "offline_access" && raw != scope) {
+			return nil, false
+		}
+		seen[scope] = true
+		result = append(result, scope)
+	}
+	return result, true
+}
+
+func microsoftRequestScopes(scopes []string) (string, bool) {
+	canonical, ok := microsoftScopes(scopes)
+	if !ok {
+		return "", false
+	}
+	for i, scope := range canonical {
+		if scope != "offline_access" {
+			canonical[i] = MicrosoftGraphScopePrefix + scope
+		}
+	}
+	return strings.Join(canonical, " "), true
+}
+
+func hasOAuthScope(scopes []string, wanted string) bool {
+	for _, scope := range scopes {
+		if scope == wanted {
+			return true
+		}
+	}
+	return false
+}
+
+// API-only flows use fixed global-cloud endpoints. Loopback remains exclusively
+// an explicit fixture option, never a caller-supplied production authority.
+func (e Engine) calendarMicrosoftTargets(p Provider) bool {
+	if !calendarOrMicrosoft(p.ID) {
+		return true
+	}
+	authorize, token := "https://accounts.google.com/o/oauth2/v2/auth", "https://oauth2.googleapis.com/token"
+	if microsoftProvider(p.ID) {
+		authorize, token = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize", "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+	}
+	for _, pair := range [][2]string{{p.AuthorizationURL, authorize}, {p.TokenURL, token}} {
+		raw, expected := pair[0], pair[1]
+		u, err := e.target(p, raw, "")
+		if err != nil || u.RawQuery != "" || u.Opaque != "" {
+			return false
+		}
+		fixture := e.AllowLoopback && u.Scheme == "http" && (u.Hostname() == "127.0.0.1" || u.Hostname() == "localhost")
+		if !fixture && raw != expected {
+			return false
+		}
+	}
+	if microsoftProvider(p.ID) {
+		return p.RevocationURL == ""
+	}
+	return p.RevocationURL == "" || p.RevocationURL == "https://oauth2.googleapis.com/revoke"
+}
 
 type Provider struct {
 	ID               string   `json:"id"`
@@ -81,8 +159,14 @@ func (e Engine) ValidateConfiguration(p Provider) error {
 	}
 	// Notion capabilities are configured on the registered connection and the
 	// user selects pages during consent; they are not OAuth scope strings.
-	if !validWorkspaceProtocol(p, p.Scopes) {
+	if !validWorkspaceProtocol(p, p.Scopes) || !e.calendarMicrosoftTargets(p) {
 		return ErrAuthentication
+	}
+	if microsoftProvider(p.ID) {
+		scopes, _ := microsoftScopes(p.Scopes)
+		if !hasOAuthScope(scopes, "offline_access") {
+			return ErrAuthentication
+		}
 	}
 	if _, err := secret(p); err != nil {
 		return err
@@ -115,6 +199,17 @@ func ValidShop(shop string) bool {
 	return true
 }
 func approvedScopes(p Provider, scopes []string) bool {
+	if microsoftProvider(p.ID) {
+		configured, ok := microsoftScopes(p.Scopes)
+		if !ok {
+			return false
+		}
+		requested, ok := microsoftScopes(scopes)
+		if !ok {
+			return false
+		}
+		return approvedScopes(Provider{Scopes: configured}, requested)
+	}
 	allowed := map[string]bool{}
 	for _, s := range p.Scopes {
 		allowed[s] = true
@@ -129,10 +224,13 @@ func approvedScopes(p Provider, scopes []string) bool {
 	return true
 }
 func (e Engine) Authorize(p Provider, state, challenge, shop string, scopes []string) (string, error) {
+	if calendarOrMicrosoft(p.ID) && shop != "" {
+		return "", ErrAuthentication
+	}
 	if state == "" || p.AppID == "" || p.ClientID == "" || !approvedScopes(p, scopes) {
 		return "", ErrAuthentication
 	}
-	if !validWorkspaceProtocol(p, scopes) {
+	if !validWorkspaceProtocol(p, scopes) || !e.calendarMicrosoftTargets(p) {
 		return "", ErrAuthentication
 	}
 	u, err := e.target(p, p.AuthorizationURL, shop)
@@ -140,6 +238,12 @@ func (e Engine) Authorize(p Provider, state, challenge, shop string, scopes []st
 		return "", err
 	}
 	q := u.Query()
+	if microsoftProvider(p.ID) {
+		canonical, _ := microsoftScopes(scopes)
+		if !hasOAuthScope(canonical, "offline_access") {
+			return "", ErrAuthentication
+		}
+	}
 	q.Set("client_id", p.ClientID)
 	q.Set("state", state)
 	// Postiz uses the callback stored in the registered app, without a request override.
@@ -167,9 +271,23 @@ func (e Engine) Authorize(p Provider, state, challenge, shop string, scopes []st
 	if len(scopes) > 0 && p.ID != "shopify" && p.ID != "slack_import" {
 		q.Set("scope", strings.Join(scopes, " "))
 	}
+	if microsoftProvider(p.ID) {
+		wire, ok := microsoftRequestScopes(scopes)
+		if !ok {
+			return "", ErrAuthentication
+		}
+		q.Set("scope", wire)
+		q.Set("response_mode", "query")
+	}
 	if p.PKCE {
 		if challenge == "" {
 			return "", ErrAuthentication
+		}
+		if calendarOrMicrosoft(p.ID) {
+			raw, err := base64.RawURLEncoding.DecodeString(challenge)
+			if err != nil || len(raw) != 32 || len(challenge) != 43 {
+				return "", ErrAuthentication
+			}
 		}
 		q.Set("code_challenge", challenge)
 		q.Set("code_challenge_method", "S256")
@@ -202,6 +320,17 @@ func (e Engine) Exchange(ctx context.Context, p Provider, code, verifier, shop s
 		return Token{}, ErrAuthentication
 	}
 	fields := url.Values{"code": {code}, "redirect_uri": {p.RedirectURI}, "grant_type": {"authorization_code"}}
+	if calendarOrMicrosoft(p.ID) && (shop != "" || !validPKCEVerifier(verifier)) {
+		return Token{}, ErrAuthentication
+	}
+	if microsoftProvider(p.ID) {
+		canonical, ok := microsoftScopes(scopes)
+		wire, wireOK := microsoftRequestScopes(scopes)
+		if !ok || !wireOK || !hasOAuthScope(canonical, "offline_access") {
+			return Token{}, ErrAuthentication
+		}
+		fields.Set("scope", wire)
+	}
 	if p.ID == "clickup" {
 		fields.Del("redirect_uri")
 		fields.Del("grant_type")
@@ -278,6 +407,9 @@ func (e Engine) shopIdentity(ctx context.Context, p Provider, shop, access strin
 	return id, nil
 }
 func (e Engine) Refresh(ctx context.Context, p Provider, refresh, shop string, scopes []string) (Token, error) {
+	if calendarOrMicrosoft(p.ID) && !validAPIOnlyToken(refresh) {
+		return Token{}, ErrAuthentication
+	}
 	if refresh == "" || len(refresh) > 65536 {
 		if p.ID == "slack_import" {
 			return Token{}, slackRefreshFailure("preflight", "refresh_invalid", "none")
@@ -295,6 +427,9 @@ func (e Engine) Refresh(ctx context.Context, p Provider, refresh, shop string, s
 	if p.ID == "slack_import" && !validSlackTeam(shop) {
 		return Token{}, slackRefreshFailure("preflight", "team_invalid", "none")
 	}
+	if microsoftProvider(p.ID) && !validMicrosoftAccountID(shop) {
+		return Token{}, ErrAuthentication
+	}
 	return e.request(ctx, p, shop, url.Values{"grant_type": {"refresh_token"}, "refresh_token": {refresh}}, scopes, refresh)
 }
 func (e Engine) request(ctx context.Context, p Provider, shop string, fields url.Values, scopes []string, previous string) (Token, error) {
@@ -304,8 +439,20 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 		}
 		return ErrAuthentication
 	}
-	if !validWorkspaceProtocol(p, scopes) {
+	if !validWorkspaceProtocol(p, scopes) || !e.calendarMicrosoftTargets(p) {
 		return Token{}, failure("preflight", "protocol")
+	}
+	if calendarOrMicrosoft(p.ID) {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, 30*time.Second)
+		defer cancel()
+	}
+	if microsoftProvider(p.ID) && fields.Get("grant_type") == "refresh_token" {
+		wire, ok := microsoftRequestScopes(scopes)
+		if !ok {
+			return Token{}, ErrAuthentication
+		}
+		fields.Set("scope", wire)
 	}
 	u, err := e.target(p, p.TokenURL, shop)
 	if err != nil {
@@ -355,8 +502,14 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	if client == nil {
 		client = &http.Client{Timeout: 20 * time.Second, CheckRedirect: func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }}
 	}
+	if calendarOrMicrosoft(p.ID) {
+		client = noRedirectOAuthClient(client)
+	}
 	res, err := client.Do(req)
-	if err != nil {
+	if err != nil || res == nil || res.Body == nil {
+		if res != nil && res.Body != nil {
+			_ = res.Body.Close()
+		}
 		return Token{}, failure("request", "network")
 	}
 	defer res.Body.Close()
@@ -369,6 +522,9 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	}
 	if len(b) > 1<<20 {
 		return Token{}, failure("response", "response_size")
+	}
+	if calendarOrMicrosoft(p.ID) && !validAPIOnlyOAuthJSON(b) {
+		return Token{}, ErrAuthentication
 	}
 	type tokenFields struct {
 		AccessToken      string `json:"access_token"`
@@ -390,6 +546,9 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	}
 	if json.Unmarshal(b, &response) != nil {
 		return Token{}, failure("response", "json")
+	}
+	if calendarOrMicrosoft(p.ID) && len(response.Error) != 0 {
+		return Token{}, ErrAuthentication
 	}
 	wire := response.tokenFields
 	externalID := shop
@@ -452,12 +611,35 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	if wire.AccessToken == "" || len(wire.AccessToken) > 65536 || strings.ContainsAny(wire.AccessToken, "\r\n\x00") || len(wire.RefreshToken) > 65536 || strings.ContainsAny(wire.RefreshToken, "\r\n\x00") || wire.ExpiresIn < 0 || wire.ExpiresIn > 315360000 || wire.RefreshExpiresIn < 0 || wire.RefreshExpiresIn > 315360000 {
 		return Token{}, failure("token", "token_bounds")
 	}
+	if calendarOrMicrosoft(p.ID) && (!validAPIOnlyToken(wire.AccessToken) || (wire.RefreshToken != "" && !validAPIOnlyToken(wire.RefreshToken))) {
+		return Token{}, ErrAuthentication
+	}
 	if p.ID != "slack_import" && wire.TokenType != "" && !strings.EqualFold(wire.TokenType, "bearer") {
+		return Token{}, ErrAuthentication
+	}
+	if microsoftProvider(p.ID) && (!strings.EqualFold(wire.TokenType, "bearer") || wire.ExpiresIn <= 0 || (previous == "" && (wire.RefreshToken == "" || wire.Scope == ""))) {
 		return Token{}, ErrAuthentication
 	}
 	granted := append([]string{}, scopes...)
 	if wire.Scope != "" {
 		granted = strings.Fields(strings.ReplaceAll(wire.Scope, ",", " "))
+	}
+	if microsoftProvider(p.ID) {
+		if strings.Contains(wire.Scope, ",") {
+			return Token{}, ErrAuthentication
+		}
+		var ok bool
+		granted, ok = microsoftScopes(granted)
+		requested, requestedOK := microsoftScopes(scopes)
+		if !ok || !requestedOK || !hasOAuthScope(granted, "User.Read") {
+			return Token{}, ErrAuthentication
+		}
+		// offline_access grants renewal rather than a Graph API operation and is
+		// commonly absent from response.scope. Retain it only from the bound
+		// request, with a returned or previously-held refresh credential.
+		if hasOAuthScope(requested, "offline_access") && !hasOAuthScope(granted, "offline_access") && (wire.RefreshToken != "" || previous != "") {
+			granted = append(granted, "offline_access")
+		}
 	}
 	if p.ID == "slack_import" && previous != "" {
 		// Slack may report its implicit identify permission during rotation.
@@ -486,7 +668,7 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	if !approvedScopes(p, granted) {
 		return Token{}, failure("scopes", "scope_config")
 	}
-	if !approvedScopes(Provider{Scopes: scopes}, granted) {
+	if !approvedScopes(Provider{ID: p.ID, Scopes: scopes}, granted) {
 		return Token{}, failure("scopes", "scope_subset")
 	}
 	if p.ID == "shopify" && (wire.ExpiresIn <= 0 || wire.RefreshToken == "" || wire.RefreshExpiresIn <= 0) {
@@ -494,6 +676,13 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	}
 	if wire.RefreshToken == "" {
 		wire.RefreshToken = previous
+	}
+	if microsoftProvider(p.ID) {
+		verified, err := e.microsoftAccountIdentity(ctx, wire.AccessToken)
+		if err != nil || (shop != "" && verified != shop) {
+			return Token{}, ErrAuthentication
+		}
+		externalID = verified
 	}
 	sort.Strings(granted)
 	token := Token{AccessToken: wire.AccessToken, RefreshToken: wire.RefreshToken, Scopes: granted, AppID: p.AppID, ExternalID: externalID}
@@ -579,6 +768,30 @@ func (e Engine) Revoke(ctx context.Context, p Provider, token, shop string) erro
 // These branches implement the documented confidential flow only. Enabling
 // Slack PKCE requires app-side configuration and is deliberately not guessed.
 func validWorkspaceProtocol(p Provider, scopes []string) bool {
+	if p.ID == "google_calendar" {
+		return p.PKCE && len(scopes) > 0 && approvedScopes(Provider{Scopes: []string{GoogleCalendarListScope, GoogleCalendarEventsScope}}, scopes)
+	}
+	if microsoftProvider(p.ID) {
+		canonical, ok := microsoftScopes(scopes)
+		if !ok || !p.PKCE || !hasOAuthScope(canonical, "User.Read") {
+			return false
+		}
+		found := false
+		for _, scope := range canonical {
+			if scope == "offline_access" || scope == "User.Read" {
+				continue
+			}
+			prefix := "Mail."
+			if p.ID == "outlook_calendar" {
+				prefix = "Calendars."
+			}
+			if !strings.HasPrefix(scope, prefix) {
+				return false
+			}
+			found = true
+		}
+		return found
+	}
 	if p.ID == "notion" {
 		return len(scopes) == 0 && !p.PKCE
 	}
@@ -586,6 +799,141 @@ func validWorkspaceProtocol(p Provider, scopes []string) bool {
 		return !p.PKCE && len(scopes) > 0
 	}
 	return true
+}
+
+func validPKCEVerifier(value string) bool {
+	if len(value) < 43 || len(value) > 128 {
+		return false
+	}
+	for _, r := range value {
+		if !(r >= 'A' && r <= 'Z' || r >= 'a' && r <= 'z' || r >= '0' && r <= '9' || strings.ContainsRune("-._~", r)) {
+			return false
+		}
+	}
+	return true
+}
+
+func validAPIOnlyToken(value string) bool {
+	if len(value) == 0 || len(value) > 65536 {
+		return false
+	}
+	for _, r := range value {
+		if r < 0x21 || r > 0x7e {
+			return false
+		}
+	}
+	return true
+}
+
+func noRedirectOAuthClient(client HTTPDoer) HTTPDoer {
+	if c, ok := client.(*http.Client); ok {
+		copy := *c
+		copy.CheckRedirect = func(*http.Request, []*http.Request) error { return http.ErrUseLastResponse }
+		copy.Jar = nil
+		return &copy
+	}
+	return client
+}
+
+// The new API-only flows reject duplicate keys, invalid UTF8 and excessive
+// structure before interpreting authentication fields. Existing providers are
+// unchanged; arbitrary provider error messages never leave the engine.
+func validAPIOnlyOAuthJSON(raw []byte) bool {
+	if !utf8.Valid(raw) || !bytes.HasPrefix(bytes.TrimSpace(raw), []byte("{")) {
+		return false
+	}
+	d := json.NewDecoder(bytes.NewReader(raw))
+	d.UseNumber()
+	nodes := 0
+	var visit func(int) bool
+	visit = func(depth int) bool {
+		nodes++
+		if depth > 16 || nodes > 8192 {
+			return false
+		}
+		t, err := d.Token()
+		if err != nil {
+			return false
+		}
+		if t == json.Delim('{') {
+			seen := map[string]bool{}
+			for d.More() {
+				k, err := d.Token()
+				key, ok := k.(string)
+				if err != nil || !ok || seen[key] {
+					return false
+				}
+				seen[key] = true
+				if !visit(depth + 1) {
+					return false
+				}
+			}
+			t, err = d.Token()
+			return err == nil && t == json.Delim('}')
+		}
+		if t == json.Delim('[') {
+			for d.More() {
+				if !visit(depth + 1) {
+					return false
+				}
+			}
+			t, err = d.Token()
+			return err == nil && t == json.Delim(']')
+		}
+		_, delimiter := t.(json.Delim)
+		return !delimiter
+	}
+	if !visit(0) {
+		return false
+	}
+	_, err := d.Token()
+	return err == io.EOF
+}
+
+var microsoftAccountIDPattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$`)
+
+func validMicrosoftAccountID(id string) bool { return microsoftAccountIDPattern.MatchString(id) }
+
+// Graph itself verifies the delegated access token. /me is never derived from a
+// callback hint, JWT body, connection configuration or caller-selected tenant.
+// User.Read is required. An account switch on refresh is rejected before the
+// consuming product can persist the replacement credentials.
+func (e Engine) microsoftAccountIdentity(ctx context.Context, access string) (string, error) {
+	if !validAPIOnlyToken(access) {
+		return "", ErrAuthentication
+	}
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+	req, err := http.NewRequestWithContext(ctx, "GET", "https://graph.microsoft.com/v1.0/me?$select=id", nil)
+	if err != nil {
+		return "", ErrAuthentication
+	}
+	req.Header.Set("Authorization", "Bearer "+access)
+	req.Header.Set("Accept", "application/json")
+	client := e.Client
+	if client == nil {
+		client = &http.Client{Timeout: 10 * time.Second}
+	}
+	res, err := noRedirectOAuthClient(client).Do(req)
+	if err != nil || res == nil || res.Body == nil {
+		if res != nil && res.Body != nil {
+			_ = res.Body.Close()
+		}
+		return "", ErrAuthentication
+	}
+	defer res.Body.Close()
+	raw, err := io.ReadAll(io.LimitReader(res.Body, (64<<10)+1))
+	if err != nil || res.StatusCode != http.StatusOK || len(raw) > 64<<10 || !validAPIOnlyOAuthJSON(raw) {
+		return "", ErrAuthentication
+	}
+	var identity struct {
+		ID    string          `json:"id"`
+		Error json.RawMessage `json:"error"`
+	}
+	if json.Unmarshal(raw, &identity) != nil || !validMicrosoftAccountID(identity.ID) || len(identity.Error) != 0 {
+		return "", ErrAuthentication
+	}
+	return identity.ID, nil
 }
 
 func validSlackTeam(value string) bool {

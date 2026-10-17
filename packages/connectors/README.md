@@ -1,12 +1,32 @@
 # OpenAgent official connectors
 
-Shared Go module `github.com/openagent-uno/openagent-tools/packages/connectors`, source candidate version **0.1.4** (not yet published). The published runner/SDK remains **0.1.3**. Embedding hosts link this module into their local gateways. The standalone server invokes the same adapters through `openagent-connector-runner` and the `openagent-connectors` Python package. OpenAgent Core receives managed capability sources through its public catalog APIs; it does not import product accounts, OAuth or storage code.
+Shared Go module `github.com/openagent-uno/openagent-tools/packages/connectors`.
+The published SDK/runner is **0.1.6**. The working source candidate is **0.1.7**;
+it adds Google Calendar, Outlook Mail and Outlook Calendar and must complete
+remote qualification before publication. Embedding hosts link this module into
+their local gateways. The standalone server invokes the same adapters through
+`openagent-connector-runner` and the `openagent-connectors` Python package.
+OpenAgent Core receives managed capability sources through its public catalog
+APIs; it does not import product accounts, OAuth or storage code.
 
-The 0.1.4 candidate implements GitHub (17 typed operations), Notion (8), Slack (9) and Atlassian/Jira (9). GitHub supports repository discovery, branch → commit → tree → blob reads, issues/comments and pull-request inspection. Notion supports title search, page/block reads, user profiles and bounded text-content writes. Slack supports identity, conversations/history/replies, user lookup and explicit message create/update/delete. Jira supports site-bound issue/search/metadata reads and authorized issue/comment writes. All retain product-owned credentials, explicit local write permission and fixed API origins; writes have no automatic retry. Slack calls are sent once, including reads, so the generic retry cap cannot shorten its Retry-After guidance. Jira's cloud_id is bound by the receiving host, never selected by tool arguments.
+Published 0.1.6 contains nineteen official entries, including five read-only
+keyless services. The [SDK qualification](../../docs/connector-keyless-0.1.6-qualification.json)
+and [coverage index](../../docs/chatgpt-app-coverage.md) distinguish fixture checks,
+actual provider calls, product execution and native acquisition. These are
+finite operation subsets, not full feature parity with ChatGPT apps.
 
-GitHub uses explicit page/per_page; Notion preserves opaque next_cursor/has_more. GitHub JSON, including base64 blobs, is limited to 4 MiB; a truncated tree remains marked truncated. Notion writes support flat text blocks and title/rich_text properties, not arbitrary templates, uploads, mentions, external URLs or nested blocks. Search covers shared titles, not full-text page content. Slack uses explicit opaque cursors and caps history/replies at 15 messages; Jira enhanced JQL search preserves nextPageToken. These are documented subsets, not a claim of complete feature parity with the corresponding ChatGPT apps or access to providers' separate MCP services. Remote Go test/vet and Auth/runner builds passed for the [workspace source receipt](../../docs/connector-candidate-0.1.4-workspace-qualification.json); those checks do not qualify real OAuth or native platforms.
+Google Calendar and Outlook's candidate boundaries, account binding, scopes,
+page/sync cursors and remaining registration gates are in the
+[candidate contract](../../docs/connector-calendar-mail-0.1.7-candidate.md).
+Product-local credential storage, authorization and API execution remain the
+host's responsibility. API writes have no automatic retry.
 
-The four provider apps were registered under OpenAgent on 16 October 2026, with different custody and qualification states. Public common enrollment remains closed. Restricted GitHub QA has reached a connected product poll and a successful read; this does not qualify the remaining lifecycle. GitHub uses a GitHub App with selected-repository installation and no OAuth scope strings; Notion uses a public OAuth connection with page selection, Basic-authenticated JSON token exchange and no OAuth scope strings. Slack uses user-token OAuth with rotation; its production secret is configured but installation and activation remain pending. Atlassian uses resource-level site consent and still awaits secret custody and real authorization. Legacy own OAuth apps retain their own issuer/configuration. See the [live registration and qualification checkpoint](../../deploy/connector-auth/qualification-2026-10-16.md) and [directory inventory and priorities](../../docs/chatgpt-app-coverage.md).
+Common-provider enrollment is enabled only for the specifically admitted
+provider/app configurations. Provider registration alone is not activation.
+The [16 October registration checkpoint](../../deploy/connector-auth/qualification-2026-10-16.md)
+is historical; use the current public coverage/status pages for later evidence.
+Legacy own-app connections retain their issuer and require new consent to move
+registrations.
 
 Version 0.1.2 adds a durable fence for the calling installation/provider/app grant during revocation and explicit installation/store admission for real-provider QA. This fence does not correlate other Google aliases, consents or servers by account; those bindings depend on Google's project-wide revocation and local handling of `401`/`invalid_grant`. No additional account-identity scopes are requested. The QA mode is unavailable to public enrollment and reports `/readyz` as 503. See [the operator procedure and exact revocation limits](../../deploy/connector-auth/qa-enrollment.md). Rollback must retain the new broker and its metadata; an older broker can lose revocation tombstones. Artifacts use the exact Go 1.26.9 toolchain, record it in their manifests and pin `golang.org/x/text` 0.41.0. The versioned library does not activate provider apps or bypass product privacy/release gates.
 
@@ -61,7 +81,7 @@ Version 0.1.1 binds Shopify grants to their numeric shop ID with a fixed, minima
 
 Reviewed `--legacy-shopify-webhooks` routes preserve the existing app's product privacy processor through a durable encrypted outbox, including shops not yet enrolled in a broker group. Notifications are minimized, signed for the same app, keep their webhook ID/time, and retry offline recipients after restart without following redirects. A native recipient's acknowledgment cannot remove a payload still owed to the legacy processor. Qualify this compatibility path before replacing provider webhook URLs. Version 0.1.0 artifacts remain immutable.
 
-Run `GOWORK=off go test -race ./...` inside this module. Build artifacts with `python3 scripts/build_connectors.py --out <empty-directory>` at the Tools repository root. The builder snapshots all tracked/nonignored sources once, records source digests, cross-compiles runner and broker for macOS/Linux/Windows arm64/x64 and creates the Python wheel, catalog, manifest and `SHA256SUMS`. Dirty sources require explicit `--allow-dirty` and produce unqualified artifacts. After publication, Go module tags use `packages/connectors/v<version>`; the currently published tag remains `packages/connectors/v0.1.3`. Binaries use the matching version. Verify both archive and extracted binary checksums. Cross-compilation is not native OS qualification.
+Run `GOWORK=off go test -race ./...` inside this module. Build artifacts with `python3 scripts/build_connectors.py --out <empty-directory>` at the Tools repository root. The builder snapshots all tracked/nonignored sources once, records source digests, cross-compiles runner and broker for macOS/Linux/Windows arm64/x64 and creates the Python wheel, catalog, manifest and `SHA256SUMS`. Dirty sources require explicit `--allow-dirty` and produce unqualified artifacts. After publication, Go module tags use `packages/connectors/v<version>`; the currently published tag is `packages/connectors/v0.1.6`. Binaries use the matching version. Verify both archive and extracted binary checksums. Cross-compilation is not native OS qualification.
 
 ## Host-owned privacy binding
 

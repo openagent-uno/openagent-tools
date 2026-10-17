@@ -408,6 +408,14 @@ type Adapter interface {
 	Invoke(context.Context, Invocation) (Result, error)
 }
 
+// OperationScopePolicy lets a reviewed provider express documented scope
+// implications for its own compiled operations. Hosts retain their local grants;
+// adapters without this optional policy keep exact RequiredScopes matching.
+// Unknown operation names must return false.
+type OperationScopePolicy interface {
+	OperationScopesGranted(granted []string, operationName string) bool
+}
+
 // CredentialFreeAdapter declares a reviewed no-auth provider. Connections and
 // host authorization are still required; this does not grant workspace access.
 type CredentialFreeAdapter interface {
