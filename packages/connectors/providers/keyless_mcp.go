@@ -92,11 +92,24 @@ func (a *KeylessMCPAdapter) Provider() string              { return a.provider }
 func (a *KeylessMCPAdapter) Capability() domain.Capability { return domain.Files }
 func (a *KeylessMCPAdapter) CredentialFree()               {}
 
-// Preview keeps the common embedding contract without introducing an action
-// surface. This adapter offers only reads; it cannot prepare an approved write,
-// even when a caller forges operation metadata. No provider request is made.
-func (a *KeylessMCPAdapter) Preview(domain.Invocation) (domain.ActionPreview, error) {
-	return domain.ActionPreview{}, domain.ErrDenied
+// Preview validates read arguments and returns compiled audit metadata without
+// resolving a credential or making a provider request. Hosts call this before
+// credential resolution for reads too. Actual Invoke still requires explicit
+// CredentialNone; a preview never grants access or admits a write.
+func (a *KeylessMCPAdapter) Preview(inv domain.Invocation) (domain.ActionPreview, error) {
+	preview := inv
+	preview.Credential, _ = domain.NewCredential(domain.CredentialNone, "", "", "", "", nil)
+	tool, arguments, err := a.arguments(preview)
+	if err != nil {
+		return domain.ActionPreview{}, err
+	}
+	if a.provider == "coingecko" {
+		if _, err := compileCoinGeckoArguments(tool.name, arguments); err != nil {
+			return domain.ActionPreview{}, err
+		}
+	}
+	endpoint, _ := url.Parse(a.endpoint)
+	return domain.ActionPreview{Method: http.MethodPost, Path: endpoint.Path + "#tools/call:" + tool.remote, Summary: tool.description}, nil
 }
 
 func (a *KeylessMCPAdapter) Operations() []domain.Operation {
