@@ -9,6 +9,48 @@ import uuid
 class ConnectorError(RuntimeError):
     """A bounded, credential-free runner error."""
 
+    def __init__(self, code: str, *, provider_status: int | None = None):
+        if provider_status is not None and not _provider_status_allowed(code, provider_status):
+            code, provider_status = "connector_request_failed", None
+        self.code = code
+        self.provider_status = provider_status
+        super().__init__(code)
+
+
+def _provider_status_allowed(code, status):
+    # bool is an int subclass, but is never an HTTP status on the wire.
+    if type(status) is not int or not 100 <= status <= 599:
+        return False
+    if code in {"sync_reset_required", "resource_gone"}:
+        return status == 410
+    if code == "version_conflict":
+        return status == 412
+    if code == "rate_limited":
+        return status == 429
+    if code == "provider_permission":
+        return status in {401, 403}
+    return code in {"invalid_response", "provider_error"}
+
+
+def _reply_error(reply):
+    allowed = {"provider_not_configured", "authorization_not_ready",
+               "credential_recovery_required", "rotation_in_progress",
+               "oauth_app_mismatch", "rate_limited", "provider_exchange_failed",
+               "provider_refresh_failed", "authorization_expired",
+               "token_grant_revoked", "qa_installation_not_admitted",
+               "qa_shop_not_admitted", "sync_reset_required", "resource_gone",
+               "version_conflict", "provider_permission", "network_error",
+               "invalid_response", "provider_error"}
+    code = reply["error"]
+    if not isinstance(code, str) or code not in allowed:
+        return ConnectorError("connector_request_failed")
+    if "provider_status" in reply:
+        status = reply["provider_status"]
+        if not _provider_status_allowed(code, status):
+            return ConnectorError("connector_request_failed")
+        return ConnectorError(code, provider_status=status)
+    return ConnectorError(code)
+
 
 class ConnectorRunner:
     def __init__(self, executable: str | Path, *, identity_file: str | Path,
@@ -53,15 +95,8 @@ class ConnectorRunner:
                     if reply.get("id") != request_id:
                         await self._close()
                         raise ConnectorError("runner_response_mismatch")
-                    if reply.get("error"):
-                        allowed = {"provider_not_configured", "authorization_not_ready",
-                                   "credential_recovery_required", "rotation_in_progress",
-                                   "oauth_app_mismatch", "rate_limited", "provider_exchange_failed",
-                                   "provider_refresh_failed", "authorization_expired",
-                                   "token_grant_revoked", "qa_installation_not_admitted",
-                                   "qa_shop_not_admitted"}
-                        code = reply["error"]
-                        raise ConnectorError(code if code in allowed else "connector_request_failed")
+                    if "error" in reply:
+                        raise _reply_error(reply)
                     return reply.get("result")
             except ConnectorError:
                 raise

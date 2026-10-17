@@ -125,7 +125,42 @@ func (r *Runtime) Invoke(ctx context.Context, call Call) (domain.Result, error) 
 	defer cancel()
 	result, err := r.adapters[call.Binding.Connection.Provider].Invoke(ctx, domain.Invocation{ID: call.InvocationID, Principal: call.Binding.Principal, Connection: call.Binding.Connection, Credential: call.Credential, Operation: *selected, Arguments: call.Arguments, RequestedAt: time.Now().UTC(), Idempotency: call.IdempotencyKey})
 	if err != nil {
+		if safe := calendarMailFailure(call.Binding.Connection.Provider, err); safe != nil {
+			return domain.Result{}, safe
+		}
 		return domain.Result{}, errors.New("connector provider request failed")
 	}
 	return result, nil
+}
+
+// Only the new calendar/mail contracts expose these finite recovery signals.
+// Copy just the class and HTTP status: wrapped messages, request identifiers,
+// byte counts and the provider's original error object never cross this boundary.
+func calendarMailFailure(provider string, err error) *domain.ProviderError {
+	if provider != "google_calendar" && provider != "outlook_mail" && provider != "outlook_calendar" {
+		return nil
+	}
+	var failure *domain.ProviderError
+	if !errors.As(err, &failure) || failure == nil {
+		return nil
+	}
+	valid := false
+	switch failure.Kind {
+	case "sync_reset_required", "resource_gone":
+		valid = failure.StatusCode == 410
+	case "version_conflict":
+		valid = failure.StatusCode == 412
+	case "rate_limited":
+		valid = failure.StatusCode == 429
+	case "provider_permission":
+		valid = failure.StatusCode == 401 || failure.StatusCode == 403
+	case "network_error":
+		valid = failure.StatusCode == 0
+	case "invalid_response", "provider_error":
+		valid = failure.StatusCode >= 100 && failure.StatusCode <= 599
+	}
+	if !valid {
+		return nil
+	}
+	return &domain.ProviderError{Kind: failure.Kind, StatusCode: failure.StatusCode}
 }

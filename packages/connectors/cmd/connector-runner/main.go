@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -12,6 +13,7 @@ import (
 
 	connectors "github.com/openagent-uno/openagent-tools/packages/connectors"
 	"github.com/openagent-uno/openagent-tools/packages/connectors/auth"
+	"github.com/openagent-uno/openagent-tools/packages/connectors/domain"
 	"github.com/openagent-uno/openagent-tools/packages/connectors/oauth"
 )
 
@@ -21,9 +23,40 @@ type request struct {
 	Params json.RawMessage `json:"params"`
 }
 type response struct {
-	ID     string `json:"id"`
-	Result any    `json:"result,omitempty"`
-	Error  string `json:"error,omitempty"`
+	ID             string `json:"id"`
+	Result         any    `json:"result,omitempty"`
+	Error          string `json:"error,omitempty"`
+	ProviderStatus int    `json:"provider_status,omitempty"`
+}
+
+// Keep the legacy error string envelope. The additive status is emitted only
+// for a closed provider signal, never from raw error text or response payloads.
+func runnerFailure(err error) (string, int) {
+	if remote, ok := err.(*auth.RemoteError); ok {
+		return remote.Code, 0
+	}
+	var failure *domain.ProviderError
+	if errors.As(err, &failure) && failure != nil {
+		valid := false
+		switch failure.Kind {
+		case "sync_reset_required", "resource_gone":
+			valid = failure.StatusCode == 410
+		case "version_conflict":
+			valid = failure.StatusCode == 412
+		case "rate_limited":
+			valid = failure.StatusCode == 429
+		case "provider_permission":
+			valid = failure.StatusCode == 401 || failure.StatusCode == 403
+		case "network_error":
+			valid = failure.StatusCode == 0
+		case "invalid_response", "provider_error":
+			valid = failure.StatusCode >= 100 && failure.StatusCode <= 599
+		}
+		if valid {
+			return failure.Kind, failure.StatusCode
+		}
+	}
+	return "connector_request_failed", 0
 }
 
 func main() {
@@ -217,10 +250,7 @@ func main() {
 		}
 		if err != nil {
 			reply.Result = nil
-			reply.Error = "connector_request_failed"
-			if remote, ok := err.(*auth.RemoteError); ok {
-				reply.Error = remote.Code
-			}
+			reply.Error, reply.ProviderStatus = runnerFailure(err)
 		} else if reply.Result == nil {
 			reply.Result = map[string]bool{"ok": true}
 		}
