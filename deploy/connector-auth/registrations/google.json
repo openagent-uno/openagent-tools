@@ -13,7 +13,8 @@
   "redirect_uris": [
     "https://auth.openagent.uno/v1/oauth/gmail/callback",
     "https://auth.openagent.uno/v1/oauth/google_drive/callback",
-    "https://auth.openagent.uno/v1/oauth/google_analytics/callback"
+    "https://auth.openagent.uno/v1/oauth/google_analytics/callback",
+    "https://auth.openagent.uno/v1/oauth/google_calendar/callback"
   ],
   "secret_reference": {
     "namespace": "openagent-connectors",
@@ -52,5 +53,17 @@
     "datastore_encryption": "Enabled",
     "qualification_checkpoint": "../qualification-2026-10-13.md",
     "qualified_at": "2026-10-13"
+  },
+  "calendar_preparation": {
+    "callback_saved": "2026-10-17",
+    "api_service": "calendar-json.googleapis.com",
+    "api_enabled": false,
+    "calendar_scopes_declared": false,
+    "common_enrollment_enabled": false,
+    "remaining": [
+      "Calendar API specific terms and service enablement",
+      "Calendar scope declaration and provider verification where required",
+      "Fresh receiving-installation consent and real lifecycle qualification"
+    ]
   }
 }
