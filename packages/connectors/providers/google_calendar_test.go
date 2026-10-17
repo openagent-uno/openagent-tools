@@ -391,6 +391,102 @@ func TestGoogleCalendarTimeZonesAndBoundedRecurrence(t *testing.T) {
 	}
 }
 
+func TestGoogleCalendarStrictRFC3339BeforeProviderIO(t *testing.T) {
+	valid := []string{"2026-10-17T12:00:00Z", "2026-10-17T12:00:00.123456789Z", "2026-10-17T14:00:00+02:00", "2026-10-17T08:00:00-04:00"}
+	for _, value := range valid {
+		if _, err := calendarRFC3339(value); err != nil {
+			t.Fatalf("valid explicit-offset timestamp rejected: %s", value)
+		}
+	}
+	invalid := []string{
+		"2026-10-17T12:00:00,5Z", "2026-10-17T12:00:00+24:00", "2026-10-17T12:00:00+00:60",
+		"2026-10-17T1:00:00Z", "2026-10-17T12:00:00.1234567890Z", "2026-10-17T12:00:00",
+		"2026-02-30T12:00:00Z", "2026-10-17T24:00:00Z", "2026-10-17T12:00:61Z",
+	}
+	for _, value := range invalid {
+		t.Run(value, func(t *testing.T) {
+			if _, err := calendarRFC3339(value); err == nil {
+				t.Fatal("malformed RFC3339 timestamp accepted")
+			}
+			calls := 0
+			a, _ := NewGoogleCalendarAdapter(doerFunc(func(*http.Request) (*http.Response, error) {
+				calls++
+				return jsonResponse(200, calendarTestEvent, nil), nil
+			}))
+			for _, key := range []string{"time_min", "time_max"} {
+				args, _ := json.Marshal(map[string]any{"calendar_id": "primary", key: value})
+				if _, err := a.Invoke(context.Background(), calendarTestInvocation(t, a, "events.list", string(args))); !errors.Is(err, domain.ErrInvalidArguments) {
+					t.Fatal("invalid list timestamp reached the provider boundary")
+				}
+			}
+			body := map[string]any{"start": map[string]any{"dateTime": value}, "end": map[string]any{"dateTime": "2027-01-01T00:00:00Z"}}
+			for _, name := range []string{"events.create", "events.update"} {
+				args := map[string]any{"calendar_id": "primary", "body": body}
+				if name == "events.update" {
+					args["event_id"], args["etag"] = "event", `"old"`
+				}
+				encoded, _ := json.Marshal(args)
+				if _, err := a.Invoke(context.Background(), calendarTestInvocation(t, a, name, string(encoded))); !errors.Is(err, domain.ErrInvalidArguments) {
+					t.Fatal("invalid event timestamp reached the provider boundary")
+				}
+			}
+			if calls != 0 {
+				t.Fatal("timestamp validation performed provider IO")
+			}
+		})
+	}
+}
+
+func TestGoogleCalendarRecurrenceTypesMatchStartBeforeProviderIO(t *testing.T) {
+	for _, tt := range []struct {
+		name, line      string
+		dateOnly, valid bool
+	}{
+		{"timed UTC until", "RRULE:FREQ=DAILY;UNTIL=20261031T120000Z", false, true},
+		{"all-day date until", "RRULE:FREQ=DAILY;UNTIL=20261031", true, true},
+		{"timed date until", "RRULE:FREQ=DAILY;UNTIL=20261031", false, false},
+		{"all-day datetime until", "RRULE:FREQ=DAILY;UNTIL=20261031T120000Z", true, false},
+		{"timed UTC exception", "EXDATE:20261018T120000Z", false, true},
+		{"timed IANA inclusion", "RDATE;TZID=Europe/Rome:20261018T140000", false, true},
+		{"all-day date exception", "EXDATE;VALUE=DATE:20261018", true, true},
+		{"all-day date inclusion", "RDATE;VALUE=DATE:20261018", true, true},
+		{"timed date exception", "EXDATE;VALUE=DATE:20261018", false, false},
+		{"timed date inclusion", "RDATE;VALUE=DATE:20261018", false, false},
+		{"all-day datetime exception", "EXDATE:20261018T120000Z", true, false},
+		{"all-day IANA inclusion", "RDATE;TZID=Europe/Rome:20261018T140000", true, false},
+		{"empty recurrence timezone", "RDATE;TZID=:20261018T140000", false, false},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			body, _ := calendarJSON([]byte(calendarTestBody), googleCalendarMaxRequest)
+			if tt.dateOnly {
+				body["start"] = map[string]any{"date": "2026-10-17", "timeZone": "UTC"}
+				body["end"] = map[string]any{"date": "2026-10-18", "timeZone": "UTC"}
+			}
+			body["recurrence"] = []any{tt.line}
+			if calendarValidEvent(body, true) != tt.valid {
+				t.Fatal("recurrence/DTSTART type mismatch")
+			}
+			calls := 0
+			a, _ := NewGoogleCalendarAdapter(doerFunc(func(*http.Request) (*http.Response, error) {
+				calls++
+				return jsonResponse(200, calendarTestEvent, nil), nil
+			}))
+			args, _ := json.Marshal(map[string]any{"calendar_id": "primary", "body": body})
+			inv := calendarTestInvocation(t, a, "events.create", string(args))
+			if tt.valid {
+				if _, err := a.Preview(inv); err != nil {
+					t.Fatal("valid all-day or zoned recurrence rejected")
+				}
+			} else if _, err := a.Invoke(context.Background(), inv); !errors.Is(err, domain.ErrInvalidArguments) {
+				t.Fatal("invalid recurrence reached the provider boundary")
+			}
+			if calls != 0 {
+				t.Fatal("recurrence validation performed provider IO")
+			}
+		})
+	}
+}
+
 func TestGoogleCalendarResponseValidationAndTombstones(t *testing.T) {
 	cases := []struct {
 		name, response string

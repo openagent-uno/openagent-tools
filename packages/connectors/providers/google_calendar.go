@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -16,6 +17,18 @@ import (
 
 	"github.com/openagent-uno/openagent-tools/packages/connectors/domain"
 )
+
+// time.Parse also accepts comma fractions and out-of-range numeric offsets.
+// This local RFC3339 subset bounds fractions to nanoseconds before parsing the
+// calendar date itself. It intentionally preserves the existing uppercase T/Z.
+var calendarRFC3339Pattern = regexp.MustCompile(`^[0-9]{4}-[0-9]{2}-[0-9]{2}T([01][0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9](\.[0-9]{1,9})?(Z|[+-]([01][0-9]|2[0-3]):[0-5][0-9])$`)
+
+func calendarRFC3339(value string) (time.Time, error) {
+	if !calendarRFC3339Pattern.MatchString(value) {
+		return time.Time{}, domain.ErrInvalidArguments
+	}
+	return time.Parse(time.RFC3339Nano, value)
+}
 
 const (
 	GoogleCalendarListScope         = "https://www.googleapis.com/auth/calendar.calendarlist.readonly"
@@ -275,7 +288,7 @@ func (a *GoogleCalendarAdapter) plan(inv domain.Invocation) (calendarPlan, error
 					if len(text) > 64 {
 						return p, domain.ErrInvalidArguments
 					}
-					if _, err := time.Parse(time.RFC3339Nano, text); err != nil {
+					if _, err := calendarRFC3339(text); err != nil {
 						return p, domain.ErrInvalidArguments
 					}
 				}
@@ -283,8 +296,8 @@ func (a *GoogleCalendarAdapter) plan(inv domain.Invocation) (calendarPlan, error
 			}
 		}
 		if query.Get("timeMin") != "" && query.Get("timeMax") != "" {
-			start, _ := time.Parse(time.RFC3339Nano, query.Get("timeMin"))
-			end, _ := time.Parse(time.RFC3339Nano, query.Get("timeMax"))
+			start, _ := calendarRFC3339(query.Get("timeMin"))
+			end, _ := calendarRFC3339(query.Get("timeMax"))
 			if !end.After(start) {
 				return p, domain.ErrInvalidArguments
 			}
@@ -503,6 +516,13 @@ func calendarValidEvent(body map[string]any, create bool) bool {
 		if !ok || sd != ed || !e.After(s) || (recurring && (sz == "" || ez == "" || sz != ez)) {
 			return false
 		}
+		if recurring {
+			for _, line := range body["recurrence"].([]any) {
+				if !calendarRecurrenceContext(line.(string), sd) {
+					return false
+				}
+			}
+		}
 	}
 	return true
 }
@@ -549,7 +569,7 @@ func calendarWhen(value any) (time.Time, bool, string, bool) {
 	if !ok || len(text) > 64 {
 		return zero, false, "", false
 	}
-	parsed, err := time.Parse(time.RFC3339Nano, text)
+	parsed, err := calendarRFC3339(text)
 	if err != nil {
 		return zero, false, "", false
 	}
@@ -653,7 +673,7 @@ func calendarRecurrence(line string) bool {
 			dateOnly = true
 		} else if strings.HasPrefix(parameter, "TZID=") && !hasZone {
 			zone := strings.TrimPrefix(parameter, "TZID=")
-			if zone == "Local" {
+			if !calendarOpaque(zone, 128) || zone == "Local" {
 				return false
 			}
 			if _, err := time.LoadLocation(zone); err != nil {
@@ -695,6 +715,33 @@ func calendarRecurrenceDate(value string, allowDate bool) bool {
 	}
 	_, err := time.Parse("20060102T150405Z", value)
 	return err == nil
+}
+
+// RFC5545 section 3.3.10 binds UNTIL's type to DTSTART. Our timed recurring
+// subset always has an IANA zone, so its UNTIL must be a UTC DATE-TIME. RDATE
+// and EXDATE likewise cannot mix DATE and DATE-TIME within that event.
+// Syntax/bounds have already been checked by calendarRecurrence; this adds no
+// expansion engine or synchronization state.
+func calendarRecurrenceContext(line string, dateOnly bool) bool {
+	parts := strings.SplitN(line, ":", 2)
+	if len(parts) != 2 {
+		return false
+	}
+	header := strings.Split(parts[0], ";")
+	if header[0] == "RRULE" || header[0] == "EXRULE" {
+		for _, field := range strings.Split(parts[1], ";") {
+			if strings.HasPrefix(field, "UNTIL=") {
+				until := strings.TrimPrefix(field, "UNTIL=")
+				return (dateOnly && len(until) == 8) || (!dateOnly && len(until) == 16 && strings.HasSuffix(until, "Z"))
+			}
+		}
+		return true
+	}
+	lineDateOnly := false
+	for _, parameter := range header[1:] {
+		lineDateOnly = lineDateOnly || parameter == "VALUE=DATE"
+	}
+	return lineDateOnly == dateOnly
 }
 
 func calendarMember(value string, choices ...string) bool {
