@@ -432,8 +432,11 @@ func validateMCPResponse(raw json.RawMessage, expectedID string) error {
 		Result  json.RawMessage `json:"result"`
 		Error   json.RawMessage `json:"error"`
 	}
+	if json.Unmarshal(raw, &response) != nil {
+		return errors.New("invalid MCP response")
+	}
 	errorValue := bytes.TrimSpace(response.Error)
-	if json.Unmarshal(raw, &response) != nil || response.JSONRPC != "2.0" ||
+	if response.JSONRPC != "2.0" ||
 		response.ID != expectedID ||
 		(len(errorValue) > 0 && !bytes.Equal(errorValue, []byte("null"))) ||
 		len(response.Result) == 0 {

@@ -2,7 +2,7 @@ package connectors
 
 import "encoding/json"
 
-const Version = "0.1.4"
+const Version = "0.1.5"
 
 type Item struct {
 	ID                string   `json:"id"`
@@ -24,6 +24,16 @@ type CatalogEntry struct {
 }
 
 var catalogEntries = []CatalogEntry{
+	{Item: Item{
+		ID: "exa", Name: "Exa", Description: "Search the public web and fetch page content through Exa's keyless MCP service. Provider free-use limits apply.",
+		Category: "Data", Auth: "none", Icon: "search", Capability: "files", Provider: "exa",
+		ReadTools: []string{"files.exa.search", "files.exa.fetch"}, AgentTools: []string{},
+	}},
+	{Item: Item{
+		ID: "firecrawl", Name: "Firecrawl", Description: "Search the public web and read pages as Markdown through Firecrawl's keyless MCP service. Provider free-use limits apply.",
+		Category: "Data", Auth: "none", Icon: "flame", Capability: "files", Provider: "firecrawl",
+		ReadTools: []string{"files.firecrawl.search", "files.firecrawl.scrape"}, AgentTools: []string{},
+	}},
 	{Item: Item{
 		ID: "google-drive", Name: "Google Drive", Description: "Search, read and manage files in Google Drive.",
 		Category: "Productivity", Auth: "oauth", Icon: "hard-drive", Capability: "files", Provider: "google_drive",

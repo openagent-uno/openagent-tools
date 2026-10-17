@@ -92,6 +92,15 @@ func (r *Runtime) Invoke(ctx context.Context, call Call) (domain.Result, error) 
 	if selected == nil {
 		return domain.Result{}, domain.ErrDenied
 	}
+	item, _ := Lookup(call.Binding.CatalogID)
+	_, credentialFree := r.adapters[item.Provider].(domain.CredentialFreeAdapter)
+	if item.Auth == "none" {
+		if !credentialFree || !call.Credential.IsNone() {
+			return domain.Result{}, domain.ErrDenied
+		}
+	} else if call.Credential.IsNone() {
+		return domain.Result{}, domain.ErrDenied
+	}
 	if call.InvocationID == "" || len(call.InvocationID) > 256 {
 		return domain.Result{}, domain.ErrInvalidArguments
 	}

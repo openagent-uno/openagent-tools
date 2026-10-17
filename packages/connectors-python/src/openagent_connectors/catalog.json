@@ -1,6 +1,38 @@
 {
-  "version": "0.1.4",
+  "version": "0.1.5",
   "connectors": [
+    {
+      "id": "exa",
+      "name": "Exa",
+      "description": "Search the public web and fetch page content through Exa's keyless MCP service. Provider free-use limits apply.",
+      "category": "Data",
+      "auth": "none",
+      "icon": "search",
+      "capability": "files",
+      "provider": "exa",
+      "readTools": [
+        "files.exa.search",
+        "files.exa.fetch"
+      ],
+      "agentTools": [],
+      "available": true
+    },
+    {
+      "id": "firecrawl",
+      "name": "Firecrawl",
+      "description": "Search the public web and read pages as Markdown through Firecrawl's keyless MCP service. Provider free-use limits apply.",
+      "category": "Data",
+      "auth": "none",
+      "icon": "flame",
+      "capability": "files",
+      "provider": "firecrawl",
+      "readTools": [
+        "files.firecrawl.search",
+        "files.firecrawl.scrape"
+      ],
+      "agentTools": [],
+      "available": true
+    },
     {
       "id": "google-drive",
       "name": "Google Drive",

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -161,6 +162,8 @@ type Principal struct {
 type CredentialKind string
 
 const (
+	// CredentialNone is an explicit no-auth contract, never an absent token.
+	CredentialNone         CredentialKind = "none"
 	CredentialOAuth2Bearer CredentialKind = "oauth2_bearer"
 	CredentialAPIToken     CredentialKind = "api_token"
 )
@@ -192,6 +195,12 @@ func NewCredential(kind CredentialKind, secret, header, scheme, version string, 
 }
 
 func credentialFromWire(wire credentialWire) (Credential, error) {
+	if wire.Kind == CredentialNone {
+		if wire.Secret != "" || wire.Header != "" || wire.Scheme != "" || wire.Version != "" || wire.ExpiresAt != nil {
+			return Credential{}, errors.New("no-auth credential contains credential material")
+		}
+		return Credential{kind: CredentialNone}, nil
+	}
 	if wire.Kind != CredentialOAuth2Bearer && wire.Kind != CredentialAPIToken {
 		return Credential{}, errors.New("unsupported credential kind")
 	}
@@ -227,6 +236,17 @@ func (c *Credential) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &wire); err != nil {
 		return errors.New("invalid credential response")
 	}
+	if wire.Kind == CredentialNone {
+		decoder := json.NewDecoder(bytes.NewReader(data))
+		open, openErr := decoder.Token()
+		key, keyErr := decoder.Token()
+		var kind CredentialKind
+		valueErr := decoder.Decode(&kind)
+		close, closeErr := decoder.Token()
+		if openErr != nil || keyErr != nil || valueErr != nil || closeErr != nil || open != json.Delim('{') || key != "kind" || kind != CredentialNone || close != json.Delim('}') || decoder.Decode(&struct{}{}) != io.EOF {
+			return errors.New("no-auth credential must contain only kind")
+		}
+	}
 	credential, err := credentialFromWire(wire)
 	if err != nil {
 		return err
@@ -236,11 +256,17 @@ func (c *Credential) UnmarshalJSON(data []byte) error {
 }
 
 func (c Credential) MarshalJSON() ([]byte, error) {
+	if c.IsNone() {
+		return []byte(`{"kind":"none"}`), nil
+	}
 	return json.Marshal(map[string]any{
 		"kind": c.kind, "header": c.header, "scheme": c.scheme, "version": c.version,
 		"expires_at": c.expiresAt, "redacted": true,
 	})
 }
+
+// IsNone distinguishes the explicit no-auth credential from an omitted value.
+func (c Credential) IsNone() bool { return c.kind == CredentialNone }
 
 // Apply writes a credential only to the fixed header/scheme declared by the
 // provider manifest. Control-plane data cannot select an arbitrary header.
@@ -380,6 +406,13 @@ type Adapter interface {
 	Capability() Capability
 	Operations() []Operation
 	Invoke(context.Context, Invocation) (Result, error)
+}
+
+// CredentialFreeAdapter declares a reviewed no-auth provider. Connections and
+// host authorization are still required; this does not grant workspace access.
+type CredentialFreeAdapter interface {
+	Adapter
+	CredentialFree()
 }
 
 type ProviderCallReservation struct {
