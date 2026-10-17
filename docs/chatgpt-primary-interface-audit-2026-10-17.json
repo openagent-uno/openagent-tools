@@ -1,0 +1,325 @@
+{
+  "format": 1,
+  "observed_date": "2026-10-17",
+  "scope": "Primary documentation research for six previously unaudited Popular directory names; no connector implementation, authorization or integration acceptance.",
+  "actions": {
+    "documentation_web_search_and_open": true,
+    "browser_ui": false,
+    "provider_api_or_mcp_protocol_calls": 0,
+    "oauth_discovery_endpoint_requests": 0,
+    "accounts_apps_or_grants_created": 0,
+    "installations_builds_tests_or_model_calls": 0,
+    "sdk16_started": false,
+    "product_or_connector_code_edits": false
+  },
+  "source_policy": "Vendor documentation/repositories and official directory identity only. Indexed-source limitations and independent reread errors are explicit. ChatGPT registrations/grants are not transferable; documented client setup is not OpenAgent protocol qualification.",
+  "plain_public_read_keyless_candidates": [],
+  "suggested_next_research_order": [
+    "Granola",
+    "Windsor.ai",
+    "Upwork",
+    "Flaim Fantasy",
+    "WPVibe",
+    "Remote Desktop Commander"
+  ],
+  "recommendation_scope": "Candidates for later OAuth/MCP compatibility research, not implementation authorization, provider consent or a ready official catalog entry.",
+  "services": [
+    {
+      "name": "Remote Desktop Commander",
+      "popular_position": 1,
+      "interface": {
+        "kind": "official_remote_mcp",
+        "endpoint": "https://mcp.desktopcommander.app/mcp",
+        "transport": "Streamable HTTP",
+        "scope": "Paired-computer files, terminal/processes and device management; hosted implementation is proprietary."
+      },
+      "auth": {
+        "method": "OAuth2 with PKCE; separate device authorization pairing",
+        "dcr": "not_established_by_reviewed_docs",
+        "openagent_manual_app_registration": "unknown; generic OAuth client is documented but registration mechanism was not established",
+        "keyless_public_read": false
+      },
+      "prerequisites": [
+        "Vendor account and explicit device pairing",
+        "Node18+ agent kept running on the selected computer"
+      ],
+      "commercial_gate": "Remote service plans/quotas and separate free local stdio mode must be reviewed; no purchase or device grant was made.",
+      "unknowns": [
+        "Exact client-registration/scopes/refresh contract",
+        "Current beta eligibility and OpenAgent end-to-end compatibility"
+      ],
+      "minimal_next_step": "After release closure, inspect OAuth discovery/registration contract before a user-approved device pairing and a bounded read-only QA folder test. Do not substitute OpenAgent host tools for this vendor surface.",
+      "confidence": {
+        "interface": "high",
+        "auth": "high",
+        "registration": "unknown"
+      },
+      "sources": [
+        {
+          "url": "https://github.com/desktop-commander/remote-desktop-commander",
+          "supports": "Endpoint, independent-client setup, OAuth/PKCE/device pairing and runtime requirements"
+        },
+        {
+          "url": "https://desktopcommander.app/pricing/",
+          "supports": "Remote Free/Pro and distinction from local stdio"
+        },
+        {
+          "url": "https://openai.com/business/plugins/remote-desktop-commander/",
+          "supports": "Directory card identity maps to Desktop Commander, not similarly named RDPSoft software"
+        }
+      ],
+      "implementation_status": "not_implemented_in_official_catalog"
+    },
+    {
+      "name": "Flaim Fantasy",
+      "popular_position": 3,
+      "interface": {
+        "kind": "official_remote_mcp",
+        "endpoint": "https://api.flaim.app/mcp",
+        "transport": "Streamable HTTP",
+        "scope": "Fantasy league context; external league trades/lineups are not writable."
+      },
+      "auth": {
+        "method": "Browser OAuth to the Flaim account",
+        "dcr": "unknown_in_current_live_documentation",
+        "openagent_manual_app_registration": "not_shown_by_current_custom-client_guide; do not assume DCR or reuse ChatGPT credentials",
+        "keyless_public_read": false
+      },
+      "prerequisites": [
+        "Free Flaim account",
+        "Existing authorized ESPN/Yahoo/Sleeper league connection; ESPN setup uses a desktop Chrome extension"
+      ],
+      "commercial_gate": "Vendor describes a free service; account and existing authorized league remain necessary. AI-client plan rules are separate.",
+      "unknowns": [
+        "Exact current OAuth version/PKCE/scopes/registration contract",
+        "General-client eligibility and minimal tool schema"
+      ],
+      "minimal_next_step": "Confirm the current registration protocol from vendor-maintained documentation, then use an existing explicitly approved QA league through MCP OAuth; no new league/account is created by this audit.",
+      "confidence": {
+        "interface": "high",
+        "auth": "high",
+        "registration": "unknown"
+      },
+      "sources": [
+        {
+          "url": "https://flaim.app/docs/custom-connectors",
+          "supports": "General custom-client endpoint, Streamable HTTP and OAuth"
+        },
+        {
+          "url": "https://flaim.app/docs/ai",
+          "supports": "Free service, account/league prerequisites, external read-only scope"
+        },
+        {
+          "url": "https://flaim.app/docs",
+          "supports": "Supported league connection methods"
+        }
+      ],
+      "source_access_limitations": [
+        {
+          "url": "https://github.com/jdguggs10/flaim/blob/main/docs/CONNECTOR-DOCS.md",
+          "result": "404 on open; search index described OAuth2.1/PKCE/DCR but stale indexed text is not promoted to a current verified contract"
+        }
+      ],
+      "implementation_status": "not_implemented_in_official_catalog"
+    },
+    {
+      "name": "WPVibe",
+      "popular_position": 5,
+      "interface": {
+        "kind": "official_remote_mcp",
+        "endpoint": "https://mcp.wpvibe.ai/mcp",
+        "transport": "Remote HTTP MCP",
+        "scope": "Self-hosted WordPress content/site operations; deeper theme/files/WP-CLI surface uses the WPVibe plugin."
+      },
+      "auth": {
+        "method": "Browser OAuth with email-code login; vendor guides leave client ID/secret empty",
+        "dcr": "not_explicitly_confirmed; automatic sign-in is documented",
+        "openagent_manual_app_registration": "not_required_by_documented_client_setup; exact negotiated metadata remains untested",
+        "keyless_public_read": false
+      },
+      "prerequisites": [
+        "WPVibe account (free login can create one)",
+        "Authorized reachable WordPress REST site and application-password consent; appropriate WordPress user permissions"
+      ],
+      "commercial_gate": "Account-level daily quotas and paid higher-volume plans apply; no upgrade or WordPress permission was granted.",
+      "unknowns": [
+        "Exact OAuth registration/scopes/refresh contract",
+        "Typed bounded read subset and approval semantics of each write tool"
+      ],
+      "minimal_next_step": "Use official MCP OAuth with a permitted existing test site, initially only connection/site-summary reads; no plugin install, wp-admin grant or site mutation without separate authorization.",
+      "confidence": {
+        "interface": "high",
+        "auth": "high",
+        "registration": "medium"
+      },
+      "sources": [
+        {
+          "url": "https://wpvibe.ai/docs/ai-client-setup/",
+          "supports": "Generic clients, OAuth and empty client fields"
+        },
+        {
+          "url": "https://wpvibe.ai/docs/connect-a-wordpress-site/",
+          "supports": "Application-password consent, reachability and optional deeper plugin"
+        },
+        {
+          "url": "https://mcp.wpvibe.ai/pricing",
+          "supports": "Free allowance and paid-volume account limits"
+        }
+      ],
+      "implementation_status": "not_implemented_in_official_catalog",
+      "source_access_limitations": [
+        {
+          "url": "https://wpvibe.ai/docs/ai-client-setup/",
+          "result": "Initial audit web reader returned vendor documentation. Independent root reread later returned a reader internal error; no auth endpoint or live integration was tested."
+        }
+      ]
+    },
+    {
+      "name": "Windsor.ai",
+      "popular_position": 11,
+      "interface": {
+        "kind": "official_remote_mcp",
+        "endpoint": "https://mcp.windsor.ai/",
+        "transport": "Remote MCP over HTTP",
+        "scope": "Account-connected business data and separately exposed write actions."
+      },
+      "auth": {
+        "method": "OAuth2 metadata discovery with DCR; alternatively vendor API key as Bearer for MCP",
+        "dcr": "documented_supported",
+        "openagent_manual_app_registration": "not_needed_for_documented_DCR_route; requires actual vendor login/consent",
+        "keyless_public_read": false
+      },
+      "prerequisites": [
+        "Active Windsor account",
+        "At least one authorized data source for meaningful data reads"
+      ],
+      "commercial_gate": "Account plans limit sources/accounts/history; no plan or data-source access was acquired.",
+      "unknowns": [
+        "Exact negotiated scopes and tenant/account selection bindings",
+        "Tool schema/version freeze and quotas for the selected QA account"
+      ],
+      "minimal_next_step": "Prefer vendor MCP OAuth/DCR over cloning its data connectors; admit read-only get_current_user/get_connectors first, then one bounded query to an approved source. Writes need separate host permission.",
+      "confidence": {
+        "interface": "high",
+        "auth": "high",
+        "registration": "high"
+      },
+      "sources": [
+        {
+          "url": "https://mcp.windsor.ai/",
+          "supports": "MCP endpoint, OAuth+DCR/Bearer alternative and read/write tool distinction"
+        },
+        {
+          "url": "https://windsor.ai/documentation/windsor-mcp/how-to-connect-windsor-mcp-to-any-ai-client/",
+          "supports": "Independent-client setup and account/source prerequisites"
+        },
+        {
+          "url": "https://windsor.ai/pricing/",
+          "supports": "MCP plan inclusion and trial/Forever Free limits"
+        }
+      ],
+      "pitfall": "The separate Connectors REST API documents api_key query authentication, not the MCP Bearer header; do not conflate them.",
+      "pitfall_source": "https://windsor.ai/api-documentation/",
+      "implementation_status": "not_implemented_in_official_catalog"
+    },
+    {
+      "name": "Upwork",
+      "popular_position": 14,
+      "interface": {
+        "kind": "official_remote_mcp",
+        "endpoint": "https://mcp.upwork.com/mcp",
+        "transport": "Streamable HTTP",
+        "scope": "Role/account discovery, hiring/work records and draft-confirm actions; not an unrestricted GraphQL proxy."
+      },
+      "auth": {
+        "method": "OAuth2.1 with DCR per vendor MCP guide",
+        "dcr": "documented_supported",
+        "openagent_manual_app_registration": "not_required_for_documented_MCP_DCR; separate GraphQL route requires developer keys/application",
+        "keyless_public_read": false
+      },
+      "prerequisites": [
+        "Upwork account and browser authorization",
+        "Account role/permissions suitable for chosen read"
+      ],
+      "commercial_gate": "Ordinary Upwork marketplace fees/Connects and financial confirmation requirements remain; no expenditure or marketplace action was authorized.",
+      "unknowns": [
+        "Actual OpenAgent OAuth compatibility and tool schema freeze",
+        "Smallest requested authorization: vendor currently describes full MCP scope grant"
+      ],
+      "minimal_next_step": "Use official MCP OAuth/DCR for one approved account read, not a new GraphQL client application. Keep message/proposal/job/financial writes out of the initial read-only subset.",
+      "confidence": {
+        "interface": "high",
+        "auth": "high-primary-indexed-guide",
+        "registration": "high-primary-indexed-guide"
+      },
+      "sources": [
+        {
+          "url": "https://www.upwork.com/ai/mcp?trk=public_profile__reactions-text",
+          "supports": "Official any-client MCP, endpoint, OAuth2.1+DCR, cost, full-scope and draft-confirm constraints; page says last updated2026-08-04"
+        },
+        {
+          "url": "https://github.com/upwork/upwork-agent-plugin/blob/master/mcp.json",
+          "supports": "Vendor-published Streamable HTTP endpoint manifest"
+        },
+        {
+          "url": "https://github.com/upwork/upwork-agent-plugin",
+          "supports": "Portable independent-client MCP/skills package and browser authorization"
+        },
+        {
+          "url": "https://www.upwork.com/developer",
+          "supports": "Separate API route requires verified-account/API-key application"
+        }
+      ],
+      "source_access_limitations": [
+        {
+          "url": "https://www.upwork.com/ai/mcp",
+          "result": "Direct web open403; search returned the full text of the official URL. Vendor GitHub independently confirms endpoint/transport/browser authorization; no account login or bypass attempted."
+        }
+      ],
+      "implementation_status": "not_implemented_in_official_catalog"
+    },
+    {
+      "name": "Granola",
+      "popular_position": 19,
+      "interface": {
+        "kind": "official_remote_mcp",
+        "endpoint": "https://mcp.granola.ai/mcp",
+        "transport": "Streamable HTTP",
+        "scope": "Accessible notes in the currently active workspace; personal/public scope and tool availability depend on plan/admin policy."
+      },
+      "auth": {
+        "method": "Browser OAuth with DCR; optional enterprise EMA/CIMD is a distinct route",
+        "dcr": "documented_supported_for_standard_browser_flow",
+        "openagent_manual_app_registration": "no manual client ID/secret for documented standard DCR flow",
+        "keyless_public_read": false
+      },
+      "prerequisites": [
+        "Granola account with existing meeting notes",
+        "Workspace policy permits MCP access"
+      ],
+      "commercial_gate": "Plan/workspace policy limits notes and tools; the separate API-key route requires Business/Enterprise. No plan was acquired.",
+      "unknowns": [
+        "Exact standard-flow advertised scopes/refresh behavior and actual OpenAgent negotiation",
+        "A permitted dedicated note for acceptance; no API sandbox is documented"
+      ],
+      "minimal_next_step": "Prefer standard MCP OAuth/DCR and a bounded get_account_info/list_meetings/get_meetings read. Exclude switch_workspace and sign_out from a read-only subset because they change account/session state.",
+      "confidence": {
+        "interface": "high",
+        "auth": "high",
+        "registration": "high"
+      },
+      "sources": [
+        {
+          "url": "https://docs.granola.ai/help-center/sharing/integrations/mcp",
+          "supports": "General clients, DCR, plan/workspace scope, tools and distinction from enterprise EMA"
+        },
+        {
+          "url": "https://docs.granola.ai/help-center/sharing/integrations/granola-api",
+          "supports": "Separate Business/Enterprise API-key route and no sandbox"
+        }
+      ],
+      "implementation_status": "not_implemented_in_official_catalog"
+    }
+  ],
+  "implementation_status": "not_implemented_not_qualified"
+}

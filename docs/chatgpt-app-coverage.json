@@ -16,7 +16,7 @@
     "card_occurrences": 4219,
     "distinct_display_names": 4133,
     "popular_cards": 50,
-    "display_name_groups_with_primary_interface_findings": 26
+    "display_name_groups_with_primary_interface_findings": 32
   },
   "source_catalog": {
     "repository": "https://github.com/openagent-uno/openagent-tools",
@@ -57,6 +57,78 @@
     {
       "url": "https://github.com/openagent-uno/openagent-tools/blob/05059be75d3a68571a19683c517be4c04da6505f/packages/connectors/catalog.go",
       "purpose": "Committed catalog baseline; in-progress additions tracked separately."
+    },
+    {
+      "url": "https://github.com/desktop-commander/remote-desktop-commander",
+      "purpose": "Remote Desktop Commander: Endpoint, independent-client setup, OAuth/PKCE/device pairing and runtime requirements"
+    },
+    {
+      "url": "https://desktopcommander.app/pricing/",
+      "purpose": "Remote Desktop Commander: Remote Free/Pro and distinction from local stdio"
+    },
+    {
+      "url": "https://openai.com/business/plugins/remote-desktop-commander/",
+      "purpose": "Remote Desktop Commander: Directory card identity maps to Desktop Commander, not similarly named RDPSoft software"
+    },
+    {
+      "url": "https://flaim.app/docs/custom-connectors",
+      "purpose": "Flaim Fantasy: General custom-client endpoint, Streamable HTTP and OAuth"
+    },
+    {
+      "url": "https://flaim.app/docs/ai",
+      "purpose": "Flaim Fantasy: Free service, account/league prerequisites, external read-only scope"
+    },
+    {
+      "url": "https://flaim.app/docs",
+      "purpose": "Flaim Fantasy: Supported league connection methods"
+    },
+    {
+      "url": "https://wpvibe.ai/docs/ai-client-setup/",
+      "purpose": "WPVibe: Generic clients, OAuth and empty client fields"
+    },
+    {
+      "url": "https://wpvibe.ai/docs/connect-a-wordpress-site/",
+      "purpose": "WPVibe: Application-password consent, reachability and optional deeper plugin"
+    },
+    {
+      "url": "https://mcp.wpvibe.ai/pricing",
+      "purpose": "WPVibe: Free allowance and paid-volume account limits"
+    },
+    {
+      "url": "https://mcp.windsor.ai/",
+      "purpose": "Windsor.ai: MCP endpoint, OAuth+DCR/Bearer alternative and read/write tool distinction"
+    },
+    {
+      "url": "https://windsor.ai/documentation/windsor-mcp/how-to-connect-windsor-mcp-to-any-ai-client/",
+      "purpose": "Windsor.ai: Independent-client setup and account/source prerequisites"
+    },
+    {
+      "url": "https://windsor.ai/pricing/",
+      "purpose": "Windsor.ai: MCP plan inclusion and trial/Forever Free limits"
+    },
+    {
+      "url": "https://www.upwork.com/ai/mcp?trk=public_profile__reactions-text",
+      "purpose": "Upwork: Official any-client MCP, endpoint, OAuth2.1+DCR, cost, full-scope and draft-confirm constraints; page says last updated2026-08-04"
+    },
+    {
+      "url": "https://github.com/upwork/upwork-agent-plugin/blob/master/mcp.json",
+      "purpose": "Upwork: Vendor-published Streamable HTTP endpoint manifest"
+    },
+    {
+      "url": "https://github.com/upwork/upwork-agent-plugin",
+      "purpose": "Upwork: Portable independent-client MCP/skills package and browser authorization"
+    },
+    {
+      "url": "https://www.upwork.com/developer",
+      "purpose": "Upwork: Separate API route requires verified-account/API-key application"
+    },
+    {
+      "url": "https://docs.granola.ai/help-center/sharing/integrations/mcp",
+      "purpose": "Granola: General clients, DCR, plan/workspace scope, tools and distinction from enterprise EMA"
+    },
+    {
+      "url": "https://docs.granola.ai/help-center/sharing/integrations/granola-api",
+      "purpose": "Granola: Separate Business/Enterprise API-key route and no sandbox"
     }
   ],
   "current_catalog": [
@@ -29361,9 +29433,49 @@
       "openagent_status": "not_implemented_in_official_catalog",
       "connector_id": null,
       "chatgpt_feature_parity": "not_qualified",
-      "access_findings": [],
-      "access_status": "public_interface_not_established_by_this_audit",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
+      "access_findings": [
+        {
+          "kind": "public_mcp",
+          "source_url": "https://flaim.app/docs/custom-connectors",
+          "finding": "Fantasy league context; external league trades/lineups are not writable.",
+          "endpoint": "https://api.flaim.app/mcp",
+          "transport": "Streamable HTTP",
+          "authentication": {
+            "method": "Browser OAuth to the Flaim account",
+            "dcr": "unknown_in_current_live_documentation",
+            "openagent_manual_app_registration": "not_shown_by_current_custom-client_guide; do not assume DCR or reuse ChatGPT credentials",
+            "keyless_public_read": false
+          },
+          "prerequisites": [
+            "Free Flaim account",
+            "Existing authorized ESPN/Yahoo/Sleeper league connection; ESPN setup uses a desktop Chrome extension"
+          ],
+          "access_conditions": "Vendor describes a free service; account and existing authorized league remain necessary. AI-client plan rules are separate.",
+          "confidence": {
+            "interface": "high",
+            "auth": "high",
+            "registration": "unknown"
+          },
+          "unknowns": [
+            "Exact current OAuth version/PKCE/scopes/registration contract",
+            "General-client eligibility and minimal tool schema"
+          ],
+          "audit_receipt": "docs/chatgpt-primary-interface-audit-2026-10-17.json",
+          "primary_urls": [
+            "https://flaim.app/docs/custom-connectors",
+            "https://flaim.app/docs/ai",
+            "https://flaim.app/docs"
+          ],
+          "source_access_limitations": [
+            {
+              "url": "https://github.com/jdguggs10/flaim/blob/main/docs/CONNECTOR-DOCS.md",
+              "result": "404 on open; search index described OAuth2.1/PKCE/DCR but stale indexed text is not promoted to a current verified contract"
+            }
+          ]
+        }
+      ],
+      "access_status": "documented_interface_requires_integration_qualification",
+      "next_action": "Confirm the current registration protocol from vendor-maintained documentation, then use an existing explicitly approved QA league through MCP OAuth; no new league/account is created by this audit. Research does not create a registered OpenAgent app, grant or implementation."
     },
     {
       "name": "Flash",
@@ -33129,9 +33241,42 @@
       "openagent_status": "not_implemented_in_official_catalog",
       "connector_id": null,
       "chatgpt_feature_parity": "not_qualified",
-      "access_findings": [],
-      "access_status": "public_interface_not_established_by_this_audit",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
+      "access_findings": [
+        {
+          "kind": "public_mcp",
+          "source_url": "https://docs.granola.ai/help-center/sharing/integrations/mcp",
+          "finding": "Accessible notes in the currently active workspace; personal/public scope and tool availability depend on plan/admin policy.",
+          "endpoint": "https://mcp.granola.ai/mcp",
+          "transport": "Streamable HTTP",
+          "authentication": {
+            "method": "Browser OAuth with DCR; optional enterprise EMA/CIMD is a distinct route",
+            "dcr": "documented_supported_for_standard_browser_flow",
+            "openagent_manual_app_registration": "no manual client ID/secret for documented standard DCR flow",
+            "keyless_public_read": false
+          },
+          "prerequisites": [
+            "Granola account with existing meeting notes",
+            "Workspace policy permits MCP access"
+          ],
+          "access_conditions": "Plan/workspace policy limits notes and tools; the separate API-key route requires Business/Enterprise. No plan was acquired.",
+          "confidence": {
+            "interface": "high",
+            "auth": "high",
+            "registration": "high"
+          },
+          "unknowns": [
+            "Exact standard-flow advertised scopes/refresh behavior and actual OpenAgent negotiation",
+            "A permitted dedicated note for acceptance; no API sandbox is documented"
+          ],
+          "audit_receipt": "docs/chatgpt-primary-interface-audit-2026-10-17.json",
+          "primary_urls": [
+            "https://docs.granola.ai/help-center/sharing/integrations/mcp",
+            "https://docs.granola.ai/help-center/sharing/integrations/granola-api"
+          ]
+        }
+      ],
+      "access_status": "documented_interface_requires_integration_qualification",
+      "next_action": "Prefer standard MCP OAuth/DCR and a bounded get_account_info/list_meetings/get_meetings read. Exclude switch_workspace and sign_out from a read-only subset because they change account/session state. Research does not create a registered OpenAgent app, grant or implementation."
     },
     {
       "name": "GrantLink",
@@ -59085,9 +59230,43 @@
       "openagent_status": "not_implemented_in_official_catalog",
       "connector_id": null,
       "chatgpt_feature_parity": "not_qualified",
-      "access_findings": [],
-      "access_status": "public_interface_not_established_by_this_audit",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
+      "access_findings": [
+        {
+          "kind": "public_mcp",
+          "source_url": "https://github.com/desktop-commander/remote-desktop-commander",
+          "finding": "Paired-computer files, terminal/processes and device management; hosted implementation is proprietary.",
+          "endpoint": "https://mcp.desktopcommander.app/mcp",
+          "transport": "Streamable HTTP",
+          "authentication": {
+            "method": "OAuth2 with PKCE; separate device authorization pairing",
+            "dcr": "not_established_by_reviewed_docs",
+            "openagent_manual_app_registration": "unknown; generic OAuth client is documented but registration mechanism was not established",
+            "keyless_public_read": false
+          },
+          "prerequisites": [
+            "Vendor account and explicit device pairing",
+            "Node18+ agent kept running on the selected computer"
+          ],
+          "access_conditions": "Remote service plans/quotas and separate free local stdio mode must be reviewed; no purchase or device grant was made.",
+          "confidence": {
+            "interface": "high",
+            "auth": "high",
+            "registration": "unknown"
+          },
+          "unknowns": [
+            "Exact client-registration/scopes/refresh contract",
+            "Current beta eligibility and OpenAgent end-to-end compatibility"
+          ],
+          "audit_receipt": "docs/chatgpt-primary-interface-audit-2026-10-17.json",
+          "primary_urls": [
+            "https://github.com/desktop-commander/remote-desktop-commander",
+            "https://desktopcommander.app/pricing/",
+            "https://openai.com/business/plugins/remote-desktop-commander/"
+          ]
+        }
+      ],
+      "access_status": "documented_interface_requires_integration_qualification",
+      "next_action": "After release closure, inspect OAuth discovery/registration contract before a user-approved device pairing and a bounded read-only QA folder test. Do not substitute OpenAgent host tools for this vendor surface. Research does not create a registered OpenAgent app, grant or implementation."
     },
     {
       "name": "Rendemo",
@@ -74679,9 +74858,50 @@
       "openagent_status": "not_implemented_in_official_catalog",
       "connector_id": null,
       "chatgpt_feature_parity": "not_qualified",
-      "access_findings": [],
-      "access_status": "public_interface_not_established_by_this_audit",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
+      "access_findings": [
+        {
+          "kind": "public_mcp",
+          "source_url": "https://www.upwork.com/ai/mcp?trk=public_profile__reactions-text",
+          "finding": "Role/account discovery, hiring/work records and draft-confirm actions; not an unrestricted GraphQL proxy.",
+          "endpoint": "https://mcp.upwork.com/mcp",
+          "transport": "Streamable HTTP",
+          "authentication": {
+            "method": "OAuth2.1 with DCR per vendor MCP guide",
+            "dcr": "documented_supported",
+            "openagent_manual_app_registration": "not_required_for_documented_MCP_DCR; separate GraphQL route requires developer keys/application",
+            "keyless_public_read": false
+          },
+          "prerequisites": [
+            "Upwork account and browser authorization",
+            "Account role/permissions suitable for chosen read"
+          ],
+          "access_conditions": "Ordinary Upwork marketplace fees/Connects and financial confirmation requirements remain; no expenditure or marketplace action was authorized.",
+          "confidence": {
+            "interface": "high",
+            "auth": "high-primary-indexed-guide",
+            "registration": "high-primary-indexed-guide"
+          },
+          "unknowns": [
+            "Actual OpenAgent OAuth compatibility and tool schema freeze",
+            "Smallest requested authorization: vendor currently describes full MCP scope grant"
+          ],
+          "audit_receipt": "docs/chatgpt-primary-interface-audit-2026-10-17.json",
+          "primary_urls": [
+            "https://www.upwork.com/ai/mcp?trk=public_profile__reactions-text",
+            "https://github.com/upwork/upwork-agent-plugin/blob/master/mcp.json",
+            "https://github.com/upwork/upwork-agent-plugin",
+            "https://www.upwork.com/developer"
+          ],
+          "source_access_limitations": [
+            {
+              "url": "https://www.upwork.com/ai/mcp",
+              "result": "Direct web open403; search returned the full text of the official URL. Vendor GitHub independently confirms endpoint/transport/browser authorization; no account login or bypass attempted."
+            }
+          ]
+        }
+      ],
+      "access_status": "documented_interface_requires_integration_qualification",
+      "next_action": "Use official MCP OAuth/DCR for one approved account read, not a new GraphQL client application. Keep message/proposal/job/financial writes out of the initial read-only subset. Research does not create a registered OpenAgent app, grant or implementation."
     },
     {
       "name": "UrbanPro Tutor Finder",
@@ -78137,9 +78357,43 @@
       "openagent_status": "not_implemented_in_official_catalog",
       "connector_id": null,
       "chatgpt_feature_parity": "not_qualified",
-      "access_findings": [],
-      "access_status": "public_interface_not_established_by_this_audit",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
+      "access_findings": [
+        {
+          "kind": "public_mcp",
+          "source_url": "https://mcp.windsor.ai/",
+          "finding": "Account-connected business data and separately exposed write actions.",
+          "endpoint": "https://mcp.windsor.ai/",
+          "transport": "Remote MCP over HTTP",
+          "authentication": {
+            "method": "OAuth2 metadata discovery with DCR; alternatively vendor API key as Bearer for MCP",
+            "dcr": "documented_supported",
+            "openagent_manual_app_registration": "not_needed_for_documented_DCR_route; requires actual vendor login/consent",
+            "keyless_public_read": false
+          },
+          "prerequisites": [
+            "Active Windsor account",
+            "At least one authorized data source for meaningful data reads"
+          ],
+          "access_conditions": "Account plans limit sources/accounts/history; no plan or data-source access was acquired.",
+          "confidence": {
+            "interface": "high",
+            "auth": "high",
+            "registration": "high"
+          },
+          "unknowns": [
+            "Exact negotiated scopes and tenant/account selection bindings",
+            "Tool schema/version freeze and quotas for the selected QA account"
+          ],
+          "audit_receipt": "docs/chatgpt-primary-interface-audit-2026-10-17.json",
+          "primary_urls": [
+            "https://mcp.windsor.ai/",
+            "https://windsor.ai/documentation/windsor-mcp/how-to-connect-windsor-mcp-to-any-ai-client/",
+            "https://windsor.ai/pricing/"
+          ]
+        }
+      ],
+      "access_status": "documented_interface_requires_integration_qualification",
+      "next_action": "Prefer vendor MCP OAuth/DCR over cloning its data connectors; admit read-only get_current_user/get_connectors first, then one bounded query to an approved source. Writes need separate host permission. Research does not create a registered OpenAgent app, grant or implementation."
     },
     {
       "name": "Windsor.ai Facebook Ads",
@@ -78997,9 +79251,49 @@
       "openagent_status": "not_implemented_in_official_catalog",
       "connector_id": null,
       "chatgpt_feature_parity": "not_qualified",
-      "access_findings": [],
-      "access_status": "public_interface_not_established_by_this_audit",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
+      "access_findings": [
+        {
+          "kind": "public_mcp",
+          "source_url": "https://wpvibe.ai/docs/ai-client-setup/",
+          "finding": "Self-hosted WordPress content/site operations; deeper theme/files/WP-CLI surface uses the WPVibe plugin.",
+          "endpoint": "https://mcp.wpvibe.ai/mcp",
+          "transport": "Remote HTTP MCP",
+          "authentication": {
+            "method": "Browser OAuth with email-code login; vendor guides leave client ID/secret empty",
+            "dcr": "not_explicitly_confirmed; automatic sign-in is documented",
+            "openagent_manual_app_registration": "not_required_by_documented_client_setup; exact negotiated metadata remains untested",
+            "keyless_public_read": false
+          },
+          "prerequisites": [
+            "WPVibe account (free login can create one)",
+            "Authorized reachable WordPress REST site and application-password consent; appropriate WordPress user permissions"
+          ],
+          "access_conditions": "Account-level daily quotas and paid higher-volume plans apply; no upgrade or WordPress permission was granted.",
+          "confidence": {
+            "interface": "high",
+            "auth": "high",
+            "registration": "medium"
+          },
+          "unknowns": [
+            "Exact OAuth registration/scopes/refresh contract",
+            "Typed bounded read subset and approval semantics of each write tool"
+          ],
+          "audit_receipt": "docs/chatgpt-primary-interface-audit-2026-10-17.json",
+          "primary_urls": [
+            "https://wpvibe.ai/docs/ai-client-setup/",
+            "https://wpvibe.ai/docs/connect-a-wordpress-site/",
+            "https://mcp.wpvibe.ai/pricing"
+          ],
+          "source_access_limitations": [
+            {
+              "url": "https://wpvibe.ai/docs/ai-client-setup/",
+              "result": "Initial audit web reader returned vendor documentation. Independent root reread later returned a reader internal error; no auth endpoint or live integration was tested."
+            }
+          ]
+        }
+      ],
+      "access_status": "documented_interface_requires_integration_qualification",
+      "next_action": "Use official MCP OAuth with a permitted existing test site, initially only connection/site-summary reads; no plugin install, wp-admin grant or site mutation without separate authorization. Research does not create a registered OpenAgent app, grant or implementation."
     },
     {
       "name": "WPWriter",
