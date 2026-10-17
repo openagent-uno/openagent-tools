@@ -383,7 +383,7 @@ func TestMicrosoftGraphFailuresAreTypedSanitizedAndNeverRetried(t *testing.T) {
 		calls := 0
 		a, _ := NewMicrosoftGraphAdapter("outlook_mail", doerFunc(func(*http.Request) (*http.Response, error) {
 			calls++
-			return jsonResponse(status, `{"error":{"message":"provider-secret private-content"}}`, http.Header{"Retry-After": {"1"}}), nil
+			return jsonResponse(status, `{"error":{"message":"provider-secret private-content"}}`, map[string]string{"Retry-After": "1"}), nil
 		}))
 		inv := microsoftGraphInvocation(t, a, "messages.send", `{"message_id":"draft"}`)
 		_, err := a.Invoke(context.Background(), inv)

@@ -22,8 +22,12 @@ import (
 const microsoftGraphOrigin = "https://graph.microsoft.com"
 const microsoftGraphMaxResponse = 4 << 20
 
-var microsoftGraphID = regexp.MustCompile(`^[A-Za-z0-9_+=!/-]{1,1024}$`)
+var microsoftGraphID = regexp.MustCompile(`^[A-Za-z0-9_+=!/-]+$`)
 var microsoftGraphETag = regexp.MustCompile(`^(W/)?"[\x21\x23-\x7e]{1,512}"$`)
+
+func validMicrosoftGraphID(id string) bool {
+	return len(id) >= 1 && len(id) <= 1024 && microsoftGraphID.MatchString(id)
+}
 
 // MicrosoftGraphAdapter exposes the signed-in mailbox/calendar only. Host OAuth
 // verifies /me with User.Read and binds its id to Connection.ExternalID; this
@@ -543,7 +547,7 @@ func (a *MicrosoftGraphAdapter) plan(inv domain.Invocation) (microsoftGraphPlan,
 	for _, k := range p.op.Required {
 		if strings.HasSuffix(k, "_id") {
 			id, ok := args[k].(string)
-			if !ok || !microsoftGraphID.MatchString(id) {
+			if !ok || !validMicrosoftGraphID(id) {
 				return p, domain.ErrInvalidArguments
 			}
 			path = strings.ReplaceAll(path, "{"+k+"}", url.PathEscape(id))
@@ -728,13 +732,13 @@ func (a *MicrosoftGraphAdapter) Invoke(ctx context.Context, inv domain.Invocatio
 		for _, item := range items {
 			object, ok := item.(map[string]any)
 			id, stringID := object["id"].(string)
-			if !ok || !stringID || !microsoftGraphID.MatchString(id) {
+			if !ok || !stringID || !validMicrosoftGraphID(id) {
 				return domain.Result{}, failure("invalid_response")
 			}
 		}
 	} else {
 		id, ok := decoded["id"].(string)
-		if !ok || !microsoftGraphID.MatchString(id) {
+		if !ok || !validMicrosoftGraphID(id) {
 			return domain.Result{}, failure("invalid_response")
 		}
 	}
