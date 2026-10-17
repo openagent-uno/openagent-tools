@@ -32,6 +32,20 @@ SDK16_KEYLESS = {
     "context7": ("context7", {"files.context7.resolve_library", "files.context7.query_docs"}),
     "coingecko": ("coingecko", {"files.coingecko.price", "files.coingecko.global"}),
 }
+SDK17_OAUTH = {
+    "google-calendar": ("google_calendar", "files", "files.google_calendar.",
+        {"calendars.list", "calendars.get", "events.list", "events.get"},
+        {"events.create", "events.update", "events.delete"},
+        ["https://www.googleapis.com/auth/calendar.calendarlist.readonly", "https://www.googleapis.com/auth/calendar.events"]),
+    "outlook-mail": ("outlook_mail", "outreach", "outreach.outlook_mail.",
+        {"folders.list", "folders.get", "messages.list", "messages.get", "attachments.list", "attachments.get"},
+        {"drafts.create", "drafts.update", "messages.send"},
+        ["offline_access", "User.Read", "Mail.ReadWrite"]),
+    "outlook-calendar": ("outlook_calendar", "files", "files.outlook_calendar.",
+        {"calendars.list", "calendars.get", "events.list", "events.get"},
+        {"events.create", "events.update", "events.delete"},
+        ["offline_access", "User.Read", "Calendars.ReadWrite"]),
+}
 
 
 def sha(data):
@@ -58,10 +72,11 @@ def verify_catalog_cohort(version, catalog):
         raise ValueError("custom MCP catalog contract mismatch")
     official = {row["id"]: row for row in catalog if not row.get("nativeKind")}
     expected = {"0.1.5": SDK15_OFFICIAL_IDS,
-                "0.1.6": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS)}.get(version)
+                "0.1.6": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS),
+                "0.1.7": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS) | set(SDK17_OAUTH)}.get(version)
     if expected is not None and set(official) != expected:
         raise ValueError("release catalog identities differ from the reviewed cohort")
-    if version == "0.1.6":
+    if version in {"0.1.6", "0.1.7"}:
         for identifier, (provider, tools) in SDK16_KEYLESS.items():
             row = official[identifier]
             reads = row.get("readTools")
@@ -71,6 +86,18 @@ def verify_catalog_cohort(version, catalog):
                     or any(not isinstance(tool, str) for tool in reads)
                     or len(reads) != len(tools) or set(reads) != tools):
                 raise ValueError("new keyless connector contract differs from the reviewed cohort")
+    if version == "0.1.7":
+        for identifier, (provider, capability, prefix, reads, writes, _) in SDK17_OAUTH.items():
+            row = official[identifier]
+            if (row.get("provider") != provider or row.get("auth") != "oauth"
+                    or row.get("capability") != capability or row.get("available") is not True
+                    or row.get("nativeKind") or row.get("readTools") is None or row.get("agentTools") is None):
+                raise ValueError("new OAuth connector contract differs from the reviewed cohort")
+            for field, operations in (("readTools", reads), ("agentTools", writes)):
+                values = row[field]
+                if (not isinstance(values, list) or any(not isinstance(value, str) for value in values)
+                        or len(values) != len(operations) or set(values) != {prefix + op for op in operations}):
+                    raise ValueError("new OAuth connector tools differ from the reviewed cohort")
     return {"sdk_version": version, "official_ids": sorted(official), "official_count": len(official),
             "custom_ids": ["custom-mcp"], "exact_version_cohort": expected is not None}
 
@@ -87,11 +114,87 @@ def source_sdk_version(source, expected=None):
 
 def verify_source_python_catalog(source, version, catalog):
     """SDK16's offline source fallback must not be repaired only in the build snapshot."""
-    if version != "0.1.6":
+    if version not in {"0.1.6", "0.1.7"}:
         return
     path = source / "packages/connectors-python/src/openagent_connectors/catalog.json"
     if json.loads(path.read_bytes()) != {"version": version, "connectors": catalog}:
         raise ValueError("Source Python fallback catalog differs from the generated SDK catalog")
+
+
+def verify_calendar_mail_tools(identifier, tools, *, send_authorized=False):
+    """Check installed runner metadata; this never invokes a provider operation."""
+    provider, capability, prefix, reads, writes, _ = SDK17_OAUTH[identifier]
+    expected = {prefix + operation for operation in reads | writes}
+    if identifier == "outlook-mail" and not send_authorized:
+        expected.remove(prefix + "messages.send")
+    if (not isinstance(tools, list) or any(not isinstance(tool, dict) for tool in tools)
+            or len(tools) != len(expected) or {tool.get("name") for tool in tools} != expected):
+        raise ValueError("Calendar/mail operation identities or separate send grant differ")
+    for tool in tools:
+        operation = tool["name"][len(prefix):]
+        if identifier == "google-calendar":
+            scope = SDK17_OAUTH[identifier][5][0 if operation.startswith("calendars.") else 1]
+        elif operation.startswith("calendars."):
+            scope = "Calendars.ReadBasic"
+        elif identifier == "outlook-calendar":
+            scope = "Calendars.Read" if operation in reads else "Calendars.ReadWrite"
+        elif operation.startswith("folders."):
+            scope = "Mail.ReadBasic"
+        elif operation == "messages.send":
+            scope = "Mail.Send"
+        else:
+            scope = "Mail.Read" if operation in reads else "Mail.ReadWrite"
+        risk = "read" if operation in reads else ("publish" if operation == "messages.send" else
+                "draft" if operation.startswith("drafts.") else "destructive" if operation.endswith(".delete") else "write")
+        schema = tool.get("inputSchema")
+        if (tool.get("provider") != provider or tool.get("capability") != capability
+                or tool.get("mode") != "typed" or tool.get("risk") != risk
+                or tool.get("required_scopes") != [scope] or tool.get("retry", {}).get("max_attempts") != 1
+                or not isinstance(schema, dict) or schema.get("type") != "object"
+                or schema.get("additionalProperties") is not False or not isinstance(schema.get("properties"), dict)):
+            raise ValueError("Calendar/mail typed schema, scope or retry contract differs")
+        properties = schema["properties"]
+        provider_schema = properties.get("provider", {})
+        if ("connection_id" not in properties
+                or not (provider_schema.get("const") == provider or provider_schema.get("enum") == [provider])):
+            raise ValueError("Calendar/mail schema connection binding differs")
+        if operation.endswith((".update", ".delete")):
+            if "etag" not in schema.get("required", []) or properties.get("etag", {}).get("type") != "string":
+                raise ValueError("Calendar/mail write version precondition differs")
+        if "body" in properties:
+            body = properties["body"]
+            if ("body" not in schema.get("required", []) or body.get("type") != "object"
+                    or body.get("additionalProperties") is not False):
+                raise ValueError("Calendar/mail write body must remain a closed typed object")
+    return {"operations": len(tools), "schemas_sha256": sha(json.dumps(tools, sort_keys=True, separators=(",", ":")).encode()),
+            "send_authorized": send_authorized, "provider_calls": 0}
+
+
+def calendar_mail_native_metadata(executable):
+    requests, contracts = [], []
+    for identifier, (provider, capability, _, _, _, scopes) in SDK17_OAUTH.items():
+        for send in ([False, True] if identifier == "outlook-mail" else [False]):
+            binding = {"catalog_id": identifier, "allow_write": True,
+                "principal": {"workspace_id": "metadata-fixture", "actor_id": "owner"},
+                "connection": {"id": "metadata-connection", "workspace_id": "metadata-fixture", "provider": provider,
+                    "capability": capability, "enabled": True, "external_id": "metadata-account",
+                    "scopes": scopes + (["Mail.Send"] if send else []), "config": {}}}
+            requests.append(json.dumps({"id": str(len(requests)), "method": "tools", "params": binding}))
+            contracts.append((identifier, send))
+    process = subprocess.run([str(executable)], input="\n".join(requests) + "\n", text=True,
+        stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, timeout=30, check=True)
+    if len(process.stdout) > 1 << 20:
+        raise ValueError("Calendar/mail metadata exceeds qualification bound")
+    replies = process.stdout.splitlines()
+    if len(replies) != len(contracts):
+        raise ValueError("Calendar/mail metadata response count differs")
+    receipt = []
+    for index, (line, (identifier, send)) in enumerate(zip(replies, contracts)):
+        reply = json.loads(line)
+        if reply.get("id") != str(index) or "error" in reply:
+            raise ValueError("Calendar/mail metadata binding failed")
+        receipt.append({"catalog_id": identifier, **verify_calendar_mail_tools(identifier, reply.get("result"), send_authorized=send)})
+    return {"source": "acquired native runner tools metadata", "real_provider_grants": 0, "provider_calls": 0, "contracts": receipt}
 
 
 def fetch(url, limit=16 << 20):
@@ -292,9 +395,15 @@ def main():
                 f"acquire(Path({str(evidence / lock_name)!r}), {native_target!r}, " + \
                 f"Path({str(temporary / bundle_name)!r}), Path({str(temporary / 'acquired-wheelhouse')!r}), Path({str(bundles)!r}))"
         run([str(host_python), "-I", "-c", acquire_code("acquisition-lock.json", "bundle")], "public-host-acquisition", temporary)
+        if sdk_version == "0.1.7":
+            write(evidence / "calendar-mail-metadata.json", calendar_mail_native_metadata(
+                temporary / "bundle/bin/openagent-connector-runner"))
         tests = temporary / "tests"
         tests.mkdir()
         shutil.copyfile(source / "packages/connectors-python/tests/test_privacy.py", tests / "test_privacy.py")
+        if sdk_version == "0.1.7":
+            shutil.copyfile(source / "packages/connectors-python/tests/test_runner_provider_errors.py",
+                            tests / "test_runner_provider_errors.py")
         run([str(sdk_python), "-I", "-m", "unittest", "discover", "-s", str(tests), "-v"], "privacy-tests", temporary)
         run([str(sdk_python), "-I", str(source / "scripts/verify_connectors_native.py"),
              "--bundle", str(temporary / "bundle"), "--source-commit", commit,

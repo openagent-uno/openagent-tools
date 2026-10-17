@@ -104,17 +104,142 @@ class ReceiptBindingTests(unittest.TestCase):
         self.assert_rejected("native consumer bundle identity mismatch")
 
 
+class CalendarMailMetadataTests(unittest.TestCase):
+    def google_tools(self):
+        rows = []
+        for operation, scope, risk in (
+                ("calendars.list", "calendar.calendarlist.readonly", "read"),
+                ("calendars.get", "calendar.calendarlist.readonly", "read"),
+                ("events.list", "calendar.events", "read"),
+                ("events.get", "calendar.events", "read"),
+                ("events.create", "calendar.events", "write"),
+                ("events.update", "calendar.events", "write"),
+                ("events.delete", "calendar.events", "destructive")):
+            properties = {"connection_id": {"type": "string"}, "provider": {"enum": ["google_calendar"]}}
+            required = []
+            if operation.endswith((".update", ".delete")):
+                properties["etag"] = {"type": "string"}
+                required.append("etag")
+            if operation.endswith((".create", ".update")):
+                properties["body"] = {"type": "object", "additionalProperties": False}
+                required.append("body")
+            rows.append({"name": "files.google_calendar." + operation, "provider": "google_calendar",
+                "capability": "files", "mode": "typed", "risk": risk,
+                "required_scopes": ["https://www.googleapis.com/auth/" + scope], "retry": {"max_attempts": 1},
+                "inputSchema": {"type": "object", "additionalProperties": False,
+                                "properties": properties, "required": required}})
+        return rows
+
+    def mail_tools(self):
+        rows = []
+        for operation, scope, risk in (
+                ("folders.list", "Mail.ReadBasic", "read"), ("folders.get", "Mail.ReadBasic", "read"),
+                ("messages.list", "Mail.Read", "read"), ("messages.get", "Mail.Read", "read"),
+                ("attachments.list", "Mail.Read", "read"), ("attachments.get", "Mail.Read", "read"),
+                ("drafts.create", "Mail.ReadWrite", "draft"), ("drafts.update", "Mail.ReadWrite", "draft"),
+                ("messages.send", "Mail.Send", "publish")):
+            properties = {"connection_id": {"type": "string"}, "provider": {"const": "outlook_mail"}}
+            required = []
+            if operation == "drafts.update":
+                properties["etag"] = {"type": "string"}
+                required.append("etag")
+            if operation.startswith("drafts."):
+                properties["body"] = {"type": "object", "additionalProperties": False}
+                required.append("body")
+            rows.append({"name": "outreach.outlook_mail." + operation, "provider": "outlook_mail",
+                "capability": "outreach", "mode": "typed", "risk": risk,
+                "required_scopes": [scope], "retry": {"max_attempts": 1},
+                "inputSchema": {"type": "object", "additionalProperties": False,
+                                "properties": properties, "required": required}})
+        return rows
+
+    def test_closed_calendar_schema_scope_and_conflict_guards_are_required(self):
+        self.assertEqual(REMOTE.verify_calendar_mail_tools("google-calendar", self.google_tools())["operations"], 7)
+        for mutation in ("scope", "raw", "retry", "open", "etag", "body"):
+            with self.subTest(mutation=mutation):
+                rows = self.google_tools()
+                update = next(row for row in rows if row["name"].endswith("events.update"))
+                if mutation == "scope":
+                    update["required_scopes"] = ["https://www.googleapis.com/auth/calendar"]
+                elif mutation == "raw":
+                    update["mode"] = "raw"
+                elif mutation == "retry":
+                    update["retry"]["max_attempts"] = 2
+                elif mutation == "open":
+                    update["inputSchema"]["additionalProperties"] = True
+                elif mutation == "etag":
+                    update["inputSchema"]["required"].remove("etag")
+                elif mutation == "body":
+                    update["inputSchema"]["properties"]["body"]["additionalProperties"] = True
+                with self.assertRaises(ValueError):
+                    REMOTE.verify_calendar_mail_tools("google-calendar", rows)
+
+    def test_default_mail_scope_does_not_authorize_send_or_allow_scope_substitution(self):
+        rows = self.mail_tools()
+        default = [row for row in rows if not row["name"].endswith("messages.send")]
+        self.assertEqual(REMOTE.verify_calendar_mail_tools("outlook-mail", default)["operations"], 8)
+        self.assertEqual(REMOTE.verify_calendar_mail_tools("outlook-mail", rows, send_authorized=True)["operations"], 9)
+        with self.assertRaises(ValueError):
+            REMOTE.verify_calendar_mail_tools("outlook-mail", rows)
+        with self.assertRaises(ValueError):
+            REMOTE.verify_calendar_mail_tools("outlook-mail", default, send_authorized=True)
+        rows[-1]["required_scopes"] = ["Mail.ReadWrite"]
+        with self.assertRaises(ValueError):
+            REMOTE.verify_calendar_mail_tools("outlook-mail", rows, send_authorized=True)
+
+
 class ReleaseCohortTests(unittest.TestCase):
     """Pure catalog/source fixtures; no build, provider or package installation."""
 
     def catalog(self, version="0.1.6"):
         rows = [{"id": name, "available": True} for name in sorted(REMOTE.SDK15_OFFICIAL_IDS)]
         rows.append({"id": "custom-mcp", "available": True, "nativeKind": "custom_mcp"})
-        if version == "0.1.6":
+        if version in {"0.1.6", "0.1.7"}:
             for identifier, (provider, tools) in REMOTE.SDK16_KEYLESS.items():
                 rows.append({"id": identifier, "provider": provider, "auth": "none", "capability": "files",
                              "available": True, "agentTools": [], "readTools": sorted(tools)})
+        if version == "0.1.7":
+            for identifier, (provider, capability, prefix, reads, writes, _) in REMOTE.SDK17_OAUTH.items():
+                rows.append({"id": identifier, "provider": provider, "auth": "oauth", "capability": capability,
+                             "available": True, "readTools": sorted(prefix + op for op in reads),
+                             "agentTools": sorted(prefix + op for op in writes)})
         return rows
+
+    def test_sdk17_binds_twenty_two_identities_and_exact_seven_nine_seven_operations(self):
+        cohort = REMOTE.verify_catalog_cohort("0.1.7", self.catalog("0.1.7"))
+        self.assertEqual(cohort["official_count"], 22)
+        self.assertTrue(cohort["exact_version_cohort"])
+        for identifier, count in (("google-calendar", 7), ("outlook-mail", 9), ("outlook-calendar", 7)):
+            row = next(row for row in self.catalog("0.1.7") if row["id"] == identifier)
+            self.assertEqual(len(row["readTools"]) + len(row["agentTools"]), count)
+
+    def test_sdk17_rejects_substitution_auth_tool_duplicates_and_retains_keyless_guards(self):
+        for identifier, field, value in (
+                ("google-calendar", "id", "unreviewed-calendar"),
+                ("google-calendar", "provider", "another-account-provider"),
+                ("outlook-mail", "auth", "none"),
+                ("outlook-mail", "capability", "files"),
+                ("outlook-calendar", "available", False),
+                ("outlook-calendar", "agentTools", ["files.outlook_calendar.raw"]),
+                ("google-calendar", "readTools", ["files.google_calendar.events.get"] * 4),
+                ("coingecko", "auth", "oauth")):
+            with self.subTest(identifier=identifier, field=field):
+                rows = self.catalog("0.1.7")
+                next(row for row in rows if row["id"] == identifier)[field] = value
+                with self.assertRaises(ValueError):
+                    REMOTE.verify_catalog_cohort("0.1.7", rows)
+
+    def test_sdk17_source_fallback_must_match_all_new_entries(self):
+        with tempfile.TemporaryDirectory(prefix="connector-source17-fixture-") as temporary:
+            root = Path(temporary)
+            path = root / "packages/connectors-python/src/openagent_connectors/catalog.json"
+            path.parent.mkdir(parents=True)
+            catalog = self.catalog("0.1.7")
+            path.write_text(json.dumps({"version": "0.1.7", "connectors": catalog}))
+            REMOTE.verify_source_python_catalog(root, "0.1.7", catalog)
+            path.write_text(json.dumps({"version": "0.1.7", "connectors": self.catalog("0.1.6")}))
+            with self.assertRaisesRegex(ValueError, "Source Python fallback"):
+                REMOTE.verify_source_python_catalog(root, "0.1.7", catalog)
 
     def test_sdk16_binds_nineteen_identities_and_one_custom_entry(self):
         cohort = REMOTE.verify_catalog_cohort("0.1.6", self.catalog())
