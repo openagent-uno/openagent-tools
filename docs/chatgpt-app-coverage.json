@@ -81,7 +81,7 @@
           "http_status": 200,
           "attempts": 1,
           "duration_ms": 681,
-          "response_bytes": 323,
+          "output_bytes": 323,
           "scope": "API success only; response did not contain the OpenAgent marker, so search relevance was not established."
         },
         {
@@ -89,7 +89,7 @@
           "http_status": 200,
           "attempts": 1,
           "duration_ms": 982,
-          "response_bytes": 1376
+          "output_bytes": 1376
         }
       ],
       "shared_library_public_version": "0.1.5",
@@ -117,14 +117,14 @@
           "http_status": 200,
           "attempts": 1,
           "duration_ms": 1544,
-          "response_bytes": 1306
+          "output_bytes": 1306
         },
         {
           "tool": "files.firecrawl.scrape",
           "http_status": 200,
           "attempts": 1,
           "duration_ms": 2956,
-          "response_bytes": 6686
+          "output_bytes": 6686
         }
       ],
       "shared_library_public_version": "0.1.5",
@@ -27066,7 +27066,7 @@
           "http_status": 200,
           "attempts": 1,
           "duration_ms": 681,
-          "response_bytes": 323,
+          "output_bytes": 323,
           "scope": "API success only; response did not contain the OpenAgent marker, so search relevance was not established."
         },
         {
@@ -27074,7 +27074,7 @@
           "http_status": 200,
           "attempts": 1,
           "duration_ms": 982,
-          "response_bytes": 1376
+          "output_bytes": 1376
         }
       ],
       "shared_library_public_version": "0.1.5",
@@ -28980,14 +28980,14 @@
           "http_status": 200,
           "attempts": 1,
           "duration_ms": 1544,
-          "response_bytes": 1306
+          "output_bytes": 1306
         },
         {
           "tool": "files.firecrawl.scrape",
           "http_status": 200,
           "attempts": 1,
           "duration_ms": 2956,
-          "response_bytes": 6686
+          "output_bytes": 6686
         }
       ],
       "shared_library_public_version": "0.1.5",
@@ -80577,7 +80577,7 @@
             "http_status": 200,
             "attempts": 1,
             "duration_ms": 681,
-            "response_bytes": 323,
+            "output_bytes": 323,
             "scope": "API success only; response did not contain the OpenAgent marker, so search relevance was not established."
           },
           {
@@ -80585,7 +80585,7 @@
             "http_status": 200,
             "attempts": 1,
             "duration_ms": 982,
-            "response_bytes": 1376
+            "output_bytes": 1376
           }
         ],
         "firecrawl": [
@@ -80594,14 +80594,14 @@
             "http_status": 200,
             "attempts": 1,
             "duration_ms": 1544,
-            "response_bytes": 1306
+            "output_bytes": 1306
           },
           {
             "tool": "files.firecrawl.scrape",
             "http_status": 200,
             "attempts": 1,
             "duration_ms": 2956,
-            "response_bytes": 6686
+            "output_bytes": 6686
           }
         ]
       }
