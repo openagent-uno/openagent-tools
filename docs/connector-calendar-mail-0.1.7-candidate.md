@@ -1,8 +1,12 @@
-# Calendar and mail source candidate 0.1.7
+# Calendar and mail prerelease 0.1.7
 
-Status: source implementation; remote tests, publication and real OAuth acceptance
-are pending. Published SDK 0.1.6 and Server 43/App 20 do not include these entries.
-No provider is centrally enabled by adding a catalog descriptor.
+Status: [SDK 0.1.7 published](https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.7) from `f2cecfe3672e48a7724324fef5e41072cde697bf`.
+Go race/vet/govulncheck, twelve binaries, the Python wheel, public installed-host
+acquisition and Linux-native runner/broker fixtures passed. The other five
+targets have cross-build evidence only. [Qualification receipt](connector-calendar-mail-0.1.7-qualification.json).
+Real Google/Microsoft OAuth acceptance remains pending; common enrollment for
+these three providers is closed. Server 43/App 20 remain on SDK 0.1.6 and do not
+include these entries. No provider is centrally enabled by adding a catalog descriptor.
 
 | Connector | Provider | Typed operations | Initial boundary |
 | --- | --- | --- | --- |
@@ -46,9 +50,8 @@ Successful 202/204 acknowledgements must have an empty body. Calendar and mail
 widgets, synchronization engines, projections and editors are host compositions;
 this work adds reusable connector operations rather than implementing those apps.
 
-Before publication: run canonical remote Go race/vet/build/security checks,
-OAuth fixtures, runner/Python contract checks and product acquisition. Register
-or extend the existing provider apps, preserve issuer metadata, test fresh
+Before common enrollment: register or extend the existing provider apps,
+preserve issuer metadata, test fresh
 account consent plus refresh/restart/disconnection, and verify official logos in
 the shared marketplace grid. Missing provider consent or approval keeps common
 enrollment closed. Never report fixture tests as real OAuth acceptance.

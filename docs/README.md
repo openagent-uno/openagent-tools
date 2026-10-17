@@ -5,17 +5,17 @@ records all publicly observed category cards, the editorial Popular order and
 the API/MCP research backlog. Implementation, registration, published artifacts
 and real provider qualification are recorded separately.
 
-The published shared SDK/runner is **0.1.6**, with nineteen official entries.
+The published shared SDK/runner is **0.1.7**, with twenty-two official entries.
 The [0.1.6 qualification receipt](connector-keyless-0.1.6-qualification.json)
 records the remote build and actual read boundaries. OpenAgent Server/CLI
-**1.1.0-beta.43** uses those bundles; App **1.1.0-beta.20** is its matching
+**1.1.0-beta.43** remains pinned to SDK 0.1.6; App **1.1.0-beta.20** is its matching
 native release. The [coverage index](chatgpt-app-coverage.md) links the evidence.
 
-The **0.1.7 source candidate** adds Google Calendar, Outlook Mail and Outlook
-Calendar. Its [candidate contract](connector-calendar-mail-0.1.7-candidate.md)
-describes the operation subsets and remaining test/registration gates. Published
-artifacts remain 0.1.6 until that candidate is qualified. Provider registrations,
-secret custody and actual OAuth acceptance are separate from implementation.
+The [**0.1.7 prerelease**](https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.7) adds Google Calendar, Outlook Mail and Outlook
+Calendar. Its [operation contract](connector-calendar-mail-0.1.7-candidate.md)
+and [qualification receipt](connector-calendar-mail-0.1.7-qualification.json) record
+six cross-platform bundles and actual Linux runner/acquisition checks. Provider
+registrations, secret custody and actual Google/Microsoft OAuth acceptance remain separate gates; common enrollment for these three providers stays closed.
 
 The public capability guide is at
 [openagent.uno](https://openagent.uno/guide/mcp); this repository remains the
@@ -104,4 +104,4 @@ identify itself in MCP instructions and disconnect from an independently
 supervised Chrome without closing that Chrome process. App and CLI behavior
 remains unchanged.
 
-- [Calendar and mail 0.1.7 source candidate](connector-calendar-mail-0.1.7-candidate.md) — operation subsets and remaining acceptance gates.
+- [Calendar and mail 0.1.7 prerelease](connector-calendar-mail-0.1.7-candidate.md) — operation subsets and remaining acceptance gates.

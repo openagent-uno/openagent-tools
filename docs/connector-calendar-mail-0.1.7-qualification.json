@@ -1,0 +1,109 @@
+{
+  "format": 1,
+  "status": "contract-qualified-prerelease",
+  "version": "0.1.7",
+  "source_commit": "f2cecfe3672e48a7724324fef5e41072cde697bf",
+  "source_sha256": "c544f313a6d545eeae898884b54a4bbca43845c10c6506814afd01ddc8257f3b",
+  "go_toolchain": "go1.26.9",
+  "payloads": {
+    "catalog.json": {
+      "sha256": "ae3e0675d9cebce6f94f6f61fda89595629cfbbeb4d15489dffd7e5c8ba09e85",
+      "bytes": 16759
+    },
+    "openagent-connectors-0.1.7-darwin-arm64.tar.gz": {
+      "sha256": "7ce4a3f6a506813812c592f4d9089741266e23c3e3e51bd205c7e1ba08a6c256",
+      "bytes": 6952908
+    },
+    "openagent-connectors-0.1.7-darwin-x64.tar.gz": {
+      "sha256": "c3b4eb8e663e5a22389e9ccededee54aa059d3bb3726ddf1be84eadeab50c41e",
+      "bytes": 7546005
+    },
+    "openagent-connectors-0.1.7-linux-arm64.tar.gz": {
+      "sha256": "9fc1f55d4cd6d57cfec1bca431be769ea60a00e2f9f7c7bc1b933ce7557954cf",
+      "bytes": 6704254
+    },
+    "openagent-connectors-0.1.7-linux-x64.tar.gz": {
+      "sha256": "719ab62357e15fad79638c8e8036755e11a5bcaf5e259e00fb67af9b025eaa00",
+      "bytes": 7433940
+    },
+    "openagent-connectors-0.1.7-win32-arm64.tar.gz": {
+      "sha256": "3142e8dd9081540ae73c9bfefc33c015f8128af23b73a2cf7137744ed2d58afa",
+      "bytes": 6775436
+    },
+    "openagent-connectors-0.1.7-win32-x64.tar.gz": {
+      "sha256": "b0b239d05b8f7fe392999096261b3cd8a6a5b9a452bc7496adf284fa2a454672",
+      "bytes": 7593146
+    },
+    "openagent_connectors-0.1.7-py3-none-any.whl": {
+      "sha256": "201bbfc5e2796eb95049d2c47f599ea03f0e928be5e66ef99846e4b6a82f9bfa",
+      "bytes": 10117
+    }
+  },
+  "qualifier_sha256": "7f9b921b6be6ba2d19003554e939030d252ef7afae874951f6c05b75d913edd3",
+  "qualifier_source_commit": "f2cecfe3672e48a7724324fef5e41072cde697bf",
+  "qualifier_source_path": "scripts/qualify_connectors.py",
+  "qualifier_source_url": "https://github.com/openagent-uno/openagent-tools/blob/f2cecfe3672e48a7724324fef5e41072cde697bf/scripts/qualify_connectors.py",
+  "checks": {
+    "platform_bundles": 6,
+    "compiled_binaries": 12,
+    "payload_checksums": "verified",
+    "race_tests": "passed",
+    "vet": "passed",
+    "govulncheck": {
+      "tool": "v1.6.0",
+      "database": "https://vuln.go.dev",
+      "result": "no vulnerabilities found"
+    }
+  },
+  "evidence": {
+    "logs": {
+      "race_tests": {
+        "file": "race.log",
+        "bytes": 600,
+        "sha256": "b17ea12e893851aa7355f9625a8ae89fb26a02346e4ed252d7f574b3315e756b"
+      },
+      "vet": {
+        "file": "vet.log",
+        "bytes": 0,
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      },
+      "govulncheck": {
+        "file": "govulncheck.log",
+        "bytes": 964,
+        "sha256": "f9d284e07caf52929bae065596d1631180e415737a03e7a576dc6a1fe9dd5f9a"
+      }
+    },
+    "receipts": {
+      "artifacts": {
+        "file": "artifacts.json",
+        "bytes": 1073,
+        "sha256": "e80fadc1602a044d6c3d2dc8312023661744388f5018d822f2bcf265bc4e5b5a"
+      },
+      "consumer": {
+        "file": "consumer.json",
+        "bytes": 725,
+        "sha256": "d2af5c19464d31cd45ab0019c486284a33cf6a13edfefb0278326ff6965ff990"
+      },
+      "native_broker": {
+        "file": "native-broker.json",
+        "bytes": 317,
+        "sha256": "241962bce2a28602aac5312ca8f4d405560eeedeb041d4a8bd837d2db9af182c"
+      }
+    }
+  },
+  "coverage": {
+    "native_runtime": [
+      "linux-x64 smoke"
+    ],
+    "other_platforms": "cross-compilation and checksum/toolchain verification only",
+    "mcp": "normally installed candidate adapter/protocol import smoke; full host transport acceptance separate"
+  },
+  "pending": [
+    "real provider OAuth and dual-server Shopify acceptance",
+    "product-local privacy processing and coordinated product rollout",
+    "native runtime acceptance for targets other than linux-x64",
+    "applicable provider reviews",
+    "production capacity/admission and common app activation"
+  ],
+  "revocation_fence": "calling installation/provider/app grant only; no Google account correlation across aliases or servers"
+}
