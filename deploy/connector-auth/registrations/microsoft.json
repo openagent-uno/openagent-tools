@@ -22,5 +22,20 @@
     "Publisher verification required for external multitenant user consent",
     "Fresh receiving-installation consent and real lifecycle qualification"
   ],
-  "callbacks_saved": "2026-10-18"
+  "callbacks_saved": "2026-10-18",
+  "cloud": "global",
+  "account_audience": "AzureADandPersonalMicrosoftAccount",
+  "oauth_settings_verified": false,
+  "production_secret_configured": false,
+  "public_console_checkpoint": {
+    "date": "2026-10-18",
+    "reference": "registration_verified and callbacks_saved in this registration record",
+    "registration_metadata_commit": "12c7f367cad2b7175475bc7474944e8a0a8ab001",
+    "facts": [
+      "global-cloud registration",
+      "work/school and personal Microsoft account audience",
+      "four Web redirect callbacks saved"
+    ],
+    "client_authentication_and_permissions_attested": false
+  }
 }
