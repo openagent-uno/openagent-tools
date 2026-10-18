@@ -56,6 +56,10 @@ class PrepareProviderTrialTests(unittest.TestCase):
 
     def test_pending_calendar_metadata_cannot_prepare_output(self):
         self.write_metadata()
+        registration_path = self.base / "registrations/google.json"
+        registration = json.loads(registration_path.read_text())
+        registration["calendar_preparation"].update(api_enabled=False, calendar_scopes_declared=False)
+        registration_path.write_text(json.dumps(registration))
         with self.assertRaises(ValueError):
             self.prepare()
         self.assertFalse(self.output.exists())
