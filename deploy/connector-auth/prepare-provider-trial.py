@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+"""Prepare an additive provider trial config; never read secrets or apply it."""
+import argparse
+import hashlib
+import json
+from pathlib import Path
+
+BASE = Path(__file__).resolve().parent
+PUBLIC = {"clickup", "github", "notion"}
+TRIAL = ("gmail", "google_drive", "google_analytics", "google_calendar", "outlook_mail", "outlook_calendar")
+GRAPH = "https://graph.microsoft.com/"
+
+
+def reviewed_registration(row):
+    provider = row["id"]
+    microsoft = provider.startswith("outlook_")
+    registration = json.loads((BASE / "registrations" / ("microsoft.json" if microsoft else "google.json")).read_text())
+    reference = registration.get("secret_reference") or {}
+    if (not row.get("client_id") or "registration-pending" in row.get("app_id", "")
+            or row["client_id"] != registration.get("client_id")
+            or row["app_id"] != ("microsoft:" if microsoft else "google:") + row["client_id"]
+            or row["redirect_uri"] != "https://auth.openagent.uno/v1/oauth/" + provider + "/callback"
+            or row["redirect_uri"] not in registration.get("redirect_uris", [])
+            or row["secret_file"] != reference.get("mount_path")
+            or reference.get("namespace") != "openagent-connectors"
+            or reference.get("name") != "connector-auth-secrets"
+            or row["secret_file"] != "/secrets/" + str(reference.get("key", ""))
+            or row["pkce"] is not True):
+        raise ValueError("provider must match the existing reviewed registration and secret reference")
+    scopes = row["scopes"]
+    if (not isinstance(scopes, list) or not scopes or not all(isinstance(scope, str) for scope in scopes)
+            or len(scopes) != len(set(scopes))):
+        raise ValueError("distinct reviewed scopes are required")
+    if microsoft:
+        family = "Mail." if provider == "outlook_mail" else "Calendars."
+        allowed = ({"Mail.ReadBasic", "Mail.Read", "Mail.ReadWrite", "Mail.Send"} if family == "Mail."
+                   else {"Calendars.ReadBasic", "Calendars.Read", "Calendars.ReadWrite"})
+        canonical = [scope[len(GRAPH):] if scope.startswith(GRAPH) else scope for scope in scopes]
+        if (registration.get("cloud") != "global" or not registration.get("account_audience")
+                or registration.get("oauth_settings_verified") is not True
+                or registration.get("production_secret_configured") is not True
+                or row["authorization_url"] != "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
+                or row["token_url"] != "https://login.microsoftonline.com/common/oauth2/v2.0/token"
+                or row.get("revocation_url")
+                or len(canonical) != len(set(canonical))
+                or GRAPH + "offline_access" in scopes
+                or not {"offline_access", "User.Read"} <= set(canonical)
+                or not (set(canonical) - {"offline_access", "User.Read"})
+                or not set(canonical) <= allowed | {"offline_access", "User.Read"}
+                or any(scope != "offline_access" and not scope.startswith(GRAPH) for scope in scopes)):
+            raise ValueError("Microsoft trial requires verified global-cloud app metadata and exact Graph scopes")
+        if not set(scopes) <= set(registration.get("declared_scopes", [])):
+            raise ValueError("Microsoft scopes are not recorded on the existing app")
+    else:
+        services = {"gmail": {"gmail.googleapis.com"}, "google_drive": {"drive.googleapis.com"},
+                    "google_analytics": {"analyticsdata.googleapis.com", "analyticsadmin.googleapis.com"},
+                    "google_calendar": {"calendar-json.googleapis.com"}}[provider]
+        if (registration.get("publication_status") != "testing" or not registration.get("test_users")
+                or row["authorization_url"] != "https://accounts.google.com/o/oauth2/v2/auth"
+                or row["token_url"] != "https://oauth2.googleapis.com/token"
+                or row.get("revocation_url") != "https://oauth2.googleapis.com/revoke"
+                or not services <= set(registration.get("enabled_apis", []))
+                or not set(scopes) <= set(registration.get("declared_scopes", []))):
+            raise ValueError("Google trial requires recorded Testing users, enabled API and declared scopes")
+        if provider == "google_calendar":
+            calendar = registration.get("calendar_preparation") or {}
+            expected = {"https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+                        "https://www.googleapis.com/auth/calendar.events"}
+            if (set(scopes) != expected or calendar.get("api_enabled") is not True
+                    or calendar.get("calendar_scopes_declared") is not True):
+                raise ValueError("Calendar API and scope preparation remains incomplete")
+
+
+def prepare(provider, baseline, output):
+    if provider not in TRIAL:
+        raise ValueError("provider is outside this finite trial")
+    reviewed = json.loads((BASE / "providers-reviewed.json").read_text())
+    known = {row["id"]: row for row in reviewed}
+    if len(known) != len(reviewed):
+        raise ValueError("reviewed provider identifiers must be unique")
+    raw = Path(baseline).read_bytes()
+    current = json.loads(raw)
+    if not isinstance(current, list) or any(not isinstance(row, dict) for row in current):
+        raise ValueError("baseline must be the current provider array")
+    ids = [row.get("id") for row in current]
+    if (len(ids) != len(set(ids)) or not PUBLIC <= set(ids) or provider in ids
+            or not set(ids) <= PUBLIC | set(TRIAL)
+            or any(row != known.get(row.get("id")) for row in current)):
+        raise ValueError("preserve the reviewed public providers and every existing row without replacement")
+    selected = known.get(provider)
+    if selected is None:
+        raise ValueError("existing app registration and reviewed provider row are not available")
+    reviewed_registration(selected)
+    # No global QA flag, resource manifests, provider calls or app mutations.
+    output = Path(output)
+    output.mkdir(parents=True, exist_ok=False)
+    (output / "providers.json").write_text(json.dumps(current + [selected], indent=2) + "\n")
+    (output / "trial-metadata.json").write_text(json.dumps({
+        "status": "prepared-not-applied-or-provider-qualified", "added_provider": provider,
+        "preserved_provider_ids": ids, "baseline_sha256": hashlib.sha256(raw).hexdigest(),
+        "global_qa_enrollment_added": False, "new_grants": 0,
+        "google_trial_requires_recorded_testing_users": not provider.startswith("outlook_"),
+        "provider_review_attested": False,
+    }, indent=2) + "\n")
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--provider", choices=TRIAL, required=True)
+    parser.add_argument("--baseline-providers", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+    try:
+        prepare(args.provider, args.baseline_providers, args.output)
+    except (ValueError, OSError, KeyError, TypeError):
+        parser.error("trial preparation refused; review current baseline and verified registration metadata")
+    print("Prepared provider file only; image compatibility, CAS rollout and actual consent remain separate.")
+
+
+if __name__ == "__main__":
+    main()

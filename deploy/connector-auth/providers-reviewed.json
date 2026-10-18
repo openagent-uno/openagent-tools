@@ -43,6 +43,21 @@
     "pkce": true
   },
   {
+    "id": "google_calendar",
+    "app_id": "google:992152108114-pe90eq2hr1i1ruag482s9oje6ifg8mcn.apps.googleusercontent.com",
+    "client_id": "992152108114-pe90eq2hr1i1ruag482s9oje6ifg8mcn.apps.googleusercontent.com",
+    "secret_file": "/secrets/google-client-secret",
+    "authorization_url": "https://accounts.google.com/o/oauth2/v2/auth",
+    "token_url": "https://oauth2.googleapis.com/token",
+    "revocation_url": "https://oauth2.googleapis.com/revoke",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/google_calendar/callback",
+    "scopes": [
+      "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+      "https://www.googleapis.com/auth/calendar.events"
+    ],
+    "pkce": true
+  },
+  {
     "id": "clickup",
     "app_id": "clickup:UD5K7XJRRR6Z8BV2SIXSDUPI19P4G9HM",
     "client_id": "UD5K7XJRRR6Z8BV2SIXSDUPI19P4G9HM",

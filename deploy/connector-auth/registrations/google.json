@@ -45,9 +45,10 @@
     "gmail.googleapis.com",
     "drive.googleapis.com",
     "analyticsdata.googleapis.com",
-    "analyticsadmin.googleapis.com"
+    "analyticsadmin.googleapis.com",
+    "calendar-json.googleapis.com"
   ],
-  "api_enablement_verified": "2026-10-12",
+  "api_enablement_verified": "2026-10-18",
   "production_secret_storage": {
     "facility": "Kubernetes Secret",
     "datastore_encryption": "Enabled",
@@ -57,13 +58,13 @@
   "calendar_preparation": {
     "callback_saved": "2026-10-17",
     "api_service": "calendar-json.googleapis.com",
-    "api_enabled": false,
+    "api_enabled": true,
     "calendar_scopes_declared": false,
     "common_enrollment_enabled": false,
     "remaining": [
-      "Calendar API specific terms and service enablement",
       "Calendar scope declaration and provider verification where required",
       "Fresh receiving-installation consent and real lifecycle qualification"
-    ]
+    ],
+    "api_enablement_verified": "2026-10-18"
   }
 }
