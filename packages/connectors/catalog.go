@@ -1,8 +1,11 @@
 package connectors
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"github.com/openagent-uno/openagent-tools/packages/connectors/providers"
+)
 
-const Version = "0.1.7"
+const Version = "0.1.8"
 
 type Item struct {
 	ID                string   `json:"id"`
@@ -11,6 +14,9 @@ type Item struct {
 	Category          string   `json:"category"`
 	Auth              string   `json:"auth"`
 	Icon              string   `json:"icon"`
+	LogoSVG           string   `json:"logoSvg,omitempty"`
+	SetupURL          string   `json:"setupUrl,omitempty"`
+	SetupInstructions string   `json:"setupInstructions,omitempty"`
 	Capability        string   `json:"capability"`
 	Provider          string   `json:"provider"`
 	ReadTools         []string `json:"readTools"`
@@ -24,6 +30,17 @@ type CatalogEntry struct {
 }
 
 var catalogEntries = []CatalogEntry{
+	{Item: Item{
+		ID: "onedrive", Name: "OneDrive", Description: "Read existing account drives and host-bound file metadata or bounded file contents. No file mutations or automatic drive provisioning.",
+		Category: "Productivity", Auth: "oauth", Icon: "cloud", Capability: "files", Provider: "onedrive",
+		ReadTools: []string{"files.onedrive.drives.list", "files.onedrive.drives.get", "files.onedrive.items.list", "files.onedrive.items.get", "files.onedrive.items.content"}, AgentTools: []string{},
+	}},
+	{Item: Item{
+		ID: "sharepoint", Name: "SharePoint", Description: "Find authorized sites and read host-bound document libraries, file metadata and bounded contents using explicit delegated Sites.Read.All consent.",
+		Category: "Productivity", Auth: "oauth", Icon: "files", Capability: "files", Provider: "sharepoint",
+		ReadTools: []string{"files.sharepoint.sites.search", "files.sharepoint.sites.get", "files.sharepoint.drives.list", "files.sharepoint.drives.get", "files.sharepoint.items.list", "files.sharepoint.items.get", "files.sharepoint.items.content"}, AgentTools: []string{},
+	}},
+
 	{Item: Item{
 		ID: "google-calendar", Name: "Google Calendar", Description: "Read calendars and events across connected Google accounts, and create, update or delete authorized events with version checks.",
 		Category: "Productivity", Auth: "oauth", Icon: "calendar", Capability: "files", Provider: "google_calendar",
@@ -191,8 +208,22 @@ func Catalog() []CatalogEntry {
 	data, _ := json.Marshal(catalogEntries)
 	var result []CatalogEntry
 	_ = json.Unmarshal(data, &result)
+	if extra, err := providers.ReviewedBatchCatalog(); err == nil {
+		seen := map[string]bool{}
+		for _, item := range result {
+			seen[item.ID] = true
+		}
+		for _, item := range extra {
+			if seen[item.ID] {
+				continue
+			}
+			seen[item.ID] = true
+			result = append(result, CatalogEntry{Item: Item{ID: item.ID, Name: item.Name, Description: item.Description, Category: item.Category, Auth: item.Auth, Icon: item.Icon, SetupURL: item.SetupURL, SetupInstructions: item.SetupInstructions, Capability: item.Capability, Provider: item.Provider, ReadTools: item.ReadTools, AgentTools: []string{}, Available: true}})
+		}
+	}
 	for i := range result {
 		item := &result[i]
+		item.LogoSVG = Brandmark(item.Provider)
 		item.Available = len(item.ReadTools)+len(item.AgentTools) > 0 || item.NativeKind == "custom_mcp"
 		if !item.Available {
 			item.UnavailableReason = "No reviewed tool implementation"

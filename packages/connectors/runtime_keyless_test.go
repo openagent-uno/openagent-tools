@@ -70,8 +70,8 @@ func mustRuntimeToken(t *testing.T) domain.Credential {
 
 func TestCandidateCatalogIncludesNextKeylessProvidersWithoutChangingPriorIdentities(t *testing.T) {
 	items := Catalog()
-	if len(items) != 23 {
-		t.Fatal("candidate catalog must contain twenty-two official entries and Custom MCP")
+	if len(items) != 115 {
+		t.Fatal("candidate catalog must contain 114 official entries and Custom MCP")
 	}
 	for _, test := range []struct{ id, provider, first, second string }{
 		{"parallel-search", "parallel_search", "files.parallel.search", "files.parallel.fetch"},

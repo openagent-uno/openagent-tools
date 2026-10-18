@@ -1381,11 +1381,33 @@ func CatalogWithDoer(doer HTTPDoer, configured ...CatalogOptions) ([]domain.Adap
 		}
 		adapters = append(adapters, adapter)
 	}
+	for _, provider := range []string{"onedrive", "sharepoint"} {
+		adapter, err := NewMicrosoftFilesAdapter(provider, doer)
+		if err != nil {
+			return nil, err
+		}
+		adapters = append(adapters, adapter)
+	}
 	for _, provider := range []string{"exa", "firecrawl", "parallel_search", "context7", "coingecko"} {
 		adapter, err := NewKeylessMCPAdapter(provider, doer)
 		if err != nil {
 			return nil, err
 		}
+		adapters = append(adapters, adapter)
+	}
+	batch, err := reviewedBatchAdapters(doer)
+	if err != nil {
+		return nil, err
+	}
+	seenProviders := map[string]bool{}
+	for _, adapter := range adapters {
+		seenProviders[adapter.Provider()] = true
+	}
+	for _, adapter := range batch {
+		if seenProviders[adapter.Provider()] {
+			return nil, errors.New("reviewed connector duplicates an existing provider")
+		}
+		seenProviders[adapter.Provider()] = true
 		adapters = append(adapters, adapter)
 	}
 	return adapters, nil

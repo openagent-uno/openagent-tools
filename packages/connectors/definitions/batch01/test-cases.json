@@ -1,0 +1,4365 @@
+{
+  "schema_version": 1,
+  "batch_id": "batch01",
+  "status": "designed_not_executed",
+  "test_execution_performed": false,
+  "provider_calls": 0,
+  "requirements": [
+    "Execute future fixtures through production HTTPAdapter and compiled schema wrapper, not a fake standalone transport.",
+    "Assert Preview validates without resolving credentials or making HTTP calls.",
+    "Assert Invoke sends exactly the approved method, origin, path, query, body and headers.",
+    "Synthetic fixtures prove request/error boundaries only; live owner-authorized reads, pagination, refresh/restart/disconnect are separate acceptance."
+  ],
+  "cases": [
+    {
+      "provider": "supabase",
+      "operation": "files.supabase.projects.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "supabase"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.supabase.com",
+        "path_template": "/v1/projects",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "[].id",
+          "[].name",
+          "[].region",
+          "[].status"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "supabase",
+      "operation": "files.supabase.projects.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "supabase",
+        "ref": "abcdefghijklmnopqrst"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.supabase.com",
+        "path_template": "/v1/projects/{ref}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "id",
+          "name",
+          "region",
+          "status"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "render",
+      "operation": "files.render.services.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "render"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.render.com",
+        "path_template": "/v1/services",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "[].service.id",
+          "[].service.name",
+          "[].service.type"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "render",
+      "operation": "files.render.deploys.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "render",
+        "service_id": "srv_example"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.render.com",
+        "path_template": "/v1/services/{service_id}/deploys",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "[].deploy.id",
+          "[].deploy.status",
+          "[].deploy.createdAt"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "klaviyo",
+      "operation": "outreach.klaviyo.profiles.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "klaviyo"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://a.klaviyo.com",
+        "path_template": "/api/profiles",
+        "query_mapping": {},
+        "fixed_query": {
+          "page[size]": "25"
+        },
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {
+          "revision": "2026-10-15"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "Klaviyo-API-Key",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "profiles:read"
+        ],
+        "output_projection": [
+          "data[].id",
+          "data[].attributes.email",
+          "data[].attributes.created"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "klaviyo",
+      "operation": "outreach.klaviyo.campaigns.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "klaviyo"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://a.klaviyo.com",
+        "path_template": "/api/campaigns",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {
+          "revision": "2026-10-15"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "Klaviyo-API-Key",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "campaigns:read"
+        ],
+        "output_projection": [
+          "data[].id",
+          "data[].attributes.name",
+          "data[].attributes.status"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "canva",
+      "operation": "files.canva.designs.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "canva"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.canva.com",
+        "path_template": "/rest/v1/designs",
+        "query_mapping": {
+          "query": "query",
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "design:meta:read"
+        ],
+        "output_projection": [
+          "items[].id",
+          "items[].title",
+          "items[].created_at",
+          "items[].updated_at",
+          "continuation"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "canva",
+      "operation": "files.canva.designs.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "canva",
+        "design_id": "DAExample"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.canva.com",
+        "path_template": "/rest/v1/designs/{design_id}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "design:meta:read"
+        ],
+        "output_projection": [
+          "design.id",
+          "design.title",
+          "design.owner.user_id",
+          "design.owner.team_id",
+          "design.page_count"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "railway",
+      "operation": "files.railway.account.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "railway",
+        "variables": {}
+      },
+      "expected": {
+        "method": "POST",
+        "origin": "https://backboard.railway.com",
+        "path_template": "/graphql/v2",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "graphql",
+        "graphql_document": "query OpenAgentRailwayMe { me { id name email } }",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "data.me.id",
+          "data.me.name",
+          "data.me.email"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "arbitrary document/variables unknown keys or HTTP200 errors/missing data",
+          "expected": "invalid_arguments_or_provider_error"
+        }
+      ]
+    },
+    {
+      "provider": "railway",
+      "operation": "files.railway.projects.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "railway",
+        "variables": {
+          "id": "project-example"
+        }
+      },
+      "expected": {
+        "method": "POST",
+        "origin": "https://backboard.railway.com",
+        "path_template": "/graphql/v2",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "graphql",
+        "graphql_document": "query OpenAgentRailwayProject($id: String!) { project(id: $id) { id name description createdAt } }",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "data.project.id",
+          "data.project.name",
+          "data.project.description",
+          "data.project.createdAt"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "arbitrary document/variables unknown keys or HTTP200 errors/missing data",
+          "expected": "invalid_arguments_or_provider_error"
+        }
+      ]
+    },
+    {
+      "provider": "vercel",
+      "operation": "files.vercel.projects.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "vercel"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.vercel.com",
+        "path_template": "/v9/projects",
+        "query_mapping": {
+          "limit": "limit",
+          "teamId": "teamId"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "projects[].id",
+          "projects[].name",
+          "projects[].framework",
+          "pagination.count"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "vercel",
+      "operation": "files.vercel.deployments.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "vercel"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.vercel.com",
+        "path_template": "/v6/deployments",
+        "query_mapping": {
+          "limit": "limit",
+          "projectId": "projectId",
+          "teamId": "teamId"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "deployments[].uid",
+          "deployments[].name",
+          "deployments[].state",
+          "deployments[].created",
+          "pagination.count"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "gitlab",
+      "operation": "files.gitlab.projects.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "gitlab"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://gitlab.com",
+        "path_template": "/api/v4/projects",
+        "query_mapping": {
+          "per_page": "per_page"
+        },
+        "fixed_query": {
+          "membership": "true"
+        },
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "read_api"
+        ],
+        "output_projection": [
+          "[].id",
+          "[].name",
+          "[].path_with_namespace",
+          "[].description"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "gitlab",
+      "operation": "files.gitlab.issues.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "gitlab",
+        "project_id": "123"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://gitlab.com",
+        "path_template": "/api/v4/projects/{project_id}/issues",
+        "query_mapping": {
+          "per_page": "per_page"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "read_api"
+        ],
+        "output_projection": [
+          "[].id",
+          "[].iid",
+          "[].title",
+          "[].state",
+          "[].updated_at"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "hubspot",
+      "operation": "files.hubspot.contacts.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "hubspot"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.hubapi.com",
+        "path_template": "/crm/v3/objects/contacts",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {
+          "properties": "firstname,lastname,email"
+        },
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "crm.objects.contacts.read"
+        ],
+        "output_projection": [
+          "results[].id",
+          "results[].properties.firstname",
+          "results[].properties.lastname",
+          "results[].properties.email",
+          "paging.next.after"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "hubspot",
+      "operation": "files.hubspot.companies.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "hubspot"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.hubapi.com",
+        "path_template": "/crm/v3/objects/companies",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {
+          "properties": "name,domain"
+        },
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "crm.objects.companies.read"
+        ],
+        "output_projection": [
+          "results[].id",
+          "results[].properties.name",
+          "results[].properties.domain",
+          "paging.next.after"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "asana",
+      "operation": "files.asana.projects.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "asana"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://app.asana.com",
+        "path_template": "/api/1.0/projects",
+        "query_mapping": {
+          "workspace": "workspace",
+          "limit": "limit",
+          "offset": "offset"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "projects:read"
+        ],
+        "output_projection": [
+          "data[].gid",
+          "data[].name",
+          "next_page.offset"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "offset"
+          ],
+          "response_fields": [
+            "next_page.offset"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "asana",
+      "operation": "files.asana.tasks.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "asana",
+        "project": "123"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://app.asana.com",
+        "path_template": "/api/1.0/tasks",
+        "query_mapping": {
+          "project": "project",
+          "limit": "limit",
+          "offset": "offset"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "tasks:read"
+        ],
+        "output_projection": [
+          "data[].gid",
+          "data[].name",
+          "next_page.offset"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "offset"
+          ],
+          "response_fields": [
+            "next_page.offset"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "todoist",
+      "operation": "files.todoist.projects.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "todoist"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.todoist.com",
+        "path_template": "/api/v1/projects",
+        "query_mapping": {
+          "cursor": "cursor",
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "results[].id",
+          "results[].name",
+          "next_cursor"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "cursor"
+          ],
+          "response_fields": [
+            "next_cursor"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "todoist",
+      "operation": "files.todoist.tasks.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "todoist"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.todoist.com",
+        "path_template": "/api/v1/tasks",
+        "query_mapping": {
+          "project_id": "project_id",
+          "cursor": "cursor",
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "results[].id",
+          "results[].content",
+          "results[].project_id",
+          "results[].due.date",
+          "results[].due.string",
+          "results[].due.is_recurring",
+          "results[].due.datetime",
+          "next_cursor"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "cursor"
+          ],
+          "response_fields": [
+            "next_cursor"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "monday",
+      "operation": "files.monday.boards.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "monday",
+        "variables": {
+          "limit": 25
+        }
+      },
+      "expected": {
+        "method": "POST",
+        "origin": "https://api.monday.com",
+        "path_template": "/v2",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "graphql",
+        "graphql_document": "query OpenAgentMondayBoards($limit: Int = 25) { boards(limit: $limit, page: 1) { id name state } }",
+        "fixed_headers": {
+          "API-Version": "2026-07"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "data.boards[].id",
+          "data.boards[].name",
+          "data.boards[].state"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "arbitrary document/variables unknown keys or HTTP200 errors/missing data",
+          "expected": "invalid_arguments_or_provider_error"
+        }
+      ]
+    },
+    {
+      "provider": "monday",
+      "operation": "files.monday.items.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "monday",
+        "variables": {
+          "board_id": "123",
+          "limit": 25
+        }
+      },
+      "expected": {
+        "method": "POST",
+        "origin": "https://api.monday.com",
+        "path_template": "/v2",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "graphql",
+        "graphql_document": "query OpenAgentMondayItems($board_id: ID!, $limit: Int = 25) { boards(ids: [$board_id]) { items_page(limit: $limit) { cursor items { id name } } } }",
+        "fixed_headers": {
+          "API-Version": "2026-07"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "data.boards[].items_page.items[].id",
+          "data.boards[].items_page.items[].name"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "arbitrary document/variables unknown keys or HTTP200 errors/missing data",
+          "expected": "invalid_arguments_or_provider_error"
+        }
+      ]
+    },
+    {
+      "provider": "webflow",
+      "operation": "files.webflow.sites.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "webflow"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.webflow.com",
+        "path_template": "/v2/sites",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "sites:read"
+        ],
+        "output_projection": [
+          "sites[].id",
+          "sites[].displayName",
+          "sites[].shortName"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "webflow",
+      "operation": "files.webflow.collections.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "webflow",
+        "site_id": "580e63e98c9a982ac9b8b741"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.webflow.com",
+        "path_template": "/v2/sites/{site_id}/collections",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "cms:read"
+        ],
+        "output_projection": [
+          "collections[].id",
+          "collections[].displayName",
+          "collections[].slug"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "fathom",
+      "operation": "files.fathom.meetings.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "fathom"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.fathom.ai",
+        "path_template": "/external/v1/meetings",
+        "query_mapping": {
+          "cursor": "cursor"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "X-Api-Key",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "items[].recording_id",
+          "items[].title",
+          "items[].created_at",
+          "next_cursor",
+          "limit"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "cursor"
+          ],
+          "response_fields": [
+            "next_cursor"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "fathom",
+      "operation": "files.fathom.recordings.transcript",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "fathom",
+        "recording_id": "123"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.fathom.ai",
+        "path_template": "/external/v1/recordings/{recording_id}/transcript",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "X-Api-Key",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "transcript[].speaker.display_name",
+          "transcript[].text",
+          "transcript[].timestamp"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "fireflies",
+      "operation": "files.fireflies.transcripts.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "fireflies",
+        "variables": {
+          "limit": 25
+        }
+      },
+      "expected": {
+        "method": "POST",
+        "origin": "https://api.fireflies.ai",
+        "path_template": "/graphql",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "graphql",
+        "graphql_document": "query OpenAgentFirefliesTranscripts($limit: Int) { transcripts(limit: $limit, skip: 0) { id title date duration } }",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "data.transcripts[].id",
+          "data.transcripts[].title",
+          "data.transcripts[].date",
+          "data.transcripts[].duration"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "arbitrary document/variables unknown keys or HTTP200 errors/missing data",
+          "expected": "invalid_arguments_or_provider_error"
+        }
+      ]
+    },
+    {
+      "provider": "fireflies",
+      "operation": "files.fireflies.transcripts.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "fireflies",
+        "variables": {
+          "id": "transcript-example"
+        }
+      },
+      "expected": {
+        "method": "POST",
+        "origin": "https://api.fireflies.ai",
+        "path_template": "/graphql",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "graphql",
+        "graphql_document": "query OpenAgentFirefliesTranscript($id: String!) { transcript(id: $id) { id title sentences { index speaker_name text start_time end_time } } }",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "data.transcript.id",
+          "data.transcript.title",
+          "data.transcript.sentences[].index",
+          "data.transcript.sentences[].speaker_name",
+          "data.transcript.sentences[].text",
+          "data.transcript.sentences[].start_time",
+          "data.transcript.sentences[].end_time"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "arbitrary document/variables unknown keys or HTTP200 errors/missing data",
+          "expected": "invalid_arguments_or_provider_error"
+        }
+      ]
+    },
+    {
+      "provider": "quo",
+      "operation": "files.quo.phone_numbers.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "quo"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.quo.com",
+        "path_template": "/v1/phone-numbers",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "data[].id",
+          "data[].name",
+          "data[].number"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "quo",
+      "operation": "files.quo.conversations.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "quo"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.quo.com",
+        "path_template": "/v1/conversations",
+        "query_mapping": {
+          "pageToken": "pageToken",
+          "maxResults": "maxResults"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "data[].id",
+          "data[].phoneNumberId",
+          "data[].lastActivityAt",
+          "nextPageToken",
+          "totalItems"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "pageToken"
+          ],
+          "response_fields": [
+            "nextPageToken"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "airtable",
+      "operation": "files.airtable.bases.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "airtable"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.airtable.com",
+        "path_template": "/v0/meta/bases",
+        "query_mapping": {
+          "offset": "offset"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "schema.bases:read"
+        ],
+        "output_projection": [
+          "bases[].id",
+          "bases[].name",
+          "bases[].permissionLevel",
+          "offset"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "offset"
+          ],
+          "response_fields": [
+            "offset"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "airtable",
+      "operation": "files.airtable.tables.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "airtable",
+        "base_id": "appExample"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.airtable.com",
+        "path_template": "/v0/meta/bases/{base_id}/tables",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "schema.bases:read"
+        ],
+        "output_projection": [
+          "tables[].id",
+          "tables[].name",
+          "tables[].primaryFieldId",
+          "tables[].fields[].id",
+          "tables[].fields[].name",
+          "tables[].fields[].type"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "linear",
+      "operation": "files.linear.issues.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "linear",
+        "variables": {
+          "first": 25
+        }
+      },
+      "expected": {
+        "method": "POST",
+        "origin": "https://api.linear.app",
+        "path_template": "/graphql",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "graphql",
+        "graphql_document": "query OpenAgentLinearIssues($first: Int = 25, $after: String) { issues(first: $first, after: $after) { nodes { id identifier title updatedAt } pageInfo { hasNextPage endCursor } } }",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "data.issues.nodes[].id",
+          "data.issues.nodes[].identifier",
+          "data.issues.nodes[].title",
+          "data.issues.nodes[].updatedAt",
+          "data.issues.pageInfo.hasNextPage",
+          "data.issues.pageInfo.endCursor"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "variables.after"
+          ],
+          "response_fields": [
+            "data.issues.pageInfo.endCursor"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "arbitrary document/variables unknown keys or HTTP200 errors/missing data",
+          "expected": "invalid_arguments_or_provider_error"
+        }
+      ]
+    },
+    {
+      "provider": "linear",
+      "operation": "files.linear.projects.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "linear",
+        "variables": {
+          "first": 25
+        }
+      },
+      "expected": {
+        "method": "POST",
+        "origin": "https://api.linear.app",
+        "path_template": "/graphql",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "graphql",
+        "graphql_document": "query OpenAgentLinearProjects($first: Int = 25, $after: String) { projects(first: $first, after: $after) { nodes { id name description } pageInfo { hasNextPage endCursor } } }",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "data.projects.nodes[].id",
+          "data.projects.nodes[].name",
+          "data.projects.nodes[].description",
+          "data.projects.pageInfo.hasNextPage",
+          "data.projects.pageInfo.endCursor"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "variables.after"
+          ],
+          "response_fields": [
+            "data.projects.pageInfo.endCursor"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "arbitrary document/variables unknown keys or HTTP200 errors/missing data",
+          "expected": "invalid_arguments_or_provider_error"
+        }
+      ]
+    },
+    {
+      "provider": "dropbox",
+      "operation": "files.dropbox.folders.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "dropbox",
+        "body": {
+          "path": "",
+          "limit": 25
+        }
+      },
+      "expected": {
+        "method": "POST",
+        "origin": "https://api.dropboxapi.com",
+        "path_template": "/2/files/list_folder",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "json",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "files.metadata.read"
+        ],
+        "output_projection": [
+          "entries[].id",
+          "entries[].name",
+          "entries[].path_display",
+          "entries[]._tag",
+          "has_more"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "dropbox",
+      "operation": "files.dropbox.metadata.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "dropbox",
+        "body": {
+          "path": "/example.txt"
+        }
+      },
+      "expected": {
+        "method": "POST",
+        "origin": "https://api.dropboxapi.com",
+        "path_template": "/2/files/get_metadata",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "json",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "files.metadata.read"
+        ],
+        "output_projection": [
+          "id",
+          "name",
+          "path_display",
+          "size",
+          "rev",
+          "server_modified"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "box",
+      "operation": "files.box.folders.items.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "box",
+        "folder_id": "0"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.box.com",
+        "path_template": "/2.0/folders/{folder_id}/items",
+        "query_mapping": {
+          "limit": "limit",
+          "marker": "marker"
+        },
+        "fixed_query": {
+          "usemarker": "true",
+          "fields": "id,name,type"
+        },
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "entries[].id",
+          "entries[].name",
+          "entries[].type",
+          "next_marker"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "marker"
+          ],
+          "response_fields": [
+            "next_marker"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "box",
+      "operation": "files.box.files.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "box",
+        "file_id": "123"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.box.com",
+        "path_template": "/2.0/files/{file_id}",
+        "query_mapping": {},
+        "fixed_query": {
+          "fields": "id,name,size,modified_at,etag,sha1"
+        },
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "id",
+          "name",
+          "size",
+          "modified_at",
+          "etag",
+          "sha1"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "zoom",
+      "operation": "files.zoom.meetings.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "zoom"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.zoom.us",
+        "path_template": "/v2/users/me/meetings",
+        "query_mapping": {
+          "page_size": "page_size",
+          "next_page_token": "next_page_token"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "meeting:read:list_meetings"
+        ],
+        "output_projection": [
+          "meetings[].id",
+          "meetings[].topic",
+          "meetings[].start_time",
+          "meetings[].duration",
+          "next_page_token"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "next_page_token"
+          ],
+          "response_fields": [
+            "next_page_token"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "zoom",
+      "operation": "files.zoom.meetings.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "zoom",
+        "meeting_id": "123456789"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.zoom.us",
+        "path_template": "/v2/meetings/{meeting_id}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "meeting:read:meeting"
+        ],
+        "output_projection": [
+          "id",
+          "topic",
+          "start_time",
+          "duration",
+          "timezone",
+          "agenda"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "calendly",
+      "operation": "files.calendly.users.me",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "calendly"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.calendly.com",
+        "path_template": "/users/me",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "resource.uri",
+          "resource.name",
+          "resource.email",
+          "resource.current_organization"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "calendly",
+      "operation": "files.calendly.event_types.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "calendly",
+        "user": "https://api.calendly.com/users/example"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.calendly.com",
+        "path_template": "/event_types",
+        "query_mapping": {
+          "user": "user",
+          "count": "count",
+          "page_token": "page_token"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "collection[].uri",
+          "collection[].name",
+          "collection[].duration",
+          "collection[].active",
+          "pagination.next_page_token"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "page_token"
+          ],
+          "response_fields": [
+            "pagination.next_page_token"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "stripe",
+      "operation": "commerce.stripe.customers.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "stripe"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.stripe.com",
+        "path_template": "/v1/customers",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {
+          "Stripe-Version": "2025-09-30.clover"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "data[].id",
+          "data[].name",
+          "data[].email",
+          "data[].created",
+          "has_more"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "stripe",
+      "operation": "commerce.stripe.invoices.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "stripe"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.stripe.com",
+        "path_template": "/v1/invoices",
+        "query_mapping": {
+          "limit": "limit",
+          "customer": "customer"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {
+          "Stripe-Version": "2025-09-30.clover"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "data[].id",
+          "data[].customer",
+          "data[].status",
+          "data[].amount_due",
+          "data[].currency",
+          "has_more"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "brevo",
+      "operation": "outreach.brevo.contacts.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "brevo"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.brevo.com",
+        "path_template": "/v3/contacts",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "api-key",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "contacts[].id",
+          "contacts[].email",
+          "contacts[].createdAt",
+          "count"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "brevo",
+      "operation": "outreach.brevo.account.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "brevo"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.brevo.com",
+        "path_template": "/v3/account",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "api-key",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "email",
+          "firstName",
+          "lastName",
+          "companyName",
+          "plan[].type",
+          "plan[].credits",
+          "plan[].creditsType"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "resend",
+      "operation": "outreach.resend.domains.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "resend"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.resend.com",
+        "path_template": "/domains",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "data[].id",
+          "data[].name",
+          "data[].status",
+          "has_more"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "resend",
+      "operation": "outreach.resend.domains.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "resend",
+        "domain_id": "domain-example"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.resend.com",
+        "path_template": "/domains/{domain_id}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "id",
+          "name",
+          "status",
+          "region",
+          "created_at"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "typeform",
+      "operation": "files.typeform.forms.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "typeform"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.typeform.com",
+        "path_template": "/forms",
+        "query_mapping": {
+          "page_size": "page_size"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "forms:read"
+        ],
+        "output_projection": [
+          "items[].id",
+          "items[].title",
+          "total_items",
+          "page_count"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "typeform",
+      "operation": "files.typeform.responses.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "typeform",
+        "form_id": "exampleForm"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.typeform.com",
+        "path_template": "/forms/{form_id}/responses",
+        "query_mapping": {
+          "page_size": "page_size"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "responses:read"
+        ],
+        "output_projection": [
+          "items[].response_id",
+          "items[].submitted_at",
+          "items[].answers[].type",
+          "items[].answers[].text",
+          "items[].answers[].email",
+          "items[].answers[].number",
+          "items[].answers[].boolean",
+          "items[].answers[].date",
+          "total_items",
+          "page_count"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "netlify",
+      "operation": "files.netlify.sites.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "netlify"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.netlify.com",
+        "path_template": "/api/v1/sites",
+        "query_mapping": {
+          "per_page": "per_page"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "[].id",
+          "[].name",
+          "[].url",
+          "[].created_at"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "netlify",
+      "operation": "files.netlify.sites.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "netlify",
+        "site_id": "site-example"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.netlify.com",
+        "path_template": "/api/v1/sites/{site_id}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "id",
+          "name",
+          "url",
+          "created_at",
+          "updated_at",
+          "state"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "digitalocean",
+      "operation": "files.digitalocean.droplets.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "digitalocean"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.digitalocean.com",
+        "path_template": "/v2/droplets",
+        "query_mapping": {
+          "per_page": "per_page"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "droplet:read"
+        ],
+        "output_projection": [
+          "droplets[].id",
+          "droplets[].name",
+          "droplets[].status",
+          "droplets[].region.slug",
+          "meta.total"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "digitalocean",
+      "operation": "files.digitalocean.projects.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "digitalocean"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.digitalocean.com",
+        "path_template": "/v2/projects",
+        "query_mapping": {
+          "per_page": "per_page"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "project:read"
+        ],
+        "output_projection": [
+          "projects[].id",
+          "projects[].name",
+          "projects[].description",
+          "meta.total"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "neon",
+      "operation": "files.neon.projects.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "neon"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://console.neon.tech",
+        "path_template": "/api/v2/projects",
+        "query_mapping": {
+          "org_id": "org_id",
+          "limit": "limit",
+          "cursor": "cursor"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "projects[].id",
+          "projects[].name",
+          "projects[].region_id",
+          "pagination.next",
+          "pagination.prev",
+          "pagination.count"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "cursor"
+          ],
+          "response_fields": [
+            "pagination.cursor"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "neon",
+      "operation": "files.neon.projects.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "neon",
+        "project_id": "project-example"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://console.neon.tech",
+        "path_template": "/api/v2/projects/{project_id}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "project.id",
+          "project.name",
+          "project.region_id",
+          "project.created_at"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "miro",
+      "operation": "files.miro.boards.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "miro"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.miro.com",
+        "path_template": "/v2/boards",
+        "query_mapping": {
+          "team_id": "team_id",
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "boards:read"
+        ],
+        "output_projection": [
+          "data[].id",
+          "data[].name",
+          "data[].description",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "miro",
+      "operation": "files.miro.boards.search",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "miro",
+        "query": "roadmap",
+        "limit": 25
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.miro.com",
+        "path_template": "/v2/boards",
+        "query_mapping": {
+          "query": "query",
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [
+          "boards:read"
+        ],
+        "output_projection": [
+          "data[].id",
+          "data[].name",
+          "data[].description",
+          "total",
+          "limit",
+          "offset"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "readwise",
+      "operation": "files.readwise.books.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "readwise"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://readwise.io",
+        "path_template": "/api/v2/books/",
+        "query_mapping": {
+          "page_size": "page_size"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Token",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "results[].id",
+          "results[].title",
+          "results[].author",
+          "results[].category",
+          "count"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "readwise",
+      "operation": "files.readwise.highlights.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "readwise"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://readwise.io",
+        "path_template": "/api/v2/highlights/",
+        "query_mapping": {
+          "book_id": "book_id",
+          "page_size": "page_size"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "graphql_document": null,
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Token",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "raw_request_available": false,
+        "required_scopes": [],
+        "output_projection": [
+          "results[].id",
+          "results[].text",
+          "results[].note",
+          "results[].book_id",
+          "count"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "add unknown URL/method/path/headers/root property or duplicate key/trailing JSON",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "none/absent/invalid credential or revoked connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "control bytes, path traversal or schema bound violation",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "HTTP401/403/429 or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "unprojected password/token/URL subtree in response",
+          "expected": "excluded_no_follow"
+        },
+        {
+          "change": "cursor token from different provider/connection/query",
+          "expected": "denied_before_http"
+        }
+      ]
+    }
+  ]
+}

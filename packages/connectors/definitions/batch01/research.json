@@ -1,0 +1,1079 @@
+{
+  "schema_version": 1,
+  "batch_id": "batch01",
+  "observed_date": "2026-10-18",
+  "research_scope": "Official vendor documentation reads only. No provider API/MCP operations, accounts, tokens, registrations, installations, builds or tests.",
+  "inventory": {
+    "path": "docs/chatgpt-app-coverage.json",
+    "sha256": "40bb673a06ebcb68909639ac6be269e33832d95e950f1cde7f014a1934db3ef4",
+    "distinct_display_names": 4133,
+    "implemented_official_baseline": 22,
+    "requested_total": 112,
+    "remaining_after_baseline": 90,
+    "this_batch_provider_candidates": 30,
+    "candidate_operations": 60,
+    "implemented_or_qualified_additions_claimed": 0,
+    "aliases_and_custom_mcp_counted": false
+  },
+  "source_contract": {
+    "packages/connectors/providers/manifest.go": "af2a6c31eba6a49430da0d1979a2b832fc92939d8417495d413f959335e8f2e9",
+    "packages/connectors/providers/http_adapter.go": "319251c5620f6770d793568b2cf80ddfcc7a31b921500776f2d78c462fa50783",
+    "packages/connectors/providers/manifests.go": "274208c6af0f816852acbf6a13aa884fd9e6b8bd279869f2b7f0bbc1f085f221",
+    "packages/connectors/providers/keyless_mcp.go": "b1b804076a49732c764c1fe6c499bfc3b14a0a0fa9c9c7f06de3fdcca7f6cf16"
+  },
+  "architecture_findings": [
+    "No generator is present in the inspected provider package. Manifest and OperationManifest carry request construction, but schema checking in Manifest.validate is structural; strict argument execution needs the shared schema wrapper.",
+    "HTTPAdapter has provider-specific validators, headers and application-error guards. New descriptors must not be registered until compiled strict validation and fixed headers/projection are integrated.",
+    "GraphQL uses server-owned GraphQLDocument and JSON-marshaled variables. No document, method, origin, raw headers or query text is accepted from callers.",
+    "All definitions are read-only, fixed-origin, one attempt and bounded. No runtime availability/card/count changes are made by these files.",
+    "Dedicated cross-operation cursor continuation tools are omitted: bound page tokens cannot transfer between operations. Monday items and Dropbox folders are explicitly first-page-only in this initial subset."
+  ],
+  "providers": [
+    {
+      "provider": "supabase",
+      "display_name": "Supabase",
+      "popular_position": 9,
+      "operation_names": [
+        "files.supabase.projects.list",
+        "files.supabase.projects.get"
+      ],
+      "auth": {
+        "permissions": [
+          "Projects account-wide Read for list",
+          "Project Settings Read for get"
+        ],
+        "primary_sources": [
+          "https://supabase.com/docs/guides/platform/personal-access-tokens"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Scoped PAT recommended. No database SQL, service-role keys or secret-management endpoints."
+      ],
+      "external_gates": [
+        "User-owned Supabase account and scoped PAT; real read pending."
+      ],
+      "pagination_limitations": {},
+      "primary_sources": [
+        "https://supabase.com/docs/guides/platform/personal-access-tokens",
+        "https://supabase.com/docs/reference/api/v1-get-a-project",
+        "https://supabase.com/docs/reference/api/v1-list-all-projects"
+      ]
+    },
+    {
+      "provider": "render",
+      "display_name": "Render",
+      "popular_position": 13,
+      "operation_names": [
+        "files.render.services.list",
+        "files.render.deploys.list"
+      ],
+      "auth": {
+        "permissions": [],
+        "primary_sources": [
+          "https://render.com/docs/api"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "No environment variables, deploy mutations, shell or secrets endpoints."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {
+        "files.render.services.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim.",
+        "files.render.deploys.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://api-docs.render.com/reference/list-deploys",
+        "https://api-docs.render.com/reference/list-services",
+        "https://render.com/docs/api"
+      ]
+    },
+    {
+      "provider": "klaviyo",
+      "display_name": "Klaviyo",
+      "popular_position": 20,
+      "operation_names": [
+        "outreach.klaviyo.profiles.list",
+        "outreach.klaviyo.campaigns.list"
+      ],
+      "auth": {
+        "permissions": [
+          "profiles:read",
+          "campaigns:read"
+        ],
+        "primary_sources": [
+          "https://developers.klaviyo.com/en/docs/authenticate_"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {
+          "revision": "2026-10-15"
+        }
+      },
+      "notes": [
+        "Private key with only listed read scopes. Expose cursor/page completeness; do not request links.next as a URL."
+      ],
+      "external_gates": [
+        "Fixed revision header injection must be compiled by shared consumer."
+      ],
+      "pagination_limitations": {
+        "outreach.klaviyo.profiles.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim.",
+        "outreach.klaviyo.campaigns.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://developers.klaviyo.com/en/docs/authenticate_",
+        "https://developers.klaviyo.com/en/reference/get_campaigns",
+        "https://developers.klaviyo.com/en/reference/get_profiles"
+      ]
+    },
+    {
+      "provider": "canva",
+      "display_name": "Canva",
+      "popular_position": 24,
+      "operation_names": [
+        "files.canva.designs.list",
+        "files.canva.designs.get"
+      ],
+      "auth": {
+        "permissions": [
+          "design:meta:read"
+        ],
+        "primary_sources": [
+          "https://www.canva.dev/docs/connect/authentication/"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "OAuth access token from a user-authorized Canva integration; no asset download, export or editing."
+      ],
+      "external_gates": [
+        "BYO integration client/consent needed; distribution review is separate from adapter source."
+      ],
+      "pagination_limitations": {
+        "files.canva.designs.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://www.canva.dev/docs/apps/rest-apis/reference/designs/get-design/",
+        "https://www.canva.dev/docs/apps/rest-apis/reference/designs/list-designs/",
+        "https://www.canva.dev/docs/connect/authentication/"
+      ]
+    },
+    {
+      "provider": "railway",
+      "display_name": "Railway",
+      "popular_position": 25,
+      "operation_names": [
+        "files.railway.account.get",
+        "files.railway.projects.get"
+      ],
+      "auth": {
+        "permissions": [],
+        "primary_sources": [
+          "https://docs.railway.com/integrations/api"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "This first subset uses an account token. Project tokens use a different header and are deliberately not accepted as a fallback."
+      ],
+      "external_gates": [
+        "GraphQL application errors must fail even on HTTP200; no model-selected document."
+      ],
+      "pagination_limitations": {},
+      "primary_sources": [
+        "https://docs.railway.com/integrations/api",
+        "https://docs.railway.com/integrations/api/manage-projects"
+      ]
+    },
+    {
+      "provider": "vercel",
+      "display_name": "Vercel",
+      "popular_position": 27,
+      "operation_names": [
+        "files.vercel.projects.list",
+        "files.vercel.deployments.list"
+      ],
+      "auth": {
+        "permissions": [],
+        "primary_sources": [
+          "https://vercel.com/docs/rest-api/reference/welcome"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Read access only; no deployment files, environment variables or token administration. Token/integration access remains team-bound."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {
+        "files.vercel.projects.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim.",
+        "files.vercel.deployments.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://vercel.com/docs/rest-api/reference/endpoints/deployments/list-deployments",
+        "https://vercel.com/docs/rest-api/reference/endpoints/projects/retrieve-a-list-of-projects",
+        "https://vercel.com/docs/rest-api/reference/welcome"
+      ]
+    },
+    {
+      "provider": "gitlab",
+      "display_name": "GitLab (Beta)",
+      "popular_position": 29,
+      "operation_names": [
+        "files.gitlab.projects.list",
+        "files.gitlab.issues.list"
+      ],
+      "auth": {
+        "permissions": [
+          "read_api"
+        ],
+        "primary_sources": [
+          "https://docs.gitlab.com/api/rest/authentication/"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Fixed gitlab.com SaaS only; self-hosted origins need separate reviewed configuration, not a URL argument."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {
+        "files.gitlab.projects.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim.",
+        "files.gitlab.issues.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://docs.gitlab.com/api/issues/#list-project-issues",
+        "https://docs.gitlab.com/api/projects/#list-projects",
+        "https://docs.gitlab.com/api/rest/authentication/"
+      ]
+    },
+    {
+      "provider": "hubspot",
+      "display_name": "HubSpot",
+      "popular_position": 30,
+      "operation_names": [
+        "files.hubspot.contacts.list",
+        "files.hubspot.companies.list"
+      ],
+      "auth": {
+        "permissions": [
+          "crm.objects.contacts.read",
+          "crm.objects.companies.read"
+        ],
+        "primary_sources": [
+          "https://developers.hubspot.com/docs/apps/legacy-apps/authentication/intro-to-auth"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "BYO scoped private-app token or already-authorized OAuth access token; no common-broker enrollment implied."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {
+        "files.hubspot.contacts.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim.",
+        "files.hubspot.companies.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://developers.hubspot.com/docs/api-reference/legacy/crm/objects/companies/guide",
+        "https://developers.hubspot.com/docs/api-reference/legacy/crm/objects/contacts/guide",
+        "https://developers.hubspot.com/docs/apps/legacy-apps/authentication/intro-to-auth"
+      ]
+    },
+    {
+      "provider": "asana",
+      "display_name": "Asana",
+      "popular_position": 33,
+      "operation_names": [
+        "files.asana.projects.list",
+        "files.asana.tasks.list"
+      ],
+      "auth": {
+        "permissions": [
+          "projects:read",
+          "tasks:read"
+        ],
+        "primary_sources": [
+          "https://developers.asana.com/docs/oauth-scopes"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Personal access token inherits user rights; OAuth tokens require exact read scopes. Task list is deliberately constrained to an explicit project."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {},
+      "primary_sources": [
+        "https://developers.asana.com/docs/oauth-scopes",
+        "https://developers.asana.com/reference/getprojects",
+        "https://developers.asana.com/reference/gettasks"
+      ]
+    },
+    {
+      "provider": "todoist",
+      "display_name": "Todoist: To Do List & Calendar",
+      "popular_position": 41,
+      "operation_names": [
+        "files.todoist.projects.list",
+        "files.todoist.tasks.list"
+      ],
+      "auth": {
+        "permissions": [
+          "data:read for OAuth; personal token follows own account permissions"
+        ],
+        "primary_sources": [
+          "https://developer.todoist.com/api/v1/"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Uses current unified API v1, not retired rest/v2; does not implement Calendar provider as a duplicate card."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {},
+      "primary_sources": [
+        "https://developer.todoist.com/api/v1/",
+        "https://developer.todoist.com/api/v1/#tag/Projects",
+        "https://developer.todoist.com/api/v1/#tag/Tasks"
+      ]
+    },
+    {
+      "provider": "monday",
+      "display_name": "monday.com",
+      "popular_position": 44,
+      "operation_names": [
+        "files.monday.boards.list",
+        "files.monday.items.list"
+      ],
+      "auth": {
+        "permissions": [
+          "boards:read for app OAuth; personal V2 token inherits user permissions"
+        ],
+        "primary_sources": [
+          "https://developer.monday.com/api-reference/docs/authentication"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {
+          "API-Version": "2026-07"
+        }
+      },
+      "notes": [
+        "Personal V2 token mode; fixed GraphQL documents, finite field selections, no mutations or caller-selected complexity."
+      ],
+      "external_gates": [
+        "Compiled API-Version header and GraphQL error guard required."
+      ],
+      "pagination_limitations": {
+        "files.monday.boards.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim.",
+        "files.monday.items.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://developer.monday.com/api-reference/docs/authentication",
+        "https://developer.monday.com/api-reference/reference/boards",
+        "https://developer.monday.com/api-reference/reference/items-page",
+        "https://developer.monday.com/api-reference/reference/next-items-page"
+      ]
+    },
+    {
+      "provider": "webflow",
+      "display_name": "Webflow",
+      "popular_position": 46,
+      "operation_names": [
+        "files.webflow.sites.list",
+        "files.webflow.collections.list"
+      ],
+      "auth": {
+        "permissions": [
+          "sites:read",
+          "cms:read"
+        ],
+        "primary_sources": [
+          "https://developers.webflow.com/data/reference/authentication"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Data API v2 metadata only; no publishing, assets or designer execution."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {},
+      "primary_sources": [
+        "https://developers.webflow.com/data/reference/authentication",
+        "https://developers.webflow.com/data/reference/cms/collections/list",
+        "https://developers.webflow.com/data/reference/sites/list"
+      ]
+    },
+    {
+      "provider": "fathom",
+      "display_name": "Fathom",
+      "popular_position": 37,
+      "operation_names": [
+        "files.fathom.meetings.list",
+        "files.fathom.recordings.transcript"
+      ],
+      "auth": {
+        "permissions": [],
+        "primary_sources": [
+          "https://developers.fathom.ai/quickstart"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Fathom meeting-notes API, not Fathom Analytics. destination_url is not accepted; only synchronous read result is allowed. API-key mode only."
+      ],
+      "external_gates": [
+        "Vendor account/API key and access to a QA recording; directory-display identity is not full ChatGPT behavior parity."
+      ],
+      "pagination_limitations": {},
+      "primary_sources": [
+        "https://developers.fathom.ai/api-reference/meetings/list-meetings",
+        "https://developers.fathom.ai/api-reference/recordings/get-transcript",
+        "https://developers.fathom.ai/quickstart"
+      ]
+    },
+    {
+      "provider": "fireflies",
+      "display_name": "Fireflies",
+      "popular_position": 38,
+      "operation_names": [
+        "files.fireflies.transcripts.list",
+        "files.fireflies.transcripts.get"
+      ],
+      "auth": {
+        "permissions": [],
+        "primary_sources": [
+          "https://docs.fireflies.ai/fundamentals/authorization"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "No upload-audio, participant invitations or recording mutations. Account API entitlement and transcript ACL remain vendor-controlled."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {
+        "files.fireflies.transcripts.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://docs.fireflies.ai/fundamentals/authorization",
+        "https://docs.fireflies.ai/graphql-api/query/transcript",
+        "https://docs.fireflies.ai/graphql-api/query/transcripts"
+      ]
+    },
+    {
+      "provider": "quo",
+      "display_name": "Quo",
+      "popular_position": 50,
+      "operation_names": [
+        "files.quo.phone_numbers.list",
+        "files.quo.conversations.list"
+      ],
+      "auth": {
+        "permissions": [],
+        "primary_sources": [
+          "https://www.quo.com/docs/api-reference/introduction/authentication"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Official docs currently advertise api.quo.com; do not substitute api.openphone.com or count it as another provider. No message sending or marking read."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {},
+      "primary_sources": [
+        "https://www.quo.com/docs/api-reference/conversations/list-conversations",
+        "https://www.quo.com/docs/api-reference/introduction/authentication",
+        "https://www.quo.com/docs/api-reference/phone-numbers/list-phone-numbers"
+      ]
+    },
+    {
+      "provider": "airtable",
+      "display_name": "Airtable",
+      "popular_position": null,
+      "operation_names": [
+        "files.airtable.bases.list",
+        "files.airtable.tables.list"
+      ],
+      "auth": {
+        "permissions": [
+          "schema.bases:read"
+        ],
+        "primary_sources": [
+          "https://airtable.com/developers/web/guides/personal-access-tokens"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "BYO PAT with explicit base resource grants. No filterByFormula, schema mutation or arbitrary table-name path.",
+        "Record values have caller-owned dynamic columns; deferred rather than exposing unbounded fields object. Initial subset reads bases and complete typed table schema."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {},
+      "primary_sources": [
+        "https://airtable.com/developers/web/api/get-base-schema",
+        "https://airtable.com/developers/web/api/list-bases",
+        "https://airtable.com/developers/web/guides/personal-access-tokens",
+        "https://support.airtable.com/articles/6292134965-getting-started-with-airtable-s-web-api"
+      ]
+    },
+    {
+      "provider": "linear",
+      "display_name": "Linear",
+      "popular_position": null,
+      "operation_names": [
+        "files.linear.issues.list",
+        "files.linear.projects.list"
+      ],
+      "auth": {
+        "permissions": [
+          "Read-only personal API key with selected team access"
+        ],
+        "primary_sources": [
+          "https://linear.app/developers/graphql"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Personal API key requires Authorization without Bearer. OAuth Bearer tokens are not silently substituted in this definition."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {},
+      "primary_sources": [
+        "https://linear.app/developers/graphql",
+        "https://linear.app/developers/pagination"
+      ]
+    },
+    {
+      "provider": "dropbox",
+      "display_name": "Dropbox",
+      "popular_position": null,
+      "operation_names": [
+        "files.dropbox.folders.list",
+        "files.dropbox.metadata.get"
+      ],
+      "auth": {
+        "permissions": [
+          "files.metadata.read"
+        ],
+        "primary_sources": [
+          "https://developers.dropbox.com/oauth-guide"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Personal/user content only. No team impersonation headers, download origins, shared-link fetch or write."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {
+        "files.dropbox.folders.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://developers.dropbox.com/oauth-guide",
+        "https://www.dropbox.com/developers/documentation/http/documentation#files-get_metadata",
+        "https://www.dropbox.com/developers/documentation/http/documentation#files-list_folder",
+        "https://www.dropbox.com/developers/documentation/http/documentation#files-list_folder-continue"
+      ]
+    },
+    {
+      "provider": "box",
+      "display_name": "Box",
+      "popular_position": null,
+      "operation_names": [
+        "files.box.folders.items.list",
+        "files.box.files.get"
+      ],
+      "auth": {
+        "permissions": [
+          "Read all files and folders stored in Box; token constrained by user and app access"
+        ],
+        "primary_sources": [
+          "https://developer.box.com/guides/security/"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "No download redirect, enterprise impersonation or generated shared link."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {},
+      "primary_sources": [
+        "https://developer.box.com/guides/security/",
+        "https://developer.box.com/reference/get-files-id/",
+        "https://developer.box.com/reference/get-folders-id-items/"
+      ]
+    },
+    {
+      "provider": "zoom",
+      "display_name": "Zoom",
+      "popular_position": null,
+      "operation_names": [
+        "files.zoom.meetings.list",
+        "files.zoom.meetings.get"
+      ],
+      "auth": {
+        "permissions": [
+          "meeting:read:list_meetings",
+          "meeting:read:meeting"
+        ],
+        "primary_sources": [
+          "https://developers.zoom.us/docs/integrations/oauth-scopes-granular/"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "User-owned meetings only; host start_url, passwords, recording downloads and join URLs excluded from projection."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {},
+      "primary_sources": [
+        "https://developers.zoom.us/docs/api/rest/reference/zoom-api/methods/#operation/meeting",
+        "https://developers.zoom.us/docs/api/rest/reference/zoom-api/methods/#operation/meetings",
+        "https://developers.zoom.us/docs/integrations/oauth-scopes-granular/"
+      ]
+    },
+    {
+      "provider": "calendly",
+      "display_name": "Calendly",
+      "popular_position": null,
+      "operation_names": [
+        "files.calendly.users.me",
+        "files.calendly.event_types.list"
+      ],
+      "auth": {
+        "permissions": [],
+        "primary_sources": [
+          "https://developer.calendly.com/docs/authentication/how-to-authenticate-with-personal-access-tokens"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "user is only a validated vendor-resource query value; never a request origin or next-page URL. Personal token mode does not register an OAuth app."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {},
+      "primary_sources": [
+        "https://developer.calendly.com/api-docs/calendly-api/event-types/list-event-types",
+        "https://developer.calendly.com/api-docs/calendly-api/users/get-current-user",
+        "https://developer.calendly.com/docs/authentication/how-to-authenticate-with-personal-access-tokens"
+      ]
+    },
+    {
+      "provider": "stripe",
+      "display_name": "Stripe",
+      "popular_position": null,
+      "operation_names": [
+        "commerce.stripe.customers.list",
+        "commerce.stripe.invoices.list"
+      ],
+      "auth": {
+        "permissions": [
+          "Restricted key: Customers Read and Invoices Read"
+        ],
+        "primary_sources": [
+          "https://docs.stripe.com/keys"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {
+          "Stripe-Version": "2025-09-30.clover"
+        }
+      },
+      "notes": [
+        "Restricted BYO key recommended; no payments, billing mutations, connected-account header or hosted invoice links.",
+        "Stripe-Version header pinned, not account-default version selection."
+      ],
+      "external_gates": [
+        "BYO restricted API key and root-integrated fixed Stripe-Version header."
+      ],
+      "pagination_limitations": {
+        "commerce.stripe.customers.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim.",
+        "commerce.stripe.invoices.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://docs.stripe.com/api/customers/list",
+        "https://docs.stripe.com/api/invoices/list",
+        "https://docs.stripe.com/api/versioning",
+        "https://docs.stripe.com/keys"
+      ]
+    },
+    {
+      "provider": "brevo",
+      "display_name": "Brevo",
+      "popular_position": null,
+      "operation_names": [
+        "outreach.brevo.contacts.list",
+        "outreach.brevo.account.get"
+      ],
+      "auth": {
+        "permissions": [],
+        "primary_sources": [
+          "https://developers.brevo.com/docs/api-key-authentication"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "API-key mode only. No transactional send, campaigns, sender administration or relay credentials in output."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {
+        "outreach.brevo.contacts.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://developers.brevo.com/docs/api-key-authentication",
+        "https://developers.brevo.com/reference/get-account",
+        "https://developers.brevo.com/reference/get-contacts"
+      ]
+    },
+    {
+      "provider": "resend",
+      "display_name": "Resend",
+      "popular_position": null,
+      "operation_names": [
+        "outreach.resend.domains.list",
+        "outreach.resend.domains.get"
+      ],
+      "auth": {
+        "permissions": [
+          "Full-access API key required for domain metadata; sending-only key insufficient"
+        ],
+        "primary_sources": [
+          "https://resend.com/docs/api-reference/introduction"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Adapter remains read-only even when vendor key is broad. No API-key enumeration, sending, DNS verification or domain writes."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {
+        "outreach.resend.domains.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://resend.com/docs/api-reference/domains/get-domain",
+        "https://resend.com/docs/api-reference/domains/list-domains",
+        "https://resend.com/docs/api-reference/introduction"
+      ]
+    },
+    {
+      "provider": "typeform",
+      "display_name": "Typeform",
+      "popular_position": null,
+      "operation_names": [
+        "files.typeform.forms.list",
+        "files.typeform.responses.list"
+      ],
+      "auth": {
+        "permissions": [
+          "forms:read",
+          "responses:read"
+        ],
+        "primary_sources": [
+          "https://www.typeform.com/developers/get-started/scopes/"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Personal token or BYO authorized access token with read scopes. No webhook/destination URL or form mutation."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {
+        "files.typeform.forms.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim.",
+        "files.typeform.responses.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://www.typeform.com/developers/create/reference/retrieve-forms/",
+        "https://www.typeform.com/developers/get-started/scopes/",
+        "https://www.typeform.com/developers/responses/reference/retrieve-responses/"
+      ]
+    },
+    {
+      "provider": "netlify",
+      "display_name": "Netlify",
+      "popular_position": null,
+      "operation_names": [
+        "files.netlify.sites.list",
+        "files.netlify.sites.get"
+      ],
+      "auth": {
+        "permissions": [],
+        "primary_sources": [
+          "https://docs.netlify.com/api-and-cli-guides/api-guides/get-started-with-api/"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "BYO personal access token; no env vars, deploy files, build commands or function invocation."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {
+        "files.netlify.sites.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://docs.netlify.com/api-and-cli-guides/api-guides/get-started-with-api/",
+        "https://open-api.netlify.com/#tag/site/operation/getSite"
+      ]
+    },
+    {
+      "provider": "digitalocean",
+      "display_name": "DigitalOcean",
+      "popular_position": null,
+      "operation_names": [
+        "files.digitalocean.droplets.list",
+        "files.digitalocean.projects.list"
+      ],
+      "auth": {
+        "permissions": [
+          "droplet:read and its vendor-required read dependencies",
+          "project:read"
+        ],
+        "primary_sources": [
+          "https://docs.digitalocean.com/reference/api/scopes/droplet/read/"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Metadata only; no SSH keys, user_data, snapshot actions, billing or Droplet mutations. API reference may need vendor OpenAPI source at integration."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {
+        "files.digitalocean.droplets.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim.",
+        "files.digitalocean.projects.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://docs.digitalocean.com/products/droplets/reference/api/",
+        "https://docs.digitalocean.com/products/projects/reference/api/projects/",
+        "https://docs.digitalocean.com/reference/api/scopes/droplet/read/"
+      ]
+    },
+    {
+      "provider": "neon",
+      "display_name": "Neon",
+      "popular_position": null,
+      "operation_names": [
+        "files.neon.projects.list",
+        "files.neon.projects.get"
+      ],
+      "auth": {
+        "permissions": [],
+        "primary_sources": [
+          "https://neon.com/docs/manage/api-keys"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Personal key list requires org_id; organization key infers organization. Preserve unavailable entries as incomplete, not success-complete. No connection strings, role passwords or SQL."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {},
+      "primary_sources": [
+        "https://api-docs.neon.tech/reference/getproject",
+        "https://api-docs.neon.tech/reference/listprojects",
+        "https://neon.com/docs/manage/api-keys"
+      ]
+    },
+    {
+      "provider": "miro",
+      "display_name": "Miro",
+      "popular_position": null,
+      "operation_names": [
+        "files.miro.boards.list",
+        "files.miro.boards.search"
+      ],
+      "auth": {
+        "permissions": [
+          "boards:read"
+        ],
+        "primary_sources": [
+          "https://developers.miro.com/reference/scopes"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Board get deferred: actual IDs may contain equals, which existing HTTPAdapter pathValuePattern rejects. Search/list use one fixed origin/path; no ad-hoc origin or path decoder."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {
+        "files.miro.boards.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim.",
+        "files.miro.boards.search": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://developers.miro.com/reference/get-boards",
+        "https://developers.miro.com/reference/get-boards-1",
+        "https://developers.miro.com/reference/scopes"
+      ]
+    },
+    {
+      "provider": "readwise",
+      "display_name": "Readwise",
+      "popular_position": null,
+      "operation_names": [
+        "files.readwise.books.list",
+        "files.readwise.highlights.list"
+      ],
+      "auth": {
+        "permissions": [],
+        "primary_sources": [
+          "https://readwise.io/api_deets"
+        ],
+        "common_oauth_enabled": false,
+        "mode": "manual_token",
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "notes": [
+        "Personal API token and vendor account entitlement; no saves/writes. Returned next URLs are metadata only."
+      ],
+      "external_gates": [],
+      "pagination_limitations": {
+        "files.readwise.books.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim.",
+        "files.readwise.highlights.list": "First bounded page only; provider uses URL, numeric offset/page, list-last cursor or first-stage cursor unsupported by current safe cursor wrapper. No complete-history claim."
+      },
+      "primary_sources": [
+        "https://readwise.io/api_deets"
+      ]
+    }
+  ],
+  "reserves": [
+    {
+      "name": "Jotform",
+      "official_docs": "https://api.jotform.com/docs/",
+      "state": "reserve_not_counted_not_implemented",
+      "suggested_read_operations": [
+        "forms.list",
+        "submissions.list"
+      ]
+    },
+    {
+      "name": "Docusign",
+      "official_docs": "https://developers.docusign.com/docs/esign-rest-api/reference/",
+      "state": "reserve_not_counted_not_implemented",
+      "suggested_read_operations": [
+        "envelopes.list",
+        "envelopes.get"
+      ]
+    },
+    {
+      "name": "ClickHouse",
+      "official_docs": "https://clickhouse.com/docs/integrations/sql-clients/http",
+      "state": "reserve_not_counted_not_implemented",
+      "suggested_read_operations": [
+        "databases.list_fixed_query",
+        "tables.list_fixed_query"
+      ]
+    },
+    {
+      "name": "Statsig",
+      "official_docs": "https://docs.statsig.com/console-api/introduction",
+      "state": "reserve_not_counted_not_implemented",
+      "suggested_read_operations": [
+        "gates.list",
+        "experiments.list"
+      ]
+    },
+    {
+      "name": "CloudConvert",
+      "official_docs": "https://cloudconvert.com/api/v2",
+      "state": "reserve_not_counted_not_implemented",
+      "suggested_read_operations": [
+        "jobs.list",
+        "tasks.get"
+      ]
+    },
+    {
+      "name": "Lucid",
+      "official_docs": "https://developer.lucid.co/reference/overview",
+      "state": "reserve_not_counted_not_implemented",
+      "suggested_read_operations": [
+        "documents.list",
+        "documents.get"
+      ]
+    }
+  ],
+  "qualification_gates": [
+    "root integration of strict finite descriptors and response projection",
+    "remote schema/request/auth/error/pagination fixtures via actual adapter",
+    "bounded remote full module/race/vet/security checks",
+    "BYO credential/manual OAuth authorization only when approved",
+    "normal installed consumer/server/CLI and UI lifecycle acceptance",
+    "release and consumer pins after qualified artifacts; no source candidate card availability"
+  ]
+}

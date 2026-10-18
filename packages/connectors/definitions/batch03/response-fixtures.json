@@ -1,0 +1,741 @@
+{
+  "schema_version": 1,
+  "batch_id": "batch03",
+  "cases": [
+    {
+      "provider": "contentful",
+      "operation": "files.contentful.content_types.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "contentful",
+        "space_id": "qa-space",
+        "environment_id": "master"
+      },
+      "response": {
+        "sys": {
+          "type": "Array"
+        },
+        "total": 1,
+        "skip": 0,
+        "limit": 25,
+        "items": [
+          {
+            "sys": {
+              "id": "article"
+            },
+            "name": "QA article",
+            "description": "Fixture type",
+            "fields": [
+              {
+                "id": "title",
+                "name": "Title",
+                "type": "Symbol"
+              }
+            ]
+          }
+        ]
+      },
+      "status": 200,
+      "primary_source": "https://www.contentful.com/developers/docs/references/content-delivery-api/content-types/get-all-content-types/",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "postman",
+      "operation": "files.postman.collections.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "postman"
+      },
+      "response": {
+        "collections": [
+          {
+            "id": "collection-example",
+            "uid": "123-collection-example",
+            "name": "QA collection",
+            "owner": "123",
+            "createdAt": "2026-10-18T00:00:00Z",
+            "updatedAt": "2026-10-18T00:00:00Z"
+          }
+        ]
+      },
+      "status": 200,
+      "primary_source": "https://learning.postman.com/api-docs/api-reference/collections/get-collections/",
+      "shape_source": "official_example",
+      "synthetic_values": true
+    },
+    {
+      "provider": "smartsheet",
+      "operation": "files.smartsheet.sheets.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "smartsheet"
+      },
+      "response": {
+        "pageNumber": 1,
+        "pageSize": 25,
+        "totalPages": 1,
+        "totalCount": 1,
+        "data": [
+          {
+            "id": 123,
+            "name": "QA sheet",
+            "modifiedAt": "2026-10-18T00:00:00Z"
+          }
+        ]
+      },
+      "status": 200,
+      "primary_source": "https://developers.smartsheet.com/api/smartsheet/openapi/sheets/sheet",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "surveymonkey",
+      "operation": "files.surveymonkey.surveys.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "surveymonkey"
+      },
+      "response": {
+        "data": [
+          {
+            "id": "123",
+            "title": "QA survey"
+          }
+        ],
+        "per_page": 50,
+        "page": 1,
+        "total": 1,
+        "links": {}
+      },
+      "status": 200,
+      "primary_source": "https://api.surveymonkey.com/v3/docs#surveys",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "workos",
+      "operation": "files.workos.organizations.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "workos"
+      },
+      "response": {
+        "object": "list",
+        "data": [
+          {
+            "object": "organization",
+            "id": "org_example",
+            "name": "QA organization",
+            "created_at": "2026-10-18T00:00:00Z"
+          }
+        ],
+        "list_metadata": {
+          "before": null,
+          "after": null
+        }
+      },
+      "status": 200,
+      "primary_source": "https://workos.com/docs/reference/organization/list",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "elevenlabs",
+      "operation": "files.elevenlabs.voices.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "elevenlabs"
+      },
+      "response": {
+        "voices": [
+          {
+            "voice_id": "voice-example",
+            "name": "QA voice",
+            "category": "premade"
+          }
+        ],
+        "has_more": false,
+        "next_page_token": null
+      },
+      "status": 200,
+      "primary_source": "https://elevenlabs.io/docs/api-reference/voices/search",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "heygen",
+      "operation": "files.heygen.avatars.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "heygen"
+      },
+      "response": {
+        "data": [
+          {
+            "id": "group_example",
+            "name": "QA avatar",
+            "gender": "female",
+            "looks_count": 3,
+            "default_voice_id": "voice_example",
+            "consent_status": null,
+            "status": "completed",
+            "created_at": 1711382400
+          }
+        ],
+        "has_more": false,
+        "next_token": null
+      },
+      "status": 200,
+      "primary_source": "https://developers.heygen.com/docs/avatars",
+      "shape_source": "official_example",
+      "synthetic_values": true
+    },
+    {
+      "provider": "grain",
+      "operation": "files.grain.recordings.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "grain",
+        "body": {}
+      },
+      "response": {
+        "cursor": null,
+        "recordings": [
+          {
+            "id": "recording-example",
+            "title": "QA meeting",
+            "source": "zoom",
+            "media_type": "video",
+            "start_datetime": "2026-10-18T00:00:00Z",
+            "duration_ms": 1800000
+          }
+        ]
+      },
+      "status": 200,
+      "primary_source": "https://developers.grain.com/endpoints.html",
+      "shape_source": "official_example",
+      "synthetic_values": true
+    },
+    {
+      "provider": "spotify",
+      "operation": "files.spotify.playlists.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "spotify"
+      },
+      "response": {
+        "href": "https://api.spotify.com/v1/me/playlists",
+        "limit": 20,
+        "next": null,
+        "offset": 0,
+        "previous": null,
+        "total": 1,
+        "items": [
+          {
+            "id": "playlist-example",
+            "name": "QA playlist",
+            "description": "Fixture playlist",
+            "public": false
+          }
+        ]
+      },
+      "status": 200,
+      "primary_source": "https://developer.spotify.com/documentation/web-api/reference/get-a-list-of-current-users-playlists",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "pandadoc",
+      "operation": "files.pandadoc.documents.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "pandadoc"
+      },
+      "response": {
+        "results": [
+          {
+            "id": "document-example",
+            "name": "QA document",
+            "status": "document.draft",
+            "date_created": "2026-10-18T00:00:00Z",
+            "date_modified": "2026-10-18T00:00:00Z"
+          }
+        ]
+      },
+      "status": 200,
+      "primary_source": "https://developers.pandadoc.com/reference/list-documents",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "cal_com",
+      "operation": "files.cal_com.profile.get",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "cal_com"
+      },
+      "response": {
+        "status": "success",
+        "data": {
+          "id": 123,
+          "name": "QA user",
+          "username": "qa-user",
+          "email": "qa@example.com",
+          "timeZone": "Europe/Rome"
+        }
+      },
+      "status": 200,
+      "primary_source": "https://cal.com/docs/api-reference/v2/me/get-my-profile",
+      "shape_source": "official_example",
+      "synthetic_values": true
+    },
+    {
+      "provider": "tally",
+      "operation": "files.tally.forms.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "tally"
+      },
+      "response": {
+        "items": [
+          {
+            "id": "form-example",
+            "name": "QA form",
+            "status": "PUBLISHED"
+          }
+        ],
+        "page": 1,
+        "limit": 50,
+        "total": 1,
+        "hasMore": false
+      },
+      "status": 200,
+      "primary_source": "https://developers.tally.so/api-reference/endpoint/forms/list",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "onesignal",
+      "operation": "files.onesignal.apps.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "onesignal"
+      },
+      "response": [
+        {
+          "id": "app-example",
+          "name": "QA app",
+          "players": 1,
+          "messageable_players": 1,
+          "created_at": "2026-10-18T00:00:00Z",
+          "updated_at": "2026-10-18T00:00:00Z"
+        }
+      ],
+      "status": 200,
+      "primary_source": "https://documentation.onesignal.com/reference/view-apps",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "hunter",
+      "operation": "files.hunter.account.get",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "hunter"
+      },
+      "response": {
+        "data": {
+          "first_name": "QA",
+          "last_name": "Example",
+          "email": "qa@example.com",
+          "plan_name": "Fixture",
+          "requests": {
+            "searches": {
+              "used": 0,
+              "available": 1
+            }
+          }
+        }
+      },
+      "status": 200,
+      "primary_source": "https://hunter.io/api-documentation.md",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "revenuecat",
+      "operation": "files.revenuecat.projects.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "revenuecat"
+      },
+      "response": {
+        "object": "list",
+        "items": [
+          {
+            "object": "project",
+            "id": "projExample",
+            "name": "QA project",
+            "created_at": 1792281600000
+          }
+        ],
+        "next_page": null,
+        "url": "https://api.revenuecat.com/v2/projects"
+      },
+      "status": 200,
+      "primary_source": "https://www.revenuecat.com/docs/api-v2/project",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "close",
+      "operation": "files.close.leads.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "close"
+      },
+      "response": {
+        "data": [
+          {
+            "id": "lead_example",
+            "display_name": "QA lead",
+            "name": "QA lead",
+            "status_label": "Potential"
+          }
+        ],
+        "has_more": false
+      },
+      "status": 200,
+      "primary_source": "https://developer.close.com/api/resources/leads/list",
+      "shape_source": "official_example",
+      "synthetic_values": true
+    },
+    {
+      "provider": "instantly",
+      "operation": "outreach.instantly.campaigns.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "instantly"
+      },
+      "response": {
+        "items": [
+          {
+            "id": "campaign-example",
+            "name": "QA campaign",
+            "status": 0,
+            "timestamp_created": "2026-10-18T00:00:00Z"
+          }
+        ],
+        "next_starting_after": null
+      },
+      "status": 200,
+      "primary_source": "https://developer.instantly.ai/api/v2/campaign/listcampaign",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "lemlist",
+      "operation": "outreach.lemlist.campaigns.get",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "lemlist",
+        "campaign_id": "cam_example"
+      },
+      "response": {
+        "_id": "cam_example",
+        "name": "QA campaign",
+        "status": "draft",
+        "isArchived": false
+      },
+      "status": 200,
+      "primary_source": "https://developer.lemlist.com/api-reference/endpoints/campaigns/get-campaign",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "signnow",
+      "operation": "files.signnow.documents.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "signnow"
+      },
+      "response": [
+        {
+          "id": "abcdef0123456789",
+          "document_name": "QA document",
+          "page_count": 1,
+          "created": "1792281600",
+          "updated": "1792281600"
+        }
+      ],
+      "status": 200,
+      "primary_source": "https://signnow.github.io/SignNowNodeSDK/file/lib/document/index.js.html",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "pendo",
+      "operation": "files.pendo.features.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "pendo"
+      },
+      "response": [
+        {
+          "id": "feature-example",
+          "name": "QA feature",
+          "appId": 1,
+          "createdAt": 1792281600000,
+          "lastUpdatedAt": 1792281600000
+        }
+      ],
+      "status": 200,
+      "primary_source": "https://engageapi.pendo.io/#feature",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "capsule",
+      "operation": "files.capsule.parties.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "capsule"
+      },
+      "response": {
+        "parties": [
+          {
+            "id": 123,
+            "type": "organisation",
+            "name": "QA company"
+          }
+        ],
+        "meta": {
+          "totalCount": 1
+        }
+      },
+      "status": 200,
+      "primary_source": "https://developer.capsulecrm.com/v2/operations/Party",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "lucid",
+      "operation": "files.lucid.documents.get",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "lucid",
+        "document_id": "110808fd-4553-4316-bccf-4f25ff59a532"
+      },
+      "response": {
+        "documentId": "110808fd-4553-4316-bccf-4f25ff59a532",
+        "title": "QA document",
+        "version": 1
+      },
+      "status": 200,
+      "primary_source": "https://developer.lucid.co/reference/getorexportdocument",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "ashby",
+      "operation": "files.ashby.candidates.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "ashby",
+        "body": {
+          "limit": 25
+        }
+      },
+      "response": {
+        "success": true,
+        "results": [
+          {
+            "id": "candidate-example",
+            "name": "QA candidate",
+            "createdAt": "2026-10-18T00:00:00Z"
+          }
+        ],
+        "moreDataAvailable": false,
+        "nextCursor": null
+      },
+      "status": 200,
+      "primary_source": "https://developers.ashbyhq.com/reference/candidatelist",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "launchdarkly",
+      "operation": "files.launchdarkly.projects.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "launchdarkly"
+      },
+      "response": {
+        "items": [
+          {
+            "_id": "project-example",
+            "key": "qa-project",
+            "name": "QA project"
+          }
+        ],
+        "totalCount": 1,
+        "_links": {}
+      },
+      "status": 200,
+      "primary_source": "https://launchdarkly.com/docs/api/projects/get-projects",
+      "shape_source": "official_example",
+      "synthetic_values": true
+    },
+    {
+      "provider": "statsig",
+      "operation": "files.statsig.gates.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "statsig"
+      },
+      "response": {
+        "message": "Fixture response",
+        "data": [
+          {
+            "id": "gate_example",
+            "name": "QA gate",
+            "description": "Fixture gate",
+            "isEnabled": false
+          }
+        ]
+      },
+      "status": 200,
+      "primary_source": "https://docs.statsig.com/api-reference/gates/list-gates",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "rootly",
+      "operation": "files.rootly.services.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "rootly"
+      },
+      "response": {
+        "data": [
+          {
+            "id": "service-example",
+            "type": "services",
+            "attributes": {
+              "name": "QA service",
+              "description": "Fixture service"
+            }
+          }
+        ],
+        "links": {},
+        "meta": {}
+      },
+      "status": 200,
+      "primary_source": "https://docs.rootly.com/api-reference/services/list-services",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "incident_io",
+      "operation": "files.incident_io.roles.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "incident_io"
+      },
+      "response": {
+        "incident_roles": [
+          {
+            "id": "role-example",
+            "name": "QA lead",
+            "description": "Fixture role",
+            "shortform": "Lead"
+          }
+        ]
+      },
+      "status": 200,
+      "primary_source": "https://docs.incident.io/api-reference/incident-roles-v1/list",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "wistia",
+      "operation": "files.wistia.media.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "wistia"
+      },
+      "response": [
+        {
+          "id": 1,
+          "hashed_id": "qa01234567",
+          "name": "QA media",
+          "type": "Video",
+          "duration": 60,
+          "created": "2026-10-18T00:00:00Z",
+          "updated": "2026-10-18T00:00:00Z",
+          "folder": null
+        }
+      ],
+      "status": 200,
+      "primary_source": "https://github.com/wistia/wistia-cli/blob/b08bd8d81e55f97e75699f9945ba9efbc2b95d35/.speakeasy/out.openapi.yaml",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "brex",
+      "operation": "files.brex.users.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "brex"
+      },
+      "response": {
+        "items": [
+          {
+            "id": "qa-user",
+            "first_name": "QA",
+            "last_name": "User",
+            "email": "qa@example.invalid",
+            "status": "ACTIVE"
+          }
+        ],
+        "next_cursor": null
+      },
+      "status": 200,
+      "primary_source": "https://developer.brex.com/_bundle/openapi/team_api.yaml",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "dovetail",
+      "operation": "files.dovetail.projects.list",
+      "arguments": {
+        "connection_id": "qa-connection",
+        "provider": "dovetail"
+      },
+      "response": {
+        "data": [
+          {
+            "id": "1kf00nQk9yfWKfsTDni8aO",
+            "author": null,
+            "title": "QA project",
+            "type": "project",
+            "created_at": "2026-10-18T00:00:00Z",
+            "deleted": false,
+            "folder": null
+          }
+        ],
+        "page": {
+          "total_count": 1,
+          "has_more": false,
+          "next_cursor": null
+        }
+      },
+      "status": 200,
+      "primary_source": "https://developers.dovetail.com/reference/get_v1-projects",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    }
+  ],
+  "missing": []
+}

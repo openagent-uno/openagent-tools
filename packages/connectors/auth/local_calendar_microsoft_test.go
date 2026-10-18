@@ -18,7 +18,7 @@ import (
 // Own-app enrollment remains a separately supplied provider set. Supporting
 // these provider IDs does not configure or enable any common broker provider.
 func TestOwnAppCalendarAndMicrosoftRemainExplicitAndAccountBound(t *testing.T) {
-	for _, id := range []string{"google_calendar", "outlook_mail", "outlook_calendar"} {
+	for _, id := range []string{"google_calendar", "outlook_mail", "outlook_calendar", "onedrive", "sharepoint"} {
 		t.Run(id, func(t *testing.T) {
 			reservation, err := net.Listen("tcp", "127.0.0.1:0")
 			if err != nil {
@@ -39,8 +39,13 @@ func TestOwnAppCalendarAndMicrosoftRemainExplicitAndAccountBound(t *testing.T) {
 			} else {
 				p.AuthorizationURL, p.TokenURL = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize", "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 				scope := "Mail.ReadWrite"
-				if id == "outlook_calendar" {
+				switch id {
+				case "outlook_calendar":
 					scope = "Calendars.ReadWrite"
+				case "onedrive":
+					scope = "Files.Read"
+				case "sharepoint":
+					scope = "Sites.Read.All"
 				}
 				p.Scopes = []string{"offline_access", oauth.MicrosoftGraphScopePrefix + "User.Read", oauth.MicrosoftGraphScopePrefix + scope}
 			}

@@ -28,13 +28,15 @@ const GoogleCalendarListScope = "https://www.googleapis.com/auth/calendar.calend
 const GoogleCalendarEventsScope = "https://www.googleapis.com/auth/calendar.events"
 const MicrosoftGraphScopePrefix = "https://graph.microsoft.com/"
 
-func microsoftProvider(id string) bool   { return id == "outlook_mail" || id == "outlook_calendar" }
+func microsoftProvider(id string) bool {
+	return id == "outlook_mail" || id == "outlook_calendar" || id == "onedrive" || id == "sharepoint"
+}
 func calendarOrMicrosoft(id string) bool { return id == "google_calendar" || microsoftProvider(id) }
 
 // Only Microsoft Graph's documented resource-prefix form and exact short names
 // are equivalent. Other providers retain exact scope matching unchanged.
 func microsoftScopes(scopes []string) ([]string, bool) {
-	allowed := map[string]bool{"offline_access": true, "User.Read": true, "Mail.ReadBasic": true, "Mail.Read": true, "Mail.ReadWrite": true, "Mail.Send": true, "Calendars.ReadBasic": true, "Calendars.Read": true, "Calendars.ReadWrite": true}
+	allowed := map[string]bool{"offline_access": true, "User.Read": true, "Mail.ReadBasic": true, "Mail.Read": true, "Mail.ReadWrite": true, "Mail.Send": true, "Calendars.ReadBasic": true, "Calendars.Read": true, "Calendars.ReadWrite": true, "Files.Read": true, "Files.Read.All": true, "Files.ReadWrite": true, "Files.ReadWrite.All": true, "Sites.Read.All": true, "Sites.ReadWrite.All": true}
 	seen := map[string]bool{}
 	result := make([]string, 0, len(scopes))
 	if len(scopes) > 16 {
@@ -785,7 +787,15 @@ func validWorkspaceProtocol(p Provider, scopes []string) bool {
 			if p.ID == "outlook_calendar" {
 				prefix = "Calendars."
 			}
-			if !strings.HasPrefix(scope, prefix) {
+			if p.ID == "onedrive" || p.ID == "sharepoint" {
+				allowed := map[string]bool{"Files.Read": true, "Files.Read.All": true, "Files.ReadWrite": true, "Files.ReadWrite.All": true, "Sites.Read.All": true, "Sites.ReadWrite.All": true}
+				if p.ID == "sharepoint" {
+					allowed = map[string]bool{"Sites.Read.All": true, "Sites.ReadWrite.All": true}
+				}
+				if !allowed[scope] {
+					return false
+				}
+			} else if !strings.HasPrefix(scope, prefix) {
 				return false
 			}
 			found = true

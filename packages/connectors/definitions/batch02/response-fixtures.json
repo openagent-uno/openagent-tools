@@ -1,0 +1,769 @@
+{
+  "schema_version": 1,
+  "batch_id": "batch02",
+  "status": "designed_documentation_schema_fixtures_not_executed",
+  "cases": [
+    {
+      "provider": "coda",
+      "operation": "files.coda.identity.get",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "coda"
+      },
+      "response": {
+        "name": "Example",
+        "type": "user",
+        "scoped": true,
+        "loginId": "private@example.invalid",
+        "tokenName": "fixture-secret"
+      },
+      "status": 200,
+      "primary_source": "https://coda.io/developers/apis/v1",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "nifty",
+      "operation": "files.nifty.projects.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "nifty"
+      },
+      "response": {
+        "data": [
+          {
+            "id": "p123",
+            "name": "Example",
+            "archived": false,
+            "accessType": "workspace",
+            "icon": "hidden"
+          }
+        ],
+        "nextCursor": "opaque-hidden"
+      },
+      "status": 200,
+      "primary_source": "https://developers.niftypm.com/docs/api/v3/project",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "wrike",
+      "operation": "files.wrike.contacts.self",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "wrike"
+      },
+      "response": {
+        "data": [
+          {
+            "id": "user123",
+            "firstName": "Example",
+            "lastName": "Person",
+            "type": "Person",
+            "profiles": [
+              {
+                "email": "private@example.invalid"
+              }
+            ]
+          }
+        ]
+      },
+      "status": 200,
+      "primary_source": "https://developers.wrike.com/reference/getcontactsempty",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "mailerlite",
+      "operation": "files.mailerlite.groups.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "mailerlite"
+      },
+      "response": {
+        "data": [
+          {
+            "id": "123",
+            "name": "Example",
+            "active_count": 2,
+            "sent_count": 3,
+            "custom_fields": {
+              "private": "hidden"
+            }
+          }
+        ],
+        "links": {
+          "next": "https://untrusted.invalid/"
+        }
+      },
+      "status": 200,
+      "primary_source": "https://developers.mailerlite.com/api/groups",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "beehiiv",
+      "operation": "files.beehiiv.publications.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "beehiiv"
+      },
+      "response": {
+        "data": [
+          {
+            "id": "pub_123",
+            "name": "Example",
+            "description": "Example publication",
+            "website": "https://untrusted.invalid/"
+          }
+        ]
+      },
+      "status": 200,
+      "primary_source": "https://developers.beehiiv.com/api-reference/publications/index",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "customer_io",
+      "operation": "files.customer_io.campaigns.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "customer_io"
+      },
+      "response": {
+        "campaigns": [
+          {
+            "id": 123,
+            "name": "Example",
+            "state": "running",
+            "actions": [
+              {
+                "id": 1,
+                "type": "email"
+              }
+            ]
+          }
+        ]
+      },
+      "status": 200,
+      "primary_source": "https://docs.customer.io/integrations/api/app/tag/automations/listcampaigns/",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "posthog",
+      "operation": "files.posthog.projects.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "posthog",
+        "organization_id": "12345678-1234-1234-1234-123456789abc"
+      },
+      "response": {
+        "results": [
+          {
+            "id": 123,
+            "name": "Example",
+            "uuid": "12345678-1234-1234-1234-123456789abc",
+            "api_token": "fixture-secret"
+          }
+        ],
+        "next": "https://untrusted.invalid/"
+      },
+      "status": 200,
+      "primary_source": "https://posthog.com/docs/api/projects",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "ahrefs",
+      "operation": "files.ahrefs.domain_rating.get",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "ahrefs",
+        "target": "example.com",
+        "date": "2026-10-01"
+      },
+      "response": {
+        "domain_rating": {
+          "domain_rating": 10.5,
+          "ahrefs_rank": 123
+        },
+        "private": "hidden"
+      },
+      "status": 200,
+      "primary_source": "https://docs.ahrefs.com/en/api/reference/site-explorer/get-domain-rating",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "better_stack",
+      "operation": "files.better_stack.monitor_groups.get",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "better_stack",
+        "group_id": "123"
+      },
+      "response": {
+        "data": {
+          "id": "123",
+          "type": "monitor_group",
+          "attributes": {
+            "name": "Example",
+            "paused": false,
+            "request_headers": {
+              "Authorization": "fixture-secret"
+            }
+          }
+        }
+      },
+      "status": 200,
+      "primary_source": "https://betterstack.com/docs/uptime/api/get-single-monitor-group/",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "honeycomb",
+      "operation": "files.honeycomb.datasets.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "honeycomb"
+      },
+      "response": [
+        {
+          "name": "Example",
+          "slug": "example",
+          "description": "Example dataset",
+          "created_at": "2026-10-01T00:00:00Z",
+          "regular_columns_count": 3,
+          "private": "hidden"
+        }
+      ],
+      "status": 200,
+      "primary_source": "https://docs.honeycomb.io/api/datasets/list-all-datasets",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "gusto",
+      "operation": "files.gusto.token.info",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "gusto"
+      },
+      "response": {
+        "scope": "companies:read public",
+        "resource": {
+          "type": "Company",
+          "uuid": "12345678-1234-1234-1234-123456789abc"
+        },
+        "resource_owner": {
+          "email": "private@example.invalid"
+        }
+      },
+      "status": 200,
+      "primary_source": "https://docs.gusto.com/app-integrations/reference/get-v1-token-info",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "tavily",
+      "operation": "files.tavily.search",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "tavily",
+        "query": "fixture123",
+        "max_results": 1
+      },
+      "response": {
+        "query": "Example docs",
+        "results": [
+          {
+            "title": "Example",
+            "url": "https://example.com/",
+            "content": "Example public excerpt",
+            "score": 0.8,
+            "raw_content": "hidden"
+          }
+        ],
+        "response_time": "0.1",
+        "request_id": "hidden"
+      },
+      "status": 200,
+      "primary_source": "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "hugging_face",
+      "operation": "files.hugging_face.models.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "hugging_face"
+      },
+      "response": [
+        {
+          "id": "example/model",
+          "modelId": "example/model",
+          "pipeline_tag": "text-generation",
+          "downloads": 10,
+          "likes": 2,
+          "private": false,
+          "siblings": [
+            {
+              "rfilename": "hidden"
+            }
+          ]
+        }
+      ],
+      "status": 200,
+      "primary_source": "https://huggingface.co/docs/hub/en/api",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "gitbook",
+      "operation": "files.gitbook.organizations.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "gitbook"
+      },
+      "response": {
+        "items": [
+          {
+            "id": "org123",
+            "title": "Example",
+            "type": "business",
+            "billing": {
+              "private": "hidden"
+            }
+          }
+        ],
+        "next": {
+          "page": "hidden"
+        }
+      },
+      "status": 200,
+      "primary_source": "https://gitbook.com/docs/developers/gitbook-api/api-reference/organizations",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "cloudflare",
+      "operation": "files.cloudflare.zones.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "cloudflare"
+      },
+      "response": {
+        "success": true,
+        "errors": [],
+        "result": [
+          {
+            "id": "zone123",
+            "name": "example.com",
+            "status": "active",
+            "owner": {
+              "email": "private@example.invalid"
+            }
+          }
+        ],
+        "result_info": {
+          "page": 1,
+          "total_pages": 2
+        }
+      },
+      "status": 200,
+      "primary_source": "https://developers.cloudflare.com/api/resources/zones/methods/list/",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "coinmarketcap",
+      "operation": "files.coinmarketcap.cryptocurrencies.map",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "coinmarketcap"
+      },
+      "response": {
+        "status": {
+          "error_code": 0,
+          "error_message": null
+        },
+        "data": [
+          {
+            "id": 1,
+            "name": "Example",
+            "symbol": "EX",
+            "slug": "example",
+            "is_active": 1,
+            "token_address": "hidden"
+          }
+        ]
+      },
+      "status": 200,
+      "primary_source": "https://coinmarketcap.com/api/documentation/pro-api-reference/cryptocurrency",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "financial_datasets",
+      "operation": "files.financial_datasets.income_statements.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "financial_datasets",
+        "ticker": "AAPL",
+        "period": "annual",
+        "limit": 1
+      },
+      "response": {
+        "income_statements": [
+          {
+            "ticker": "EX",
+            "report_period": "2026-06-30",
+            "period": "quarterly",
+            "revenue": 123,
+            "net_income": 12,
+            "currency": "USD",
+            "private": "hidden"
+          }
+        ],
+        "next_page_url": "https://untrusted.invalid/"
+      },
+      "status": 200,
+      "primary_source": "https://www.financialdatasets.ai/openapi.json",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "ynab",
+      "operation": "files.ynab.user.get",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "ynab"
+      },
+      "response": {
+        "data": {
+          "user": {
+            "id": "12345678-1234-1234-1234-123456789abc",
+            "email": "private@example.invalid"
+          }
+        }
+      },
+      "status": 200,
+      "primary_source": "https://api.ynab.com/",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "ramp",
+      "operation": "files.ramp.users.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "ramp"
+      },
+      "response": {
+        "data": [
+          {
+            "id": "12345678-1234-1234-1234-123456789abc",
+            "first_name": "Example",
+            "last_name": "Person",
+            "role": "BUSINESS_USER",
+            "status": "USER_ACTIVE",
+            "email": "private@example.invalid"
+          }
+        ],
+        "page": {
+          "next": "hidden"
+        }
+      },
+      "status": 200,
+      "primary_source": "https://docs.ramp.com/developer-api/v1/api/users",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "ticktick",
+      "operation": "files.ticktick.projects.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "ticktick"
+      },
+      "response": [
+        {
+          "id": "project123",
+          "name": "Example",
+          "color": "#000000",
+          "closed": false,
+          "kind": "TASK",
+          "groupId": "hidden"
+        }
+      ],
+      "status": 200,
+      "primary_source": "https://developer.ticktick.com/docs/openapi.md",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "front",
+      "operation": "files.front.company.get",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "front"
+      },
+      "response": {
+        "id": "cmp_123",
+        "name": "Example",
+        "_links": {
+          "self": "https://untrusted.invalid/"
+        },
+        "token": "fixture-secret"
+      },
+      "status": 200,
+      "primary_source": "https://dev.frontapp.com/reference/api-token-details",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "webex",
+      "operation": "files.webex.people.self",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "webex"
+      },
+      "response": {
+        "id": "person123",
+        "displayName": "Example",
+        "type": "person",
+        "status": "active",
+        "emails": [
+          "private@example.invalid"
+        ]
+      },
+      "status": 200,
+      "primary_source": "https://developer.webex.com/docs/api/v1/people/get-my-own-details",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "figma",
+      "operation": "files.figma.user.get",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "figma"
+      },
+      "response": {
+        "id": "user123",
+        "handle": "Example",
+        "email": "private@example.invalid",
+        "img_url": "https://untrusted.invalid/"
+      },
+      "status": 200,
+      "primary_source": "https://developers.figma.com/docs/rest-api/users-endpoints/",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "attio",
+      "operation": "files.attio.objects.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "attio"
+      },
+      "response": {
+        "data": [
+          {
+            "id": {
+              "workspace_id": "12345678-1234-1234-1234-123456789abc",
+              "object_id": "12345678-1234-1234-1234-123456789abd"
+            },
+            "api_slug": "people",
+            "singular_noun": "Person",
+            "plural_noun": "People",
+            "private": "hidden"
+          }
+        ]
+      },
+      "status": 200,
+      "primary_source": "https://docs.attio.com/rest-api/endpoint-reference/objects/list-objects",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "omnisend",
+      "operation": "files.omnisend.campaigns.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "omnisend"
+      },
+      "response": {
+        "data": [
+          {
+            "id": "0123456789abcdef01234567",
+            "name": "Example",
+            "status": "draft",
+            "channel": "email",
+            "createdAt": "2026-10-01T00:00:00Z",
+            "updatedAt": "2026-10-01T00:00:00Z",
+            "content": "hidden"
+          }
+        ],
+        "paging": {
+          "cursors": {
+            "after": "hidden"
+          }
+        }
+      },
+      "status": 200,
+      "primary_source": "https://api-docs.omnisend.com/reference/get_campaigns",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "agentmail",
+      "operation": "files.agentmail.inboxes.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "agentmail"
+      },
+      "response": {
+        "inboxes": [
+          {
+            "inbox_id": "inbox@example.invalid",
+            "display_name": "Example",
+            "created_at": "2026-10-01T00:00:00Z",
+            "email": "private@example.invalid",
+            "metadata": {
+              "private": "hidden"
+            }
+          }
+        ],
+        "count": 1,
+        "next_page_token": "hidden"
+      },
+      "status": 200,
+      "primary_source": "https://docs.agentmail.to/api-reference/inboxes/list",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "courtlistener",
+      "operation": "files.courtlistener.opinions.search",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "courtlistener",
+        "query": "fixture123"
+      },
+      "response": {
+        "count": 1,
+        "results": [
+          {
+            "caseName": "Example v. Example",
+            "cluster_id": 123,
+            "court_id": "example",
+            "dateFiled": "2026-10-01",
+            "citation": [
+              "123 Example 456"
+            ],
+            "absolute_url": "/private"
+          }
+        ],
+        "next": "https://untrusted.invalid/"
+      },
+      "status": 200,
+      "primary_source": "https://www.courtlistener.com/help/api/rest/search/",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "massive",
+      "operation": "files.massive.tickers.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "massive"
+      },
+      "response": {
+        "results": [
+          {
+            "ticker": "EX",
+            "name": "Example",
+            "market": "stocks",
+            "locale": "us",
+            "currency_name": "usd",
+            "active": true,
+            "private": "hidden"
+          }
+        ],
+        "count": 1,
+        "status": "OK",
+        "next_url": "https://untrusted.invalid/"
+      },
+      "status": 200,
+      "primary_source": "https://massive.com/docs/rest/stocks/tickers/all-tickers",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "read_ai",
+      "operation": "files.read_ai.meetings.list",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "read_ai"
+      },
+      "response": {
+        "data": [
+          {
+            "id": "01HFYH0A6JM4R7MZ2E6X5T9BNP",
+            "title": "Example",
+            "start_time_ms": 1733800000000,
+            "end_time_ms": 1733803600000,
+            "platform": "example",
+            "participants": [
+              {
+                "email": "private@example.invalid"
+              }
+            ],
+            "recording_download": "https://untrusted.invalid/"
+          }
+        ],
+        "has_more": false
+      },
+      "status": 200,
+      "primary_source": "https://support.read.ai/hc/en-us/articles/49381161088659-API-Reference",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    },
+    {
+      "provider": "apollo",
+      "operation": "files.apollo.organizations.search",
+      "arguments": {
+        "connection_id": "qa_connection",
+        "provider": "apollo",
+        "q_organization_name": "fixture123",
+        "per_page": 1,
+        "page": 1
+      },
+      "response": {
+        "organizations": [
+          {
+            "id": "0123456789abcdef01234567",
+            "name": "Example",
+            "primary_domain": "example.com",
+            "phone": "hidden"
+          }
+        ],
+        "pagination": {
+          "page": 1,
+          "per_page": 1,
+          "total_entries": 1
+        }
+      },
+      "status": 200,
+      "primary_source": "https://docs.apollo.io/reference/organization-search",
+      "shape_source": "official_schema",
+      "synthetic_values": true
+    }
+  ],
+  "missing": [],
+  "real_provider_calls": 0,
+  "note": "All values are synthetic. Envelopes follow the cited official response models; this is neither a recorded provider response nor a live acceptance receipt."
+}

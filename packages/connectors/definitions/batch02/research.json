@@ -1,0 +1,581 @@
+{
+  "schema_version": 1,
+  "batch_id": "batch02",
+  "reviewed_at": "2026-10-18",
+  "source_kind": "primary_vendor_api_documentation",
+  "execution": false,
+  "inventory_source": "docs/chatgpt-app-coverage.json",
+  "providers": [
+    {
+      "provider": "coda",
+      "inventory_display_name": "Coda",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://coda.io/developers/apis/v1"
+      ],
+      "limitations": [
+        "Vendor documentation currently calls this Superhuman Docs API; directory identity remains Coda. Token metadata/email/URLs are not projected.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "nifty",
+      "inventory_display_name": "Nifty",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://developers.niftypm.com/docs/authentication",
+        "https://developers.niftypm.com/docs/api/v3/project"
+      ],
+      "limitations": [
+        "Safe path-ID subset excludes vendor IDs containing ! until the existing path encoder supports them. No expand or full-text query surface.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "wrike",
+      "inventory_display_name": "Wrike",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://developers.wrike.com/docs/oauth-2-0",
+        "https://developers.wrike.com/reference/getcontactsempty",
+        "https://developers.wrike.com/reference/gettasksempty"
+      ],
+      "limitations": [
+        "Only www.wrike.com data-center tokens; EU/other data centers are not dynamically selected. No pagination token exposure in this initial subset.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "mailerlite",
+      "inventory_display_name": "MailerLite",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://developers.mailerlite.com/getting-started",
+        "https://developers.mailerlite.com/api/groups",
+        "https://developers.mailerlite.com/api/segments"
+      ],
+      "limitations": [
+        "Subscriber emails and arbitrary fields are excluded; only grouping metadata is exposed.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "beehiiv",
+      "inventory_display_name": "beehiiv",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://developers.beehiiv.com/api-reference/publications/index",
+        "https://developers.beehiiv.com/api-reference/publications/show"
+      ],
+      "limitations": [
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "customer_io",
+      "inventory_display_name": "Customer.io",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://docs.customer.io/integrations/api/app/",
+        "https://docs.customer.io/integrations/api/app/tag/automations/listcampaigns/",
+        "https://docs.customer.io/integrations/api/app/tag/automations/getcampaigns/"
+      ],
+      "limitations": [
+        "US App API only, not EU or the separate Basic-auth Track API. Campaign/automation metadata only; no messages or customer records.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "posthog",
+      "inventory_display_name": "PostHog",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://posthog.com/docs/api",
+        "https://posthog.com/docs/api/personal-api-keys",
+        "https://posthog.com/docs/api/projects"
+      ],
+      "limitations": [
+        "US private API host only, not EU, self-hosted, or public ingestion. Organization must be explicit; never @current/default. Do not project project API tokens/settings.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "ahrefs",
+      "inventory_display_name": "Ahrefs",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://docs.ahrefs.com/en/api/docs/introduction",
+        "https://docs.ahrefs.com/en/api/reference/site-explorer/get-domain-rating",
+        "https://docs.ahrefs.com/en/api/reference/site-explorer/get-metrics"
+      ],
+      "limitations": [
+        "Domain-only target subset, no arbitrary URL/portfolio/CSV. Vendor plan/credit entitlement remains required; no plan procurement. Date schema is a bounded YYYY-MM-DD syntax; integration must also reject impossible calendar dates.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "better_stack",
+      "inventory_display_name": "Better Stack",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://betterstack.com/docs/uptime/api/get-all-monitors-of-a-monitor-group/",
+        "https://betterstack.com/docs/uptime/api/get-single-monitor-group/"
+      ],
+      "limitations": [
+        "Uses only uptime.betterstack.com endpoints explicitly documented for these operations; incidents-host routes are not guessed. Excludes monitor request headers/body/auth and target URLs.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "honeycomb",
+      "inventory_display_name": "Honeycomb",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://docs.honeycomb.io/api/dataset-definitions/authorization",
+        "https://docs.honeycomb.io/api/datasets/list-all-datasets",
+        "https://docs.honeycomb.io/api/datasets/get-a-dataset"
+      ],
+      "limitations": [
+        "US environment Configuration Key only. Management keys (ID+secret) and EU host are outside this subset.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "gusto",
+      "inventory_display_name": "Gusto",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "oauth_access_token",
+      "primary_sources": [
+        "https://docs.gusto.com/app-integrations/docs/getting-setup",
+        "https://docs.gusto.com/app-integrations/docs/authentication",
+        "https://docs.gusto.com/app-integrations/reference/get-v1-token-info",
+        "https://docs.gusto.com/app-integrations/reference/get-v1-companies",
+        "https://docs.gusto.com/app-integrations/docs/authentication"
+      ],
+      "limitations": [
+        "Vendor production pre-approval/QA is mandatory before production credentials; candidate does not attest approval. Production API origin only; demo origins are not caller-selected. Version header explicit; company minimum-version compatibility still required. EIN, payroll, signatories, addresses and token owner are not projected.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed.",
+        "Vendor production pre-approval and demo QA are prerequisites for production credentials; neither is attested by this source candidate."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "tavily",
+      "inventory_display_name": "Tavily",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://docs.tavily.com/documentation/api-reference/endpoint/search",
+        "https://docs.tavily.com/documentation/api-reference/endpoint/usage"
+      ],
+      "limitations": [
+        "Read-only POST search uses only query+max_results; answer/raw-content/images/auto_parameters expansions are not exposed. Search text goes to Tavily, provider credits apply.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "hugging_face",
+      "inventory_display_name": "Hugging Face",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://huggingface.co/docs/hub/en/api",
+        "https://huggingface.co/docs/hub/security-tokens",
+        "https://huggingface.co/docs/huggingface_hub/en/package_reference/hf_api",
+        "https://huggingface.co/docs/huggingface_hub/en/package_reference/hf_api"
+      ],
+      "limitations": [
+        "Hub catalog metadata only, no model download/inference/remote code or signed artifact URLs. No automatic Link-header following.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "gitbook",
+      "inventory_display_name": "GitBook",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://gitbook.com/docs/developers/gitbook-api/authentication",
+        "https://gitbook.com/docs/developers/gitbook-api/api-reference/organizations"
+      ],
+      "limitations": [
+        "PAT inherits account privileges; exposes only organization metadata, no billing/SSO settings/invite links/tokens.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "cloudflare",
+      "inventory_display_name": "Cloudflare",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://developers.cloudflare.com/api/resources/zones/methods/list/",
+        "https://developers.cloudflare.com/api/resources/accounts/methods/list/"
+      ],
+      "limitations": [
+        "API token Bearer only, never legacy global API key plus email. No DNS writes, billing, token management or auditlog collection.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "coinmarketcap",
+      "inventory_display_name": "CoinMarketCap",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://coinmarketcap.com/api/documentation/pro-api-reference/cryptocurrency",
+        "https://coinmarketcap.com/api/documentation/pro-api-reference/global-metrics/"
+      ],
+      "limitations": [
+        "Both selected routes are current v1; crypto quotes v3 is intentionally not added. Only USD global aggregates and ID mapping, no trading/private wallets.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "financial_datasets",
+      "inventory_display_name": "Financial Datasets",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://www.financialdatasets.ai/openapi.json"
+      ],
+      "limitations": [
+        "US ticker subset only; no arbitrary statements query, bulk download or cursor from next_page_url. Vendor data entitlement applies.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "ynab",
+      "inventory_display_name": "YNAB: Get Good At Money",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://api.ynab.com/"
+      ],
+      "limitations": [
+        "Uses documented /plans paths after March2026 rename, not undocumented legacy /budgets alias. Financial transactions, accounts and amounts are not exposed.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "ramp",
+      "inventory_display_name": "Ramp",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://docs.ramp.com/developer-api/v1/api/users",
+        "https://docs.ramp.com/developer-api/v1"
+      ],
+      "limitations": [
+        "Ramp account API, not separate Ramp Data identity. No card/bank details, financial records, invitations or provisioning.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "ticktick",
+      "inventory_display_name": "TickTick:To-Do List & Calendar",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://developer.ticktick.com/docs/openapi.md"
+      ],
+      "limitations": [
+        "Official Open API only, no internal v2 endpoints or account password login. No project data/tasks write or completion actions.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "front",
+      "inventory_display_name": "Front",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://dev.frontapp.com/reference/api-token-details",
+        "https://dev.frontapp.com/reference/list-inboxes",
+        "https://dev.frontapp.com/docs/creating-a-links-integration"
+      ],
+      "limitations": [
+        "Company-level identity from /me, not OpenAgent login identity. No conversation/message content, emails, send, or nextURL following.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "webex",
+      "inventory_display_name": "Webex",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "oauth_or_personal_access_token",
+      "primary_sources": [
+        "https://developer.webex.com/docs/api/v1/people/get-my-own-details",
+        "https://developer.webex.com/meeting/docs/basics",
+        "https://developer.webex.com/docs/api/v1/rooms/list-rooms"
+      ],
+      "limitations": [
+        "Read-only personal/integration token, no admin impersonation, meeting recording, messages or room creation. Link headers never followed.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "figma",
+      "inventory_display_name": "Figma",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "oauth_access_token",
+      "primary_sources": [
+        "https://developers.figma.com/docs/rest-api/authentication/",
+        "https://developers.figma.com/docs/rest-api/oauth-apps/",
+        "https://developers.figma.com/docs/rest-api/users-endpoints/",
+        "https://developers.figma.com/docs/rest-api/file-endpoints/"
+      ],
+      "limitations": [
+        "OAuth Bearer only (not PAT X-Figma-Token), document depth fixed1. No images/signed URLs/components map/plugins/write.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "attio",
+      "inventory_display_name": "Attio",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://docs.attio.com/rest-api/endpoint-reference/objects/list-objects",
+        "https://docs.attio.com/rest-api/endpoint-reference/lists/list-all-lists"
+      ],
+      "limitations": [
+        "Schema/list configuration metadata only; no CRM record values, personal contacts or arbitrary filters.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "omnisend",
+      "inventory_display_name": "Omnisend",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://api-docs.omnisend.com/reference/getting-started",
+        "https://api-docs.omnisend.com/reference/campaigns",
+        "https://api-docs.omnisend.com/reference/get_campaigns",
+        "https://api-docs.omnisend.com/reference/get_campaigns-id"
+      ],
+      "limitations": [
+        "Current date-versioned API with required fixed version header. No retired v3/v5 assumptions, subscriber content, campaigns send or arbitrary pagination URLs.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed.",
+        "Response projection follows the current date-versioned campaign model; exact runtime fixture qualification remains pending with the shared consumer."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "agentmail",
+      "inventory_display_name": "AgentMail",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://docs.agentmail.to/api-reference/inboxes/list",
+        "https://docs.agentmail.to/api-reference/inboxes/get"
+      ],
+      "limitations": [
+        "Inbox identity/metadata only, no email messages, recipient sends, domain provisioning or attachment URLs.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "courtlistener",
+      "inventory_display_name": "CourtListener",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://www.courtlistener.com/help/api/rest/",
+        "https://www.courtlistener.com/help/api/rest/search/"
+      ],
+      "limitations": [
+        "Two fixed search templates (case-law opinions and oral-argument metadata), no PACER acquisition, legal advice, downloads or arbitrary cursor URLs. Provider querylogging/privacy terms remain applicable.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "massive",
+      "inventory_display_name": "Massive",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://massive.com/docs/rest/quickstart",
+        "https://massive.com/docs/rest/stocks/tickers/all-tickers",
+        "https://massive.com/docs/rest/stocks/market-operations/market-status"
+      ],
+      "limitations": [
+        "Current Massive fixedorigin; never legacy Polygon hostname fallback or apiKey query. US stock metadata/current market status only, vendor market-data entitlements apply.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "read_ai",
+      "inventory_display_name": "Read AI",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://support.read.ai/hc/en-us/articles/49381161088659-API-Reference"
+      ],
+      "limitations": [
+        "Vendor public REST API is open beta. No expansion/transcripts/recordings/participants/emails or live-dashboard interaction.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    },
+    {
+      "provider": "apollo",
+      "inventory_display_name": "Apollo.io",
+      "status": "primary_sources_reviewed_source_candidate",
+      "credential_kind": "personal_or_api_token",
+      "primary_sources": [
+        "https://docs.apollo.io/reference/authentication",
+        "https://docs.apollo.io/reference/people-api-search",
+        "https://docs.apollo.io/reference/organization-search"
+      ],
+      "limitations": [
+        "Requires eligible Apollo account; organization search consumes vendor credits. Required name/query filters and exactly one explicit organization ID prevent unfiltered people enumeration. No enrichments/emails/phone/reveal/export/write.",
+        "Only the listed read operations; no writes, raw REST, automatic pagination, redirects, credential discovery or common OAuth enrollment.",
+        "4 MiB response budget; oversized provider responses fail closed. Designed fixtures have not been executed."
+      ],
+      "common_oauth_implemented": false,
+      "real_qa": false,
+      "registration_or_account_created": false
+    }
+  ],
+  "reserves_not_counted": [
+    "Runway",
+    "Lusha",
+    "PayPal",
+    "ChartMogul"
+  ],
+  "excluded_candidates": [
+    {
+      "provider": "onenote",
+      "reason": "Generic Graph token transport cannot inherit dedicated /me verified-account binding; excluded from batch count."
+    },
+    {
+      "provider": "microsoft_teams",
+      "reason": "Same dedicated Graph account-binding boundary; excluded from batch count."
+    }
+  ]
+}

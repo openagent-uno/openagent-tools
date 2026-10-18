@@ -45,7 +45,7 @@ func NewLocalOAuth(path string) (*LocalOAuth, error) {
 			return nil, ErrDenied
 		}
 		switch p.ID {
-		case "gmail", "google_drive", "google_analytics", "google_calendar", "outlook_mail", "outlook_calendar", "clickup", "postiz":
+		case "gmail", "google_drive", "google_analytics", "google_calendar", "outlook_mail", "outlook_calendar", "onedrive", "sharepoint", "clickup", "postiz":
 		default:
 			flow.Close()
 			return nil, ErrDenied

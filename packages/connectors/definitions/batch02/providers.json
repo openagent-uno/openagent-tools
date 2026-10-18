@@ -1,0 +1,5879 @@
+{
+  "schema_version": 1,
+  "batch_id": "batch02",
+  "status": "source_candidate_not_registered",
+  "providers": [
+    {
+      "catalog": {
+        "ID": "coda",
+        "Name": "Coda",
+        "Provider": "coda",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Productivity",
+        "Icon": "cloud",
+        "Description": "Read your profile and document details. Use your own authorized API token.",
+        "ReadTools": [
+          "files.coda.identity.get",
+          "files.coda.docs.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "coda",
+        "Capability": "files",
+        "APIVersion": "v1",
+        "OriginKind": "fixed",
+        "Origin": "https://coda.io",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.coda.identity.get",
+            "Description": "Identity get through the fixed Coda API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/apis/v1/whoami",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "coda"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.coda.docs.get",
+            "Description": "Docs get through the fixed Coda API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/apis/v1/docs/{doc_id}",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "doc_id"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "coda"
+                  ]
+                },
+                "doc_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                }
+              },
+              "required": [
+                "doc_id"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://coda.io/developers/apis/v1"
+        ],
+        "permissions": [],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.coda.identity.get": {
+          "primary_sources": [
+            "https://coda.io/developers/apis/v1"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "name",
+              "type"
+            ],
+            "output_projection": [
+              "name",
+              "type",
+              "scoped"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "coda"
+          }
+        },
+        "files.coda.docs.get": {
+          "primary_sources": [
+            "https://coda.io/developers/apis/v1"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "id",
+              "name"
+            ],
+            "output_projection": [
+              "id",
+              "type",
+              "name",
+              "createdAt",
+              "updatedAt"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "coda",
+            "doc_id": "fixture123"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "nifty",
+        "Name": "Nifty",
+        "Provider": "nifty",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Productivity",
+        "Icon": "cloud",
+        "Description": "List projects and read project details. Use your own authorized access token.",
+        "ReadTools": [
+          "files.nifty.projects.list",
+          "files.nifty.projects.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "nifty",
+        "Capability": "files",
+        "APIVersion": "v3",
+        "OriginKind": "fixed",
+        "Origin": "https://openapi.niftypm.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.nifty.projects.list",
+            "Description": "Projects list through the fixed Nifty API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/v3/projects",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [
+              "projects:read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "nifty"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.nifty.projects.get",
+            "Description": "Projects get through the fixed Nifty API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/v3/projects/{project_id}",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "project_id"
+            ],
+            "RequiredScopes": [
+              "projects:read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "nifty"
+                  ]
+                },
+                "project_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                }
+              },
+              "required": [
+                "project_id"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://developers.niftypm.com/docs/authentication"
+        ],
+        "permissions": [
+          "projects:read"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.nifty.projects.list": {
+          "primary_sources": [
+            "https://developers.niftypm.com/docs/api/v3/project"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data[].id",
+              "data[].name",
+              "data[].archived",
+              "data[].accessType"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "nifty"
+          }
+        },
+        "files.nifty.projects.get": {
+          "primary_sources": [
+            "https://developers.niftypm.com/docs/api/v3/project"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "id"
+            ],
+            "output_projection": [
+              "id",
+              "name",
+              "archived",
+              "accessType",
+              "createdAt",
+              "updatedAt"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "nifty",
+            "project_id": "fixture123"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "wrike",
+        "Name": "Wrike",
+        "Provider": "wrike",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Productivity",
+        "Icon": "cloud",
+        "Description": "Read your profile and list tasks. Use your own authorized access token.",
+        "ReadTools": [
+          "files.wrike.contacts.self",
+          "files.wrike.tasks.list"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "wrike",
+        "Capability": "files",
+        "APIVersion": "v4",
+        "OriginKind": "fixed",
+        "Origin": "https://www.wrike.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.wrike.contacts.self",
+            "Description": "Contacts self through the fixed Wrike API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/v4/contacts",
+            "Query": {},
+            "FixedQuery": {
+              "me": "true"
+            },
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "wrike"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.wrike.tasks.list",
+            "Description": "Tasks list through the fixed Wrike API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/v4/tasks",
+            "Query": {
+              "limit": "pageSize"
+            },
+            "FixedQuery": {
+              "limit": "100"
+            },
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "wrike"
+                  ]
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://developers.wrike.com/docs/oauth-2-0"
+        ],
+        "permissions": [
+          "Default or wsReadOnly or wsReadWrite"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.wrike.contacts.self": {
+          "primary_sources": [
+            "https://developers.wrike.com/reference/getcontactsempty"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data[].id",
+              "data[].firstName",
+              "data[].lastName",
+              "data[].type"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "wrike"
+          }
+        },
+        "files.wrike.tasks.list": {
+          "primary_sources": [
+            "https://developers.wrike.com/reference/gettasksempty"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data[].id",
+              "data[].title",
+              "data[].status",
+              "data[].importance",
+              "data[].updatedDate"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "wrike"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "mailerlite",
+        "Name": "MailerLite",
+        "Provider": "mailerlite",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Communication",
+        "Icon": "cloud",
+        "Description": "List subscriber groups and segments. Use your own authorized API token.",
+        "ReadTools": [
+          "files.mailerlite.groups.list",
+          "files.mailerlite.segments.list"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "mailerlite",
+        "Capability": "files",
+        "APIVersion": "api",
+        "OriginKind": "fixed",
+        "Origin": "https://connect.mailerlite.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.mailerlite.groups.list",
+            "Description": "Groups list through the fixed MailerLite API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/groups",
+            "Query": {
+              "limit": "limit",
+              "page": "page"
+            },
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "mailerlite"
+                  ]
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                },
+                "page": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10000
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.mailerlite.segments.list",
+            "Description": "Segments list through the fixed MailerLite API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/segments",
+            "Query": {
+              "limit": "limit",
+              "page": "page"
+            },
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "mailerlite"
+                  ]
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                },
+                "page": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10000
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://developers.mailerlite.com/getting-started"
+        ],
+        "permissions": [],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.mailerlite.groups.list": {
+          "primary_sources": [
+            "https://developers.mailerlite.com/api/groups"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data[].id",
+              "data[].name",
+              "data[].active_count",
+              "data[].sent_count"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "mailerlite"
+          }
+        },
+        "files.mailerlite.segments.list": {
+          "primary_sources": [
+            "https://developers.mailerlite.com/api/segments"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data[].id",
+              "data[].name",
+              "data[].total",
+              "data[].created_at"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "mailerlite"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "beehiiv",
+        "Name": "beehiiv",
+        "Provider": "beehiiv",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Communication",
+        "Icon": "cloud",
+        "Description": "List publications and read publication details. Use your own authorized API token.",
+        "ReadTools": [
+          "files.beehiiv.publications.list",
+          "files.beehiiv.publications.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "beehiiv",
+        "Capability": "files",
+        "APIVersion": "v2",
+        "OriginKind": "fixed",
+        "Origin": "https://api.beehiiv.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.beehiiv.publications.list",
+            "Description": "Publications list through the fixed beehiiv API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v2/publications",
+            "Query": {
+              "limit": "limit",
+              "page": "page"
+            },
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "beehiiv"
+                  ]
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                },
+                "page": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10000
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.beehiiv.publications.get",
+            "Description": "Publications get through the fixed beehiiv API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v2/publications/{publication_id}",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "publication_id"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "beehiiv"
+                  ]
+                },
+                "publication_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                }
+              },
+              "required": [
+                "publication_id"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://developers.beehiiv.com/api-reference/publications/index"
+        ],
+        "permissions": [],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.beehiiv.publications.list": {
+          "primary_sources": [
+            "https://developers.beehiiv.com/api-reference/publications/index"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data[].id",
+              "data[].name",
+              "data[].description"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "beehiiv"
+          }
+        },
+        "files.beehiiv.publications.get": {
+          "primary_sources": [
+            "https://developers.beehiiv.com/api-reference/publications/show"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data.id",
+              "data.name",
+              "data.description"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "beehiiv",
+            "publication_id": "fixture123"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "customer-io",
+        "Name": "Customer.io",
+        "Provider": "customer_io",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Communication",
+        "Icon": "cloud",
+        "Description": "List campaigns and read campaign details. Use your own authorized API token.",
+        "ReadTools": [
+          "files.customer_io.campaigns.list",
+          "files.customer_io.campaigns.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "customer_io",
+        "Capability": "files",
+        "APIVersion": "v1",
+        "OriginKind": "fixed",
+        "Origin": "https://api.customer.io",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.customer_io.campaigns.list",
+            "Description": "Campaigns list through the fixed Customer.io API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/campaigns",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "customer_io"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.customer_io.campaigns.get",
+            "Description": "Campaigns get through the fixed Customer.io API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/campaigns/{campaign_id}",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "campaign_id"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "customer_io"
+                  ]
+                },
+                "campaign_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 20,
+                  "pattern": "^[1-9][0-9]{0,19}$"
+                }
+              },
+              "required": [
+                "campaign_id"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://docs.customer.io/integrations/api/app/"
+        ],
+        "permissions": [],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.customer_io.campaigns.list": {
+          "primary_sources": [
+            "https://docs.customer.io/integrations/api/app/tag/automations/listcampaigns/"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "campaigns"
+            ],
+            "output_projection": [
+              "campaigns[].id",
+              "campaigns[].name",
+              "campaigns[].state"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "customer_io"
+          }
+        },
+        "files.customer_io.campaigns.get": {
+          "primary_sources": [
+            "https://docs.customer.io/integrations/api/app/tag/automations/getcampaigns/"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "campaign"
+            ],
+            "output_projection": [
+              "campaign.id",
+              "campaign.name",
+              "campaign.state",
+              "campaign.created",
+              "campaign.updated"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "customer_io",
+            "campaign_id": "123"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "posthog",
+        "Name": "PostHog",
+        "Provider": "posthog",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Data",
+        "Icon": "cloud",
+        "Description": "List projects and read project details. Use your own authorized API token.",
+        "ReadTools": [
+          "files.posthog.projects.list",
+          "files.posthog.projects.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "posthog",
+        "Capability": "files",
+        "APIVersion": "api",
+        "OriginKind": "fixed",
+        "Origin": "https://us.posthog.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.posthog.projects.list",
+            "Description": "Projects list through the fixed PostHog API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/organizations/{organization_id}/projects/",
+            "Query": {
+              "limit": "limit"
+            },
+            "FixedQuery": {},
+            "Required": [
+              "organization_id"
+            ],
+            "RequiredScopes": [
+              "project:read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "posthog"
+                  ]
+                },
+                "organization_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                }
+              },
+              "required": [
+                "organization_id"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.posthog.projects.get",
+            "Description": "Projects get through the fixed PostHog API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/organizations/{organization_id}/projects/{project_id}/",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "organization_id",
+              "project_id"
+            ],
+            "RequiredScopes": [
+              "project:read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "posthog"
+                  ]
+                },
+                "organization_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                },
+                "project_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 20,
+                  "pattern": "^[1-9][0-9]{0,19}$"
+                }
+              },
+              "required": [
+                "organization_id",
+                "project_id"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://posthog.com/docs/api",
+          "https://posthog.com/docs/api/personal-api-keys"
+        ],
+        "permissions": [
+          "project:read"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.posthog.projects.list": {
+          "primary_sources": [
+            "https://posthog.com/docs/api/projects"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "results"
+            ],
+            "output_projection": [
+              "results[].id",
+              "results[].name",
+              "results[].uuid"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "posthog",
+            "organization_id": "12345678-1234-1234-1234-123456789abc"
+          }
+        },
+        "files.posthog.projects.get": {
+          "primary_sources": [
+            "https://posthog.com/docs/api/projects"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "id",
+              "name"
+            ],
+            "output_projection": [
+              "id",
+              "name",
+              "uuid",
+              "timezone"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "posthog",
+            "organization_id": "12345678-1234-1234-1234-123456789abc",
+            "project_id": "123"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "ahrefs",
+        "Name": "Ahrefs",
+        "Provider": "ahrefs",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Data",
+        "Icon": "cloud",
+        "Description": "Read domain ratings and SEO metrics. Use your own authorized API token.",
+        "ReadTools": [
+          "files.ahrefs.domain_rating.get",
+          "files.ahrefs.metrics.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "ahrefs",
+        "Capability": "files",
+        "APIVersion": "v3",
+        "OriginKind": "fixed",
+        "Origin": "https://api.ahrefs.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.ahrefs.domain_rating.get",
+            "Description": "Domain_rating get through the fixed Ahrefs API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v3/site-explorer/domain-rating",
+            "Query": {
+              "target": "target",
+              "date": "date"
+            },
+            "FixedQuery": {
+              "output": "json"
+            },
+            "Required": [
+              "target",
+              "date"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "ahrefs"
+                  ]
+                },
+                "target": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 253,
+                  "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]*\\.)+[A-Za-z]{2,63}$"
+                },
+                "date": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 10,
+                  "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$"
+                }
+              },
+              "required": [
+                "target",
+                "date"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.ahrefs.metrics.get",
+            "Description": "Metrics get through the fixed Ahrefs API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v3/site-explorer/metrics",
+            "Query": {
+              "target": "target",
+              "date": "date"
+            },
+            "FixedQuery": {
+              "output": "json",
+              "mode": "domain"
+            },
+            "Required": [
+              "target",
+              "date"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "ahrefs"
+                  ]
+                },
+                "target": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 253,
+                  "pattern": "^[A-Za-z0-9](?:[A-Za-z0-9-]*\\.)+[A-Za-z]{2,63}$"
+                },
+                "date": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 10,
+                  "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[12][0-9]|3[01])$"
+                }
+              },
+              "required": [
+                "target",
+                "date"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://docs.ahrefs.com/en/api/docs/introduction",
+          "https://docs.ahrefs.com/en/api/reference/site-explorer/get-domain-rating"
+        ],
+        "permissions": [],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.ahrefs.domain_rating.get": {
+          "primary_sources": [
+            "https://docs.ahrefs.com/en/api/reference/site-explorer/get-domain-rating"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "domain_rating"
+            ],
+            "output_projection": [
+              "domain_rating.domain_rating",
+              "domain_rating.ahrefs_rank"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "ahrefs",
+            "target": "example.com",
+            "date": "2026-10-01"
+          }
+        },
+        "files.ahrefs.metrics.get": {
+          "primary_sources": [
+            "https://docs.ahrefs.com/en/api/reference/site-explorer/get-metrics"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "metrics"
+            ],
+            "output_projection": [
+              "metrics.org_keywords",
+              "metrics.org_traffic",
+              "metrics.org_cost",
+              "metrics.paid_keywords",
+              "metrics.paid_traffic"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "ahrefs",
+            "target": "example.com",
+            "date": "2026-10-01"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "better-stack",
+        "Name": "Better Stack",
+        "Provider": "better_stack",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Developer",
+        "Icon": "cloud",
+        "Description": "Read monitor groups and list their monitors. Use your own authorized API token.",
+        "ReadTools": [
+          "files.better_stack.monitor_groups.get",
+          "files.better_stack.monitor_groups.monitors.list"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "better_stack",
+        "Capability": "files",
+        "APIVersion": "v2",
+        "OriginKind": "fixed",
+        "Origin": "https://uptime.betterstack.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.better_stack.monitor_groups.get",
+            "Description": "Monitor_groups get through the fixed Better Stack API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/v2/monitor-groups/{group_id}",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "group_id"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "better_stack"
+                  ]
+                },
+                "group_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 20,
+                  "pattern": "^[1-9][0-9]{0,19}$"
+                }
+              },
+              "required": [
+                "group_id"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.better_stack.monitor_groups.monitors.list",
+            "Description": "Monitor_groups monitors list through the fixed Better Stack API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/v2/monitor-groups/{group_id}/monitors",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "group_id"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "better_stack"
+                  ]
+                },
+                "group_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 20,
+                  "pattern": "^[1-9][0-9]{0,19}$"
+                }
+              },
+              "required": [
+                "group_id"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://betterstack.com/docs/uptime/api/get-all-monitors-of-a-monitor-group/"
+        ],
+        "permissions": [],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.better_stack.monitor_groups.get": {
+          "primary_sources": [
+            "https://betterstack.com/docs/uptime/api/get-single-monitor-group/"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data.id",
+              "data.type",
+              "data.attributes.name",
+              "data.attributes.paused"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "better_stack",
+            "group_id": "123"
+          }
+        },
+        "files.better_stack.monitor_groups.monitors.list": {
+          "primary_sources": [
+            "https://betterstack.com/docs/uptime/api/get-all-monitors-of-a-monitor-group/"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data[].id",
+              "data[].type",
+              "data[].attributes.pronounceable_name",
+              "data[].attributes.status",
+              "data[].attributes.monitor_type"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "better_stack",
+            "group_id": "123"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "honeycomb",
+        "Name": "Honeycomb",
+        "Provider": "honeycomb",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Developer",
+        "Icon": "cloud",
+        "Description": "List datasets and read dataset details. Use your own authorized API token.",
+        "ReadTools": [
+          "files.honeycomb.datasets.list",
+          "files.honeycomb.datasets.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "honeycomb",
+        "Capability": "files",
+        "APIVersion": "1",
+        "OriginKind": "fixed",
+        "Origin": "https://api.honeycomb.io",
+        "CredentialHeader": "X-Honeycomb-Team",
+        "CredentialScheme": "",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.honeycomb.datasets.list",
+            "Description": "Datasets list through the fixed Honeycomb API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/1/datasets",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "honeycomb"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.honeycomb.datasets.get",
+            "Description": "Datasets get through the fixed Honeycomb API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/1/datasets/{dataset_slug}",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "dataset_slug"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "honeycomb"
+                  ]
+                },
+                "dataset_slug": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                }
+              },
+              "required": [
+                "dataset_slug"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://docs.honeycomb.io/api/dataset-definitions/authorization"
+        ],
+        "permissions": [
+          "Environment Configuration Key"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.honeycomb.datasets.list": {
+          "primary_sources": [
+            "https://docs.honeycomb.io/api/datasets/list-all-datasets"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "array",
+            "required_fields": [],
+            "output_projection": [
+              "[].name",
+              "[].slug",
+              "[].description",
+              "[].created_at",
+              "[].regular_columns_count"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "honeycomb"
+          }
+        },
+        "files.honeycomb.datasets.get": {
+          "primary_sources": [
+            "https://docs.honeycomb.io/api/datasets/get-a-dataset"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "name",
+              "slug"
+            ],
+            "output_projection": [
+              "name",
+              "slug",
+              "description",
+              "created_at",
+              "regular_columns_count"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "honeycomb",
+            "dataset_slug": "fixture123"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "gusto",
+        "Name": "Gusto",
+        "Provider": "gusto",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Productivity",
+        "Icon": "cloud",
+        "Description": "Read token permissions and company details. Use your own authorized access token.",
+        "ReadTools": [
+          "files.gusto.token.info",
+          "files.gusto.companies.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "gusto",
+        "Capability": "files",
+        "APIVersion": "2026-06-15",
+        "OriginKind": "fixed",
+        "Origin": "https://api.gusto.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.gusto.token.info",
+            "Description": "Token info through the fixed Gusto API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/token_info",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "gusto"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.gusto.companies.get",
+            "Description": "Companies get through the fixed Gusto API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/companies/{company_id}",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "company_id"
+            ],
+            "RequiredScopes": [
+              "companies:read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "gusto"
+                  ]
+                },
+                "company_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "company_id"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://docs.gusto.com/app-integrations/docs/getting-setup",
+          "https://docs.gusto.com/app-integrations/docs/authentication",
+          "https://docs.gusto.com/app-integrations/reference/get-v1-token-info",
+          "https://docs.gusto.com/app-integrations/docs/authentication"
+        ],
+        "permissions": [
+          "companies:read"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {
+          "X-Gusto-API-Version": "2026-06-15"
+        }
+      },
+      "operation_contracts": {
+        "files.gusto.token.info": {
+          "primary_sources": [
+            "https://docs.gusto.com/app-integrations/reference/get-v1-token-info"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "scope"
+            ],
+            "output_projection": [
+              "scope",
+              "resource.type",
+              "resource.uuid"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "gusto"
+          }
+        },
+        "files.gusto.companies.get": {
+          "primary_sources": [
+            "https://docs.gusto.com/app-integrations/reference/get-v1-companies"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [],
+            "output_projection": [
+              "uuid",
+              "name",
+              "entity_type",
+              "company_status",
+              "is_suspended"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "gusto",
+            "company_id": "12345678-1234-1234-1234-123456789abc"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "tavily",
+        "Name": "Tavily",
+        "Provider": "tavily",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Data",
+        "Icon": "cloud",
+        "Description": "Search the web and read account usage. Use your own authorized API token.",
+        "ReadTools": [
+          "files.tavily.search",
+          "files.tavily.usage.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "tavily",
+        "Capability": "files",
+        "APIVersion": "search",
+        "OriginKind": "fixed",
+        "Origin": "https://api.tavily.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.tavily.search",
+            "Description": "Search through the fixed Tavily API.",
+            "Risk": "read",
+            "Method": "POST",
+            "Path": "/search",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "query",
+              "max_results"
+            ],
+            "RequiredScopes": [],
+            "Body": "json",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "tavily"
+                  ]
+                },
+                "query": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 1000
+                },
+                "max_results": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10
+                }
+              },
+              "required": [
+                "query",
+                "max_results"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.tavily.usage.get",
+            "Description": "Usage get through the fixed Tavily API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/usage",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "tavily"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://docs.tavily.com/documentation/api-reference/endpoint/search"
+        ],
+        "permissions": [],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.tavily.search": {
+          "primary_sources": [
+            "https://docs.tavily.com/documentation/api-reference/endpoint/search"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "results"
+            ],
+            "output_projection": [
+              "query",
+              "results[].title",
+              "results[].url",
+              "results[].content",
+              "results[].score",
+              "response_time"
+            ],
+            "application_error_fields": [
+              "detail.error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "tavily",
+            "query": "fixture123",
+            "max_results": 1
+          }
+        },
+        "files.tavily.usage.get": {
+          "primary_sources": [
+            "https://docs.tavily.com/documentation/api-reference/endpoint/usage"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "key",
+              "account"
+            ],
+            "output_projection": [
+              "key.usage",
+              "key.limit",
+              "key.search_usage",
+              "account.current_plan",
+              "account.plan_usage",
+              "account.plan_limit"
+            ],
+            "application_error_fields": [
+              "detail.error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "tavily"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "hugging-face",
+        "Name": "Hugging Face",
+        "Provider": "hugging_face",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Developer",
+        "Icon": "cloud",
+        "Description": "List models and datasets. Use your own authorized API token.",
+        "ReadTools": [
+          "files.hugging_face.models.list",
+          "files.hugging_face.datasets.list"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "hugging_face",
+        "Capability": "files",
+        "APIVersion": "hub-api",
+        "OriginKind": "fixed",
+        "Origin": "https://huggingface.co",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.hugging_face.models.list",
+            "Description": "Models list through the fixed Hugging Face API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/models",
+            "Query": {
+              "search": "search",
+              "limit": "limit"
+            },
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "hugging_face"
+                  ]
+                },
+                "search": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 25
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.hugging_face.datasets.list",
+            "Description": "Datasets list through the fixed Hugging Face API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/datasets",
+            "Query": {
+              "search": "search",
+              "limit": "limit"
+            },
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "hugging_face"
+                  ]
+                },
+                "search": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 25
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://huggingface.co/docs/hub/en/api",
+          "https://huggingface.co/docs/hub/security-tokens"
+        ],
+        "permissions": [
+          "read or resource-scoped fine-grained token"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.hugging_face.models.list": {
+          "primary_sources": [
+            "https://huggingface.co/docs/hub/en/api",
+            "https://huggingface.co/docs/huggingface_hub/en/package_reference/hf_api"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "array",
+            "required_fields": [],
+            "output_projection": [
+              "[].id",
+              "[].modelId",
+              "[].pipeline_tag",
+              "[].downloads",
+              "[].likes",
+              "[].private"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "hugging_face"
+          }
+        },
+        "files.hugging_face.datasets.list": {
+          "primary_sources": [
+            "https://huggingface.co/docs/hub/en/api",
+            "https://huggingface.co/docs/huggingface_hub/en/package_reference/hf_api"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "array",
+            "required_fields": [],
+            "output_projection": [
+              "[].id",
+              "[].downloads",
+              "[].likes",
+              "[].private"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "hugging_face"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "gitbook",
+        "Name": "GitBook",
+        "Provider": "gitbook",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Productivity",
+        "Icon": "cloud",
+        "Description": "List organizations and read organization details. Use your own authorized API token.",
+        "ReadTools": [
+          "files.gitbook.organizations.list",
+          "files.gitbook.organizations.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "gitbook",
+        "Capability": "files",
+        "APIVersion": "v1",
+        "OriginKind": "fixed",
+        "Origin": "https://api.gitbook.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.gitbook.organizations.list",
+            "Description": "Organizations list through the fixed GitBook API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/orgs",
+            "Query": {
+              "limit": "limit"
+            },
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "gitbook"
+                  ]
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.gitbook.organizations.get",
+            "Description": "Organizations get through the fixed GitBook API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/orgs/{organization_id}",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "organization_id"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "gitbook"
+                  ]
+                },
+                "organization_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                }
+              },
+              "required": [
+                "organization_id"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://gitbook.com/docs/developers/gitbook-api/authentication"
+        ],
+        "permissions": [],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.gitbook.organizations.list": {
+          "primary_sources": [
+            "https://gitbook.com/docs/developers/gitbook-api/api-reference/organizations"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "items"
+            ],
+            "output_projection": [
+              "items[].id",
+              "items[].title",
+              "items[].type"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "gitbook"
+          }
+        },
+        "files.gitbook.organizations.get": {
+          "primary_sources": [
+            "https://gitbook.com/docs/developers/gitbook-api/api-reference/organizations"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "id",
+              "title"
+            ],
+            "output_projection": [
+              "object",
+              "id",
+              "title",
+              "type",
+              "createdAt"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "gitbook",
+            "organization_id": "fixture123"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "cloudflare",
+        "Name": "Cloudflare",
+        "Provider": "cloudflare",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Developer",
+        "Icon": "cloud",
+        "Description": "List zones and accounts. Use your own authorized API token.",
+        "ReadTools": [
+          "files.cloudflare.zones.list",
+          "files.cloudflare.accounts.list"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "cloudflare",
+        "Capability": "files",
+        "APIVersion": "client/v4",
+        "OriginKind": "fixed",
+        "Origin": "https://api.cloudflare.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.cloudflare.zones.list",
+            "Description": "Zones list through the fixed Cloudflare API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/client/v4/zones",
+            "Query": {
+              "page": "page",
+              "per_page": "per_page"
+            },
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "cloudflare"
+                  ]
+                },
+                "page": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10000
+                },
+                "per_page": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 50
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.cloudflare.accounts.list",
+            "Description": "Accounts list through the fixed Cloudflare API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/client/v4/accounts",
+            "Query": {
+              "page": "page",
+              "per_page": "per_page"
+            },
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "cloudflare"
+                  ]
+                },
+                "page": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10000
+                },
+                "per_page": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 50
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://developers.cloudflare.com/api/resources/zones/methods/list/",
+          "https://developers.cloudflare.com/api/resources/accounts/methods/list/"
+        ],
+        "permissions": [
+          "Zone Read",
+          "Account Settings Read"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.cloudflare.zones.list": {
+          "primary_sources": [
+            "https://developers.cloudflare.com/api/resources/zones/methods/list/"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "result",
+              "success"
+            ],
+            "output_projection": [
+              "result[].id",
+              "result[].name",
+              "result[].status",
+              "result_info.page",
+              "result_info.total_pages"
+            ],
+            "application_error_fields": [
+              "errors"
+            ],
+            "success_field": {
+              "path": "success",
+              "value": true
+            }
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "cloudflare"
+          }
+        },
+        "files.cloudflare.accounts.list": {
+          "primary_sources": [
+            "https://developers.cloudflare.com/api/resources/accounts/methods/list/"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "result",
+              "success"
+            ],
+            "output_projection": [
+              "result[].id",
+              "result[].name",
+              "result_info.page",
+              "result_info.total_pages"
+            ],
+            "application_error_fields": [
+              "errors"
+            ],
+            "success_field": {
+              "path": "success",
+              "value": true
+            }
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "cloudflare"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "coinmarketcap",
+        "Name": "CoinMarketCap",
+        "Provider": "coinmarketcap",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Data",
+        "Icon": "cloud",
+        "Description": "Look up cryptocurrency identifiers and read global market metrics. Use your own authorized API token.",
+        "ReadTools": [
+          "files.coinmarketcap.cryptocurrencies.map",
+          "files.coinmarketcap.global_metrics.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "coinmarketcap",
+        "Capability": "files",
+        "APIVersion": "v1",
+        "OriginKind": "fixed",
+        "Origin": "https://pro-api.coinmarketcap.com",
+        "CredentialHeader": "X-CMC_PRO_API_KEY",
+        "CredentialScheme": "",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.coinmarketcap.cryptocurrencies.map",
+            "Description": "Cryptocurrencies map through the fixed CoinMarketCap API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/cryptocurrency/map",
+            "Query": {
+              "start": "start",
+              "limit": "limit"
+            },
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "coinmarketcap"
+                  ]
+                },
+                "start": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.coinmarketcap.global_metrics.get",
+            "Description": "Global_metrics get through the fixed CoinMarketCap API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/global-metrics/quotes/latest",
+            "Query": {},
+            "FixedQuery": {
+              "convert": "USD"
+            },
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "coinmarketcap"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://coinmarketcap.com/api/documentation/pro-api-reference/cryptocurrency"
+        ],
+        "permissions": [],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.coinmarketcap.cryptocurrencies.map": {
+          "primary_sources": [
+            "https://coinmarketcap.com/api/documentation/pro-api-reference/cryptocurrency"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data",
+              "status"
+            ],
+            "output_projection": [
+              "data[].id",
+              "data[].name",
+              "data[].symbol",
+              "data[].slug",
+              "data[].is_active"
+            ],
+            "application_error_fields": [],
+            "success_field": {
+              "path": "status.error_code",
+              "value": 0
+            }
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "coinmarketcap"
+          }
+        },
+        "files.coinmarketcap.global_metrics.get": {
+          "primary_sources": [
+            "https://coinmarketcap.com/api/documentation/pro-api-reference/global-metrics/"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data",
+              "status"
+            ],
+            "output_projection": [
+              "data.active_cryptocurrencies",
+              "data.active_exchanges",
+              "data.btc_dominance",
+              "data.eth_dominance",
+              "data.quote.USD.total_market_cap",
+              "data.quote.USD.total_volume_24h",
+              "data.last_updated"
+            ],
+            "application_error_fields": [],
+            "success_field": {
+              "path": "status.error_code",
+              "value": 0
+            }
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "coinmarketcap"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "financial-datasets",
+        "Name": "Financial Datasets",
+        "Provider": "financial_datasets",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Data",
+        "Icon": "cloud",
+        "Description": "Read income statements and price snapshots. Use your own authorized API token.",
+        "ReadTools": [
+          "files.financial_datasets.income_statements.list",
+          "files.financial_datasets.prices.snapshot"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "financial_datasets",
+        "Capability": "files",
+        "APIVersion": "openapi",
+        "OriginKind": "fixed",
+        "Origin": "https://api.financialdatasets.ai",
+        "CredentialHeader": "X-API-KEY",
+        "CredentialScheme": "",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.financial_datasets.income_statements.list",
+            "Description": "Income_statements list through the fixed Financial Datasets API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/financials/income-statements",
+            "Query": {
+              "ticker": "ticker",
+              "period": "period",
+              "limit": "limit"
+            },
+            "FixedQuery": {},
+            "Required": [
+              "ticker",
+              "period",
+              "limit"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "financial_datasets"
+                  ]
+                },
+                "ticker": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16,
+                  "pattern": "^[A-Z][A-Z0-9.-]{0,15}$"
+                },
+                "period": {
+                  "type": "string",
+                  "enum": [
+                    "annual",
+                    "quarterly",
+                    "ttm"
+                  ]
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10
+                }
+              },
+              "required": [
+                "ticker",
+                "period",
+                "limit"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.financial_datasets.prices.snapshot",
+            "Description": "Prices snapshot through the fixed Financial Datasets API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/prices/snapshot",
+            "Query": {
+              "ticker": "ticker"
+            },
+            "FixedQuery": {},
+            "Required": [
+              "ticker"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "financial_datasets"
+                  ]
+                },
+                "ticker": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 16,
+                  "pattern": "^[A-Z][A-Z0-9.-]{0,15}$"
+                }
+              },
+              "required": [
+                "ticker"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://www.financialdatasets.ai/openapi.json"
+        ],
+        "permissions": [],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.financial_datasets.income_statements.list": {
+          "primary_sources": [
+            "https://www.financialdatasets.ai/openapi.json"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "income_statements"
+            ],
+            "output_projection": [
+              "income_statements[].ticker",
+              "income_statements[].report_period",
+              "income_statements[].period",
+              "income_statements[].revenue",
+              "income_statements[].net_income",
+              "income_statements[].currency"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "financial_datasets",
+            "ticker": "AAPL",
+            "period": "annual",
+            "limit": 1
+          }
+        },
+        "files.financial_datasets.prices.snapshot": {
+          "primary_sources": [
+            "https://www.financialdatasets.ai/openapi.json"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "snapshot"
+            ],
+            "output_projection": [
+              "snapshot.ticker",
+              "snapshot.price",
+              "snapshot.day_change",
+              "snapshot.day_change_percent",
+              "snapshot.time"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "financial_datasets",
+            "ticker": "AAPL"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "ynab",
+        "Name": "YNAB: Get Good At Money",
+        "Provider": "ynab",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Data",
+        "Icon": "cloud",
+        "Description": "Read your profile and list financial plans. Use your own authorized API token.",
+        "ReadTools": [
+          "files.ynab.user.get",
+          "files.ynab.plans.list"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "ynab",
+        "Capability": "files",
+        "APIVersion": "v1",
+        "OriginKind": "fixed",
+        "Origin": "https://api.ynab.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.ynab.user.get",
+            "Description": "User get through the fixed YNAB: Get Good At Money API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/user",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "ynab"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.ynab.plans.list",
+            "Description": "Plans list through the fixed YNAB: Get Good At Money API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/plans",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "ynab"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://api.ynab.com/"
+        ],
+        "permissions": [
+          "read-only OAuth or personal access token"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.ynab.user.get": {
+          "primary_sources": [
+            "https://api.ynab.com/"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data.user.id"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "ynab"
+          }
+        },
+        "files.ynab.plans.list": {
+          "primary_sources": [
+            "https://api.ynab.com/"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data.plans[].id",
+              "data.plans[].name",
+              "data.plans[].last_modified_on",
+              "data.plans[].first_month",
+              "data.plans[].last_month"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "ynab"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "ramp",
+        "Name": "Ramp",
+        "Provider": "ramp",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Productivity",
+        "Icon": "cloud",
+        "Description": "List users and read user details. Use your own authorized access token.",
+        "ReadTools": [
+          "files.ramp.users.list",
+          "files.ramp.users.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "ramp",
+        "Capability": "files",
+        "APIVersion": "developer/v1",
+        "OriginKind": "fixed",
+        "Origin": "https://api.ramp.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.ramp.users.list",
+            "Description": "Users list through the fixed Ramp API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/developer/v1/users",
+            "Query": {},
+            "FixedQuery": {
+              "page_size": "20"
+            },
+            "Required": [],
+            "RequiredScopes": [
+              "users:read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "ramp"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.ramp.users.get",
+            "Description": "Users get through the fixed Ramp API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/developer/v1/users/{user_id}",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "user_id"
+            ],
+            "RequiredScopes": [
+              "users:read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "ramp"
+                  ]
+                },
+                "user_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 36,
+                  "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+                }
+              },
+              "required": [
+                "user_id"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://docs.ramp.com/developer-api/v1/api/users",
+          "https://docs.ramp.com/developer-api/v1"
+        ],
+        "permissions": [
+          "users:read"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.ramp.users.list": {
+          "primary_sources": [
+            "https://docs.ramp.com/developer-api/v1/api/users"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data[].id",
+              "data[].first_name",
+              "data[].last_name",
+              "data[].role",
+              "data[].status"
+            ],
+            "application_error_fields": [
+              "error_v2"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "ramp"
+          }
+        },
+        "files.ramp.users.get": {
+          "primary_sources": [
+            "https://docs.ramp.com/developer-api/v1/api/users"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [],
+            "output_projection": [
+              "id",
+              "first_name",
+              "last_name",
+              "role",
+              "status"
+            ],
+            "application_error_fields": [
+              "error_v2"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "ramp",
+            "user_id": "12345678-1234-1234-1234-123456789abc"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "ticktick",
+        "Name": "TickTick:To-Do List & Calendar",
+        "Provider": "ticktick",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Productivity",
+        "Icon": "cloud",
+        "Description": "List projects and read project details. Use your own authorized access token.",
+        "ReadTools": [
+          "files.ticktick.projects.list",
+          "files.ticktick.projects.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "ticktick",
+        "Capability": "files",
+        "APIVersion": "open/v1",
+        "OriginKind": "fixed",
+        "Origin": "https://api.ticktick.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.ticktick.projects.list",
+            "Description": "Projects list through the fixed TickTick:To-Do List & Calendar API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/open/v1/project",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "ticktick"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.ticktick.projects.get",
+            "Description": "Projects get through the fixed TickTick:To-Do List & Calendar API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/open/v1/project/{project_id}",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "project_id"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "ticktick"
+                  ]
+                },
+                "project_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                }
+              },
+              "required": [
+                "project_id"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://developer.ticktick.com/docs/openapi.md"
+        ],
+        "permissions": [
+          "tasks:read"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.ticktick.projects.list": {
+          "primary_sources": [
+            "https://developer.ticktick.com/docs/openapi.md"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "array",
+            "required_fields": [],
+            "output_projection": [
+              "[].id",
+              "[].name",
+              "[].color",
+              "[].closed",
+              "[].kind"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "ticktick"
+          }
+        },
+        "files.ticktick.projects.get": {
+          "primary_sources": [
+            "https://developer.ticktick.com/docs/openapi.md"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "id",
+              "name"
+            ],
+            "output_projection": [
+              "id",
+              "name",
+              "color",
+              "closed",
+              "kind"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "ticktick",
+            "project_id": "fixture123"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "front",
+        "Name": "Front",
+        "Provider": "front",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Communication",
+        "Icon": "cloud",
+        "Description": "Read company details and list inboxes. Use your own authorized API token.",
+        "ReadTools": [
+          "files.front.company.get",
+          "files.front.inboxes.list"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "front",
+        "Capability": "files",
+        "APIVersion": "core",
+        "OriginKind": "fixed",
+        "Origin": "https://api2.frontapp.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.front.company.get",
+            "Description": "Company get through the fixed Front API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/me",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "front"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.front.inboxes.list",
+            "Description": "Inboxes list through the fixed Front API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/inboxes",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [
+              "inboxes:read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "front"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://dev.frontapp.com/reference/api-token-details",
+          "https://dev.frontapp.com/reference/list-inboxes"
+        ],
+        "permissions": [
+          "inboxes:read"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.front.company.get": {
+          "primary_sources": [
+            "https://dev.frontapp.com/reference/api-token-details",
+            "https://dev.frontapp.com/docs/creating-a-links-integration"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "id",
+              "name"
+            ],
+            "output_projection": [
+              "id",
+              "name"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "front"
+          }
+        },
+        "files.front.inboxes.list": {
+          "primary_sources": [
+            "https://dev.frontapp.com/reference/list-inboxes"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "_results"
+            ],
+            "output_projection": [
+              "_results[].id",
+              "_results[].name",
+              "_results[].is_private"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "front"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "webex",
+        "Name": "Webex",
+        "Provider": "webex",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Communication",
+        "Icon": "cloud",
+        "Description": "Read your profile and list rooms. Use your own authorized API token.",
+        "ReadTools": [
+          "files.webex.people.self",
+          "files.webex.rooms.list"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "webex",
+        "Capability": "files",
+        "APIVersion": "v1",
+        "OriginKind": "fixed",
+        "Origin": "https://webexapis.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.webex.people.self",
+            "Description": "People self through the fixed Webex API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/people/me",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [
+              "spark:people_read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "webex"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.webex.rooms.list",
+            "Description": "Rooms list through the fixed Webex API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/rooms",
+            "Query": {
+              "max": "max"
+            },
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [
+              "spark:rooms_read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "webex"
+                  ]
+                },
+                "max": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://developer.webex.com/docs/api/v1/people/get-my-own-details",
+          "https://developer.webex.com/meeting/docs/basics"
+        ],
+        "permissions": [
+          "spark:people_read",
+          "spark:rooms_read"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.webex.people.self": {
+          "primary_sources": [
+            "https://developer.webex.com/docs/api/v1/people/get-my-own-details"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "id"
+            ],
+            "output_projection": [
+              "id",
+              "displayName",
+              "type",
+              "status"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "webex"
+          }
+        },
+        "files.webex.rooms.list": {
+          "primary_sources": [
+            "https://developer.webex.com/docs/api/v1/rooms/list-rooms"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "items"
+            ],
+            "output_projection": [
+              "items[].id",
+              "items[].title",
+              "items[].type",
+              "items[].isLocked",
+              "items[].created"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "webex"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "figma",
+        "Name": "Figma",
+        "Provider": "figma",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Productivity",
+        "Icon": "cloud",
+        "Description": "Read your profile and file details. Use your own authorized access token.",
+        "ReadTools": [
+          "files.figma.user.get",
+          "files.figma.files.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "figma",
+        "Capability": "files",
+        "APIVersion": "v1",
+        "OriginKind": "fixed",
+        "Origin": "https://api.figma.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.figma.user.get",
+            "Description": "User get through the fixed Figma API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/me",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [
+              "current_user:read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "figma"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.figma.files.get",
+            "Description": "Files get through the fixed Figma API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/files/{file_key}",
+            "Query": {},
+            "FixedQuery": {
+              "depth": "1"
+            },
+            "Required": [
+              "file_key"
+            ],
+            "RequiredScopes": [
+              "file_content:read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "figma"
+                  ]
+                },
+                "file_key": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                }
+              },
+              "required": [
+                "file_key"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://developers.figma.com/docs/rest-api/authentication/",
+          "https://developers.figma.com/docs/rest-api/oauth-apps/"
+        ],
+        "permissions": [
+          "current_user:read",
+          "file_content:read"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.figma.user.get": {
+          "primary_sources": [
+            "https://developers.figma.com/docs/rest-api/users-endpoints/"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "id"
+            ],
+            "output_projection": [
+              "id",
+              "handle"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "figma"
+          }
+        },
+        "files.figma.files.get": {
+          "primary_sources": [
+            "https://developers.figma.com/docs/rest-api/file-endpoints/"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "name",
+              "document"
+            ],
+            "output_projection": [
+              "name",
+              "lastModified",
+              "editorType",
+              "version",
+              "document.id",
+              "document.name",
+              "document.type",
+              "document.children[].id",
+              "document.children[].name",
+              "document.children[].type"
+            ],
+            "application_error_fields": [
+              "err",
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "figma",
+            "file_key": "fixture123"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "attio",
+        "Name": "Attio",
+        "Provider": "attio",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Productivity",
+        "Icon": "cloud",
+        "Description": "List CRM objects and lists. Use your own authorized API token.",
+        "ReadTools": [
+          "files.attio.objects.list",
+          "files.attio.lists.list"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "attio",
+        "Capability": "files",
+        "APIVersion": "v2",
+        "OriginKind": "fixed",
+        "Origin": "https://api.attio.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.attio.objects.list",
+            "Description": "Objects list through the fixed Attio API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v2/objects",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [
+              "object_configuration:read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "attio"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.attio.lists.list",
+            "Description": "Lists list through the fixed Attio API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v2/lists",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [
+              "list_configuration:read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "attio"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://docs.attio.com/rest-api/endpoint-reference/objects/list-objects",
+          "https://docs.attio.com/rest-api/endpoint-reference/lists/list-all-lists"
+        ],
+        "permissions": [
+          "object_configuration:read",
+          "list_configuration:read"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.attio.objects.list": {
+          "primary_sources": [
+            "https://docs.attio.com/rest-api/endpoint-reference/objects/list-objects"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data[].id.workspace_id",
+              "data[].id.object_id",
+              "data[].api_slug",
+              "data[].singular_noun",
+              "data[].plural_noun"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "attio"
+          }
+        },
+        "files.attio.lists.list": {
+          "primary_sources": [
+            "https://docs.attio.com/rest-api/endpoint-reference/lists/list-all-lists"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data[].id.workspace_id",
+              "data[].id.list_id",
+              "data[].api_slug",
+              "data[].name"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "attio"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "omnisend",
+        "Name": "Omnisend",
+        "Provider": "omnisend",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Communication",
+        "Icon": "cloud",
+        "Description": "List campaigns and read campaign details. Use your own authorized API token.",
+        "ReadTools": [
+          "files.omnisend.campaigns.list",
+          "files.omnisend.campaigns.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "omnisend",
+        "Capability": "files",
+        "APIVersion": "2026-03-15",
+        "OriginKind": "fixed",
+        "Origin": "https://api.omnisend.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Omnisend-API-Key",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.omnisend.campaigns.list",
+            "Description": "Campaigns list through the fixed Omnisend API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/campaigns",
+            "Query": {
+              "limit": "limit"
+            },
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [
+              "campaigns.read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "omnisend"
+                  ]
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.omnisend.campaigns.get",
+            "Description": "Campaigns get through the fixed Omnisend API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/campaigns/{campaign_id}",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "campaign_id"
+            ],
+            "RequiredScopes": [
+              "campaigns.read"
+            ],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "omnisend"
+                  ]
+                },
+                "campaign_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 24,
+                  "pattern": "^[0-9a-fA-F]{24}$"
+                }
+              },
+              "required": [
+                "campaign_id"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://api-docs.omnisend.com/reference/getting-started",
+          "https://api-docs.omnisend.com/reference/campaigns"
+        ],
+        "permissions": [
+          "campaigns.read"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {
+          "Omnisend-Version": "2026-03-15"
+        }
+      },
+      "operation_contracts": {
+        "files.omnisend.campaigns.list": {
+          "primary_sources": [
+            "https://api-docs.omnisend.com/reference/get_campaigns"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data[].id",
+              "data[].name",
+              "data[].status",
+              "data[].channel",
+              "data[].createdAt",
+              "data[].updatedAt"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "omnisend"
+          }
+        },
+        "files.omnisend.campaigns.get": {
+          "primary_sources": [
+            "https://api-docs.omnisend.com/reference/get_campaigns-id"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "id"
+            ],
+            "output_projection": [
+              "id",
+              "name",
+              "status",
+              "channel",
+              "createdAt",
+              "updatedAt"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "omnisend",
+            "campaign_id": "0123456789abcdef01234567"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "agentmail",
+        "Name": "AgentMail",
+        "Provider": "agentmail",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Communication",
+        "Icon": "cloud",
+        "Description": "List inboxes and read inbox details. Use your own authorized API token.",
+        "ReadTools": [
+          "files.agentmail.inboxes.list",
+          "files.agentmail.inboxes.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "agentmail",
+        "Capability": "files",
+        "APIVersion": "v0",
+        "OriginKind": "fixed",
+        "Origin": "https://api.agentmail.to",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.agentmail.inboxes.list",
+            "Description": "Inboxes list through the fixed AgentMail API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v0/inboxes",
+            "Query": {
+              "limit": "limit"
+            },
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "agentmail"
+                  ]
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.agentmail.inboxes.get",
+            "Description": "Inboxes get through the fixed AgentMail API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v0/inboxes/{inbox_id}",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "inbox_id"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "agentmail"
+                  ]
+                },
+                "inbox_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 254,
+                  "pattern": "^[A-Za-z0-9_.+@-]+$"
+                }
+              },
+              "required": [
+                "inbox_id"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://docs.agentmail.to/api-reference/inboxes/list",
+          "https://docs.agentmail.to/api-reference/inboxes/get"
+        ],
+        "permissions": [],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.agentmail.inboxes.list": {
+          "primary_sources": [
+            "https://docs.agentmail.to/api-reference/inboxes/list"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "inboxes"
+            ],
+            "output_projection": [
+              "inboxes[].inbox_id",
+              "inboxes[].display_name",
+              "inboxes[].created_at",
+              "count"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "agentmail"
+          }
+        },
+        "files.agentmail.inboxes.get": {
+          "primary_sources": [
+            "https://docs.agentmail.to/api-reference/inboxes/get"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "inbox_id"
+            ],
+            "output_projection": [
+              "inbox_id",
+              "display_name",
+              "created_at",
+              "updated_at"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "agentmail",
+            "inbox_id": "fixture123"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "courtlistener",
+        "Name": "CourtListener",
+        "Provider": "courtlistener",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Data",
+        "Icon": "cloud",
+        "Description": "Search court opinions and oral arguments. Use your own authorized API token.",
+        "ReadTools": [
+          "files.courtlistener.opinions.search",
+          "files.courtlistener.oral_arguments.search"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "courtlistener",
+        "Capability": "files",
+        "APIVersion": "rest/v4",
+        "OriginKind": "fixed",
+        "Origin": "https://www.courtlistener.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Token",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.courtlistener.opinions.search",
+            "Description": "Opinions search through the fixed CourtListener API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/rest/v4/search/",
+            "Query": {
+              "query": "q"
+            },
+            "FixedQuery": {
+              "type": "o"
+            },
+            "Required": [
+              "query"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "courtlistener"
+                  ]
+                },
+                "query": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                }
+              },
+              "required": [
+                "query"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.courtlistener.oral_arguments.search",
+            "Description": "Oral_arguments search through the fixed CourtListener API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/api/rest/v4/search/",
+            "Query": {
+              "query": "q"
+            },
+            "FixedQuery": {
+              "type": "oa"
+            },
+            "Required": [
+              "query"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "courtlistener"
+                  ]
+                },
+                "query": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500
+                }
+              },
+              "required": [
+                "query"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://www.courtlistener.com/help/api/rest/",
+          "https://www.courtlistener.com/help/api/rest/search/"
+        ],
+        "permissions": [],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.courtlistener.opinions.search": {
+          "primary_sources": [
+            "https://www.courtlistener.com/help/api/rest/search/"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "results",
+              "count"
+            ],
+            "output_projection": [
+              "count",
+              "results[].caseName",
+              "results[].cluster_id",
+              "results[].court_id",
+              "results[].dateFiled",
+              "results[].citation[]"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "courtlistener",
+            "query": "fixture123"
+          }
+        },
+        "files.courtlistener.oral_arguments.search": {
+          "primary_sources": [
+            "https://www.courtlistener.com/help/api/rest/search/"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "results",
+              "count"
+            ],
+            "output_projection": [
+              "count",
+              "results[].caseName",
+              "results[].id",
+              "results[].court_id",
+              "results[].dateArgued"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "courtlistener",
+            "query": "fixture123"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "massive",
+        "Name": "Massive",
+        "Provider": "massive",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Data",
+        "Icon": "cloud",
+        "Description": "List market tickers and read market status. Use your own authorized API token.",
+        "ReadTools": [
+          "files.massive.tickers.list",
+          "files.massive.market_status.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "massive",
+        "Capability": "files",
+        "APIVersion": "v3-reference/v1-status",
+        "OriginKind": "fixed",
+        "Origin": "https://api.massive.com",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.massive.tickers.list",
+            "Description": "Tickers list through the fixed Massive API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v3/reference/tickers",
+            "Query": {
+              "search": "search",
+              "limit": "limit"
+            },
+            "FixedQuery": {
+              "market": "stocks",
+              "active": "true"
+            },
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "massive"
+                  ]
+                },
+                "search": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 100
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.massive.market_status.get",
+            "Description": "Market_status get through the fixed Massive API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/marketstatus/now",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "massive"
+                  ]
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://massive.com/docs/rest/quickstart"
+        ],
+        "permissions": [],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.massive.tickers.list": {
+          "primary_sources": [
+            "https://massive.com/docs/rest/stocks/tickers/all-tickers"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "results",
+              "status"
+            ],
+            "output_projection": [
+              "results[].ticker",
+              "results[].name",
+              "results[].market",
+              "results[].locale",
+              "results[].currency_name",
+              "results[].active",
+              "count",
+              "status"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "massive"
+          }
+        },
+        "files.massive.market_status.get": {
+          "primary_sources": [
+            "https://massive.com/docs/rest/stocks/market-operations/market-status"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "market",
+              "serverTime"
+            ],
+            "output_projection": [
+              "market",
+              "serverTime",
+              "earlyHours",
+              "afterHours",
+              "exchanges.nasdaq",
+              "exchanges.nyse",
+              "exchanges.otc"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "massive"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "read-ai",
+        "Name": "Read AI",
+        "Provider": "read_ai",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Productivity",
+        "Icon": "cloud",
+        "Description": "List meetings and read meeting details. Use your own authorized access token.",
+        "ReadTools": [
+          "files.read_ai.meetings.list",
+          "files.read_ai.meetings.get"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "read_ai",
+        "Capability": "files",
+        "APIVersion": "v1",
+        "OriginKind": "fixed",
+        "Origin": "https://api.read.ai",
+        "CredentialHeader": "Authorization",
+        "CredentialScheme": "Bearer",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.read_ai.meetings.list",
+            "Description": "Meetings list through the fixed Read AI API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/meetings",
+            "Query": {
+              "limit": "limit"
+            },
+            "FixedQuery": {},
+            "Required": [],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "read_ai"
+                  ]
+                },
+                "limit": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10
+                }
+              },
+              "required": []
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.read_ai.meetings.get",
+            "Description": "Meetings get through the fixed Read AI API.",
+            "Risk": "read",
+            "Method": "GET",
+            "Path": "/v1/meetings/{meeting_id}",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "meeting_id"
+            ],
+            "RequiredScopes": [],
+            "Body": "none",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "read_ai"
+                  ]
+                },
+                "meeting_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 26,
+                  "pattern": "^[0-9A-HJKMNP-TV-Z]{26}$"
+                }
+              },
+              "required": [
+                "meeting_id"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://support.read.ai/hc/en-us/articles/49381161088659-API-Reference"
+        ],
+        "permissions": [],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.read_ai.meetings.list": {
+          "primary_sources": [
+            "https://support.read.ai/hc/en-us/articles/49381161088659-API-Reference"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "data"
+            ],
+            "output_projection": [
+              "data[].id",
+              "data[].title",
+              "data[].start_time_ms",
+              "data[].end_time_ms",
+              "data[].platform",
+              "has_more"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "read_ai"
+          }
+        },
+        "files.read_ai.meetings.get": {
+          "primary_sources": [
+            "https://support.read.ai/hc/en-us/articles/49381161088659-API-Reference"
+          ],
+          "pagination": {
+            "mode": "none",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "id"
+            ],
+            "output_projection": [
+              "id",
+              "title",
+              "start_time_ms",
+              "end_time_ms",
+              "platform",
+              "live_enabled"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "read_ai",
+            "meeting_id": "01HFYH0A6JM4R7MZ2E6X5T9BNP"
+          }
+        }
+      }
+    },
+    {
+      "catalog": {
+        "ID": "apollo",
+        "Name": "Apollo.io",
+        "Provider": "apollo",
+        "Capability": "files",
+        "Auth": "token",
+        "Category": "Data",
+        "Icon": "cloud",
+        "Description": "Search organizations and people. Use your own authorized API token.",
+        "ReadTools": [
+          "files.apollo.organizations.search",
+          "files.apollo.people.search"
+        ],
+        "AgentTools": []
+      },
+      "manifest": {
+        "Provider": "apollo",
+        "Capability": "files",
+        "APIVersion": "api/v1",
+        "OriginKind": "fixed",
+        "Origin": "https://api.apollo.io",
+        "CredentialHeader": "x-api-key",
+        "CredentialScheme": "",
+        "MaxRequestBytes": 262144,
+        "MaxResponseBytes": 4194304,
+        "ReadOnly": true,
+        "TypedOnly": true,
+        "Operations": [
+          {
+            "Name": "files.apollo.organizations.search",
+            "Description": "Organizations search through the fixed Apollo.io API.",
+            "Risk": "read",
+            "Method": "POST",
+            "Path": "/api/v1/mixed_companies/search",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "q_organization_name",
+              "per_page",
+              "page"
+            ],
+            "RequiredScopes": [],
+            "Body": "json",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "apollo"
+                  ]
+                },
+                "q_organization_name": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 200
+                },
+                "per_page": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 25
+                },
+                "page": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10
+                }
+              },
+              "required": [
+                "q_organization_name",
+                "per_page",
+                "page"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          },
+          {
+            "Name": "files.apollo.people.search",
+            "Description": "People search through the fixed Apollo.io API.",
+            "Risk": "read",
+            "Method": "POST",
+            "Path": "/api/v1/mixed_people/api_search",
+            "Query": {},
+            "FixedQuery": {},
+            "Required": [
+              "organization_ids",
+              "q_keywords",
+              "per_page",
+              "page"
+            ],
+            "RequiredScopes": [],
+            "Body": "json",
+            "InputSchema": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "connection_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128,
+                  "pattern": "^[A-Za-z0-9_-]+$"
+                },
+                "provider": {
+                  "type": "string",
+                  "enum": [
+                    "apollo"
+                  ]
+                },
+                "organization_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 24,
+                    "pattern": "^[0-9a-fA-F]{24}$"
+                  },
+                  "minItems": 1,
+                  "maxItems": 1
+                },
+                "q_keywords": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 200
+                },
+                "per_page": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 25
+                },
+                "page": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 10
+                }
+              },
+              "required": [
+                "organization_ids",
+                "q_keywords",
+                "per_page",
+                "page"
+              ]
+            },
+            "Retry": {
+              "MaxAttempts": 1
+            }
+          }
+        ]
+      },
+      "authentication": {
+        "mode": "manual_token",
+        "primary_sources": [
+          "https://docs.apollo.io/reference/authentication",
+          "https://docs.apollo.io/reference/people-api-search",
+          "https://docs.apollo.io/reference/organization-search"
+        ],
+        "permissions": [
+          "API key restricted to these two search endpoints"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false
+      },
+      "operation_contracts": {
+        "files.apollo.organizations.search": {
+          "primary_sources": [
+            "https://docs.apollo.io/reference/organization-search"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "organizations"
+            ],
+            "output_projection": [
+              "organizations[].id",
+              "organizations[].name",
+              "organizations[].primary_domain",
+              "pagination.page",
+              "pagination.per_page",
+              "pagination.total_entries"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "apollo",
+            "q_organization_name": "fixture123",
+            "per_page": 1,
+            "page": 1
+          }
+        },
+        "files.apollo.people.search": {
+          "primary_sources": [
+            "https://docs.apollo.io/reference/people-api-search"
+          ],
+          "pagination": {
+            "mode": "first_page",
+            "request_arguments": [],
+            "response_fields": [],
+            "automatic_follow": false
+          },
+          "response": {
+            "json_type": "object",
+            "required_fields": [
+              "people"
+            ],
+            "output_projection": [
+              "people[].id",
+              "people[].first_name",
+              "people[].last_name_obfuscated",
+              "people[].title",
+              "people[].organization.name",
+              "total_entries"
+            ],
+            "application_error_fields": [
+              "error"
+            ]
+          },
+          "example_arguments": {
+            "connection_id": "qa_connection",
+            "provider": "apollo",
+            "organization_ids": [
+              "0123456789abcdef01234567"
+            ],
+            "q_keywords": "fixture123",
+            "per_page": 1,
+            "page": 1
+          }
+        }
+      }
+    }
+  ]
+}

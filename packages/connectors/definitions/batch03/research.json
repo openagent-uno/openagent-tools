@@ -1,0 +1,968 @@
+{
+  "schema_version": 1,
+  "batch_id": "batch03",
+  "observed_date": "2026-10-18",
+  "research_scope": "Primary vendor documentation and public vendor SDK source only. No provider API/MCP operations, registration, grant, installation, build or tests.",
+  "inventory": {
+    "path": "docs/chatgpt-app-coverage.json",
+    "sha256": "40bb673a06ebcb68909639ac6be269e33832d95e950f1cde7f014a1934db3ef4",
+    "distinct_display_names": 4133,
+    "provider_candidates": 30,
+    "candidate_read_operations": 60,
+    "implemented_or_qualified_additions_claimed": 0,
+    "aliases_custom_mcp_or_regional_duplicates_counted": false
+  },
+  "provider_replacements": [
+    {
+      "requested": "Productive",
+      "selected": "Tally",
+      "reason": "Productive needs trusted variable X-Organization-Id in addition to auth; single-fixed-header consumer must not fake it."
+    },
+    {
+      "requested": "Teamtailor",
+      "selected": "Lucid",
+      "reason": "Parameterized Token token= authentication deferred; fixed bearer Lucid read contract is documented."
+    }
+  ],
+  "providers": [
+    {
+      "provider": "contentful",
+      "display_name": "Contentful",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "Content Delivery API read-only token scoped to the selected space/environment"
+        ],
+        "primary_sources": [
+          "https://www.contentful.com/developers/docs/references/authentication/"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.contentful.content_types.list",
+        "files.contentful.assets.list"
+      ],
+      "primary_sources": [
+        "https://www.contentful.com/developers/docs/references/authentication/",
+        "https://www.contentful.com/developers/docs/references/content-delivery-api/assets/get-all-assets/",
+        "https://www.contentful.com/developers/docs/references/content-delivery-api/content-types/get-all-content-types/"
+      ],
+      "notes": [
+        "Published delivery metadata only. No preview/management API, asset CDN fetch or arbitrary fields subtree. Default locale only; object-valued fields fail closed."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "postman",
+      "display_name": "Postman",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [],
+        "primary_sources": [
+          "https://learning.postman.com/docs/developer/postman-api/authentication/"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.postman.collections.list",
+        "files.postman.collections.get"
+      ],
+      "primary_sources": [
+        "https://learning.postman.com/api-docs/api-reference/collections/get-collection/",
+        "https://learning.postman.com/api-docs/api-reference/collections/get-collections/",
+        "https://learning.postman.com/docs/developer/postman-api/authentication/"
+      ],
+      "notes": [
+        "Collection inventory and info only; do not return request auth/headers, environment values, scripts or run a collection."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "smartsheet",
+      "display_name": "Smartsheet US",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "READ_SHEETS"
+        ],
+        "primary_sources": [
+          "https://developers.smartsheet.com/api/smartsheet/guides/basics/authentication"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.smartsheet.sheets.list",
+        "files.smartsheet.sheets.get"
+      ],
+      "primary_sources": [
+        "https://developers.smartsheet.com/api/smartsheet/guides/basics/authentication",
+        "https://developers.smartsheet.com/api/smartsheet/openapi/sheets/sheet"
+      ],
+      "notes": [
+        "US endpoint only; EU/AU are not counted as additional providers. No attachments, exports, sheet mutation or arbitrary cell object subtree."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "surveymonkey",
+      "display_name": "SurveyMonkey",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "surveys_read"
+        ],
+        "primary_sources": [
+          "https://api.surveymonkey.com/v3/docs#authentication"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.surveymonkey.surveys.list",
+        "files.surveymonkey.surveys.details"
+      ],
+      "primary_sources": [
+        "https://api.surveymonkey.com/v3/docs#authentication",
+        "https://api.surveymonkey.com/v3/docs#surveys",
+        "https://api.surveymonkey.com/v3/docs#surveys-id-details"
+      ],
+      "notes": [
+        "Survey definitions only, no respondents/answers. Public OAuth distribution review is separate; BYO authorized draft/private-app token required."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "wistia",
+      "display_name": "Wistia",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "Read all folder and media data"
+        ],
+        "primary_sources": [
+          "https://docs.wistia.com/docs/making-api-requests"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {
+          "X-Wistia-API-Version": "2026-09"
+        }
+      },
+      "operation_names": [
+        "files.wistia.media.list",
+        "files.wistia.folders.list"
+      ],
+      "primary_sources": [
+        "https://docs.wistia.com/docs/making-api-requests",
+        "https://docs.wistia.com/reference/get_folders",
+        "https://docs.wistia.com/reference/get_medias",
+        "https://github.com/wistia/wistia-cli/blob/b08bd8d81e55f97e75699f9945ba9efbc2b95d35/.speakeasy/out.openapi.yaml"
+      ],
+      "notes": [
+        "Modern API, not legacy v1. No media playback/download URLs, uploads or player script.",
+        "Success envelopes verified against the vendor-owned Wistia CLI generated OpenAPI; modern media/folder lists are arrays. Source fixture is schema-derived, not a provider call."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "workos",
+      "display_name": "WorkOS",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [],
+        "primary_sources": [
+          "https://workos.com/docs/reference"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.workos.organizations.list",
+        "files.workos.directories.list"
+      ],
+      "primary_sources": [
+        "https://workos.com/docs/reference",
+        "https://workos.com/docs/reference/directory-sync/directory/list",
+        "https://workos.com/docs/reference/organization/list"
+      ],
+      "notes": [
+        "BYO backend API key for owned environment. No SSO session creation, identity tokens, directory users or management mutations."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "elevenlabs",
+      "display_name": "ElevenLabs",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "Read Voices and Read Models permissions where API key is scoped"
+        ],
+        "primary_sources": [
+          "https://elevenlabs.io/docs/api-reference/authentication"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.elevenlabs.voices.list",
+        "files.elevenlabs.models.list"
+      ],
+      "primary_sources": [
+        "https://elevenlabs.io/docs/api-reference/authentication",
+        "https://elevenlabs.io/docs/api-reference/models/list",
+        "https://elevenlabs.io/docs/api-reference/voices/search"
+      ],
+      "notes": [
+        "Catalog/metadata only; no model invocation, audio generation, voice cloning or media download. Uses nondeprecated voices v2."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "heygen",
+      "display_name": "HeyGen",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "Read-only key limited to avatar/voice metadata"
+        ],
+        "primary_sources": [
+          "https://developers.heygen.com/docs/api-key"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.heygen.avatars.list",
+        "files.heygen.voices.list"
+      ],
+      "primary_sources": [
+        "https://developers.heygen.com/docs/api-key",
+        "https://developers.heygen.com/docs/avatars",
+        "https://developers.heygen.com/docs/voices/search-voices"
+      ],
+      "notes": [
+        "Current official examples document data[]/has_more/next_token; cursor is compiled and bound to this operation, connection and query."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "grain",
+      "display_name": "Grain",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [],
+        "primary_sources": [
+          "https://developers.grain.com/authentication.html"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {
+          "Public-Api-Version": "2026-10-01"
+        }
+      },
+      "operation_names": [
+        "files.grain.recordings.list",
+        "files.grain.recordings.get"
+      ],
+      "primary_sources": [
+        "https://developers.grain.com/authentication.html",
+        "https://developers.grain.com/endpoints.html"
+      ],
+      "notes": [
+        "PAT with existing user access. Fixed read-list POST; no uploads, transcript download, destination URL or recording mutation.",
+        "Official Get Recording uses POST with a fixed empty JSON request, despite the operation being a read; no write or include expansion exposed."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "brex",
+      "display_name": "Brex",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "users.readonly",
+          "departments.readonly"
+        ],
+        "primary_sources": [
+          "https://developer.brex.com/guides/roles_permissions_scopes"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.brex.users.list",
+        "files.brex.departments.list"
+      ],
+      "primary_sources": [
+        "https://developer.brex.com/_bundle/openapi/team_api.yaml",
+        "https://developer.brex.com/guides/roles_permissions_scopes",
+        "https://developer.brex.com/openapi/team_api/"
+      ],
+      "notes": [
+        "Team metadata only. No card PAN, bank transactions, transfers, user invitations or financial writes. Host api.brex.com is used in official current Team API examples.",
+        "Official bundled Team OpenAPI confirms api.brex.com, /v2/users and /v2/departments, items arrays and nullable next_cursor."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "spotify",
+      "display_name": "Spotify",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "playlist-read-private",
+          "user-library-read"
+        ],
+        "primary_sources": [
+          "https://developer.spotify.com/documentation/web-api/concepts/authorization"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.spotify.playlists.list",
+        "files.spotify.saved_tracks.list"
+      ],
+      "primary_sources": [
+        "https://developer.spotify.com/documentation/web-api/concepts/authorization",
+        "https://developer.spotify.com/documentation/web-api/reference/get-a-list-of-current-users-playlists",
+        "https://developer.spotify.com/documentation/web-api/reference/get-users-saved-tracks"
+      ],
+      "notes": [
+        "Metadata/library reads only, no playback, audio preview, artwork fetch or playlists writes. OAuth app audience/development access restrictions remain vendor gates."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "pandadoc",
+      "display_name": "PandaDoc",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [],
+        "primary_sources": [
+          "https://developers.pandadoc.com/reference/authentication-process"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.pandadoc.documents.list",
+        "files.pandadoc.documents.details"
+      ],
+      "primary_sources": [
+        "https://developers.pandadoc.com/reference/authentication-process",
+        "https://developers.pandadoc.com/reference/document-details",
+        "https://developers.pandadoc.com/reference/list-documents"
+      ],
+      "notes": [
+        "Document metadata only. Do not return fields, variable tokens, recipient signing links or download/sign/send a document. Vendor API entitlement required."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "cal_com",
+      "display_name": "Cal.com",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "PROFILE_READ and BOOKING_READ for OAuth; owned personal API key otherwise"
+        ],
+        "primary_sources": [
+          "https://cal.com/docs/api-reference/v2/authentication"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {
+          "cal-api-version": "2024-08-13"
+        }
+      },
+      "operation_names": [
+        "files.cal_com.profile.get",
+        "files.cal_com.bookings.get"
+      ],
+      "primary_sources": [
+        "https://cal.com/docs/api-reference/v2/authentication",
+        "https://cal.com/docs/api-reference/v2/bookings/get-a-booking",
+        "https://cal.com/docs/api-reference/v2/me/get-my-profile"
+      ],
+      "notes": [
+        "Uses v2; retired query-key v1 is not supported. Read existing bookings only, no booking creation/cancel, conferencing links or attendee changes."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "tally",
+      "display_name": "Tally",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [],
+        "primary_sources": [
+          "https://developers.tally.so/api-reference/introduction"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.tally.forms.list",
+        "files.tally.submissions.list"
+      ],
+      "primary_sources": [
+        "https://developers.tally.so/api-reference/endpoint/forms/list",
+        "https://developers.tally.so/api-reference/endpoint/forms/submissions/list",
+        "https://developers.tally.so/api-reference/introduction"
+      ],
+      "notes": [
+        "Replaces Productive: Productive requires variable X-Organization-Id plus auth token and is deferred. Tally uses one fixed bearer header; no forms/webhooks/submission writes."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "onesignal",
+      "display_name": "OneSignal",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "Organization API key authorized to view owned apps"
+        ],
+        "primary_sources": [
+          "https://documentation.onesignal.com/reference/authentication"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.onesignal.apps.list",
+        "files.onesignal.apps.get"
+      ],
+      "primary_sources": [
+        "https://documentation.onesignal.com/reference/authentication",
+        "https://documentation.onesignal.com/reference/view-an-app",
+        "https://documentation.onesignal.com/reference/view-apps"
+      ],
+      "notes": [
+        "Projection deliberately excludes returned API keys, platform credentials and certificates. No notifications, live activities or user export."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "hunter",
+      "display_name": "Hunter",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [],
+        "primary_sources": [
+          "https://hunter.io/api-documentation.md"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.hunter.account.get",
+        "files.hunter.domains.search"
+      ],
+      "primary_sources": [
+        "https://hunter.io/api-documentation.md",
+        "https://hunter.io/api-documentation/v2#domain-search"
+      ],
+      "notes": [
+        "Documented Authorization Bearer, never api_key query. Domain is provider search data, not request origin. Lookup may consume user credits; no paid fallback or test-api-key fake result."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "revenuecat",
+      "display_name": "RevenueCat",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "project_configuration:projects:read",
+          "project_configuration:apps:read"
+        ],
+        "primary_sources": [
+          "https://www.revenuecat.com/docs/api-v2"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.revenuecat.projects.list",
+        "files.revenuecat.apps.list"
+      ],
+      "primary_sources": [
+        "https://www.revenuecat.com/docs/api-v2",
+        "https://www.revenuecat.com/docs/api-v2/app",
+        "https://www.revenuecat.com/docs/api-v2/project"
+      ],
+      "notes": [
+        "Secret v2 key with only read permissions. No customers, purchases, entitlements, public SDK keys or billing writes."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "close",
+      "display_name": "Close",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [],
+        "primary_sources": [
+          "https://developer.close.com/topics/authentication"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.close.leads.list",
+        "files.close.contacts.list"
+      ],
+      "primary_sources": [
+        "https://developer.close.com/api/resources/contacts/list",
+        "https://developer.close.com/api/resources/leads/list",
+        "https://developer.close.com/topics/authentication"
+      ],
+      "notes": [
+        "Bearer OAuth token only in this definition. Raw Basic API key is not silently transformed or treated as a bearer. No calling, email sending or lead changes."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "instantly",
+      "display_name": "Instantly.ai",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "Read campaign scope in existing API v2 key"
+        ],
+        "primary_sources": [
+          "https://developer.instantly.ai/api/v2"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "outreach.instantly.campaigns.list",
+        "outreach.instantly.campaigns.get"
+      ],
+      "primary_sources": [
+        "https://developer.instantly.ai/api/v2"
+      ],
+      "notes": [
+        "No activating campaigns, mailbox configuration, prospect enrichment, sends or warmup."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "lemlist",
+      "display_name": "lemlist",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "Manual credential value must be base64(\":\" + API_KEY), without the Basic prefix; never paste a raw API key."
+        ],
+        "primary_sources": [
+          "https://developer.lemlist.com/api-reference/getting-started/authentication"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "outreach.lemlist.campaigns.list",
+        "outreach.lemlist.campaigns.get"
+      ],
+      "primary_sources": [
+        "https://developer.lemlist.com/api-reference/endpoints/campaigns/get-campaign",
+        "https://developer.lemlist.com/api-reference/endpoints/campaigns/get-many-campaigns",
+        "https://developer.lemlist.com/api-reference/getting-started/authentication"
+      ],
+      "notes": [
+        "Pre-encoded HTTP Basic credential supported by existing fixed-header Apply. No runtime credential encoder or body-auth workaround. Owner supplies the documented prepared credential; no sends, campaign start or enrichment."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "signnow",
+      "display_name": "SignNow",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [],
+        "primary_sources": [
+          "https://github.com/signnow/SignNowNodeSDK"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.signnow.documents.list",
+        "files.signnow.documents.get"
+      ],
+      "primary_sources": [
+        "https://github.com/signnow/SignNowNodeSDK",
+        "https://signnow.github.io/SignNowNodeSDK/file/lib/document/index.js.html"
+      ],
+      "notes": [
+        "Official vendor SDK documents Bearer GET endpoints; current hosted Stoplight reference failed to render in audit. No signing links, document content export, templates or invitations. Require endpoint fixture and real owner-token read before lifecycle claim."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "pendo",
+      "display_name": "Pendo",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [],
+        "primary_sources": [
+          "https://engageapi.pendo.io/#getting-started"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.pendo.features.list",
+        "files.pendo.pages.list"
+      ],
+      "primary_sources": [
+        "https://engageapi.pendo.io/#feature",
+        "https://engageapi.pendo.io/#getting-started",
+        "https://engageapi.pendo.io/#page"
+      ],
+      "notes": [
+        "US fixed API origin only, one vendor. Metadata endpoints only; no caller-supplied aggregation pipeline, JavaScript, visitors, account metadata or guide publication."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "capsule",
+      "display_name": "Capsule CRM",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [],
+        "primary_sources": [
+          "https://developer.capsulecrm.com/v2/overview/authentication"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.capsule.parties.list",
+        "files.capsule.opportunities.list"
+      ],
+      "primary_sources": [
+        "https://developer.capsulecrm.com/v2/operations/Opportunity",
+        "https://developer.capsulecrm.com/v2/operations/Party",
+        "https://developer.capsulecrm.com/v2/overview/authentication"
+      ],
+      "notes": [
+        "Personal token or already-authorized OAuth token, within existing user access. No parties/opportunity mutations, attachment fetch or task execution."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "lucid",
+      "display_name": "Lucid",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "DocumentReadonly API grant or documented product-specific document content readonly OAuth scope"
+        ],
+        "primary_sources": [
+          "https://developer.lucid.co/reference/overview",
+          "https://developer.lucid.co/reference/using-the-access-token"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {
+          "Lucid-Api-Version": "1"
+        }
+      },
+      "operation_names": [
+        "files.lucid.documents.get",
+        "files.lucid.threads.list"
+      ],
+      "primary_sources": [
+        "https://developer.lucid.co/reference/getorexportdocument",
+        "https://developer.lucid.co/reference/listdocumentthreads",
+        "https://developer.lucid.co/reference/overview"
+      ],
+      "notes": [
+        "Replaces Teamtailor parameterized Token token= header. JSON metadata/comment-thread listing only; no image Accept type, exports, admin impersonation or diagram writes."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "ashby",
+      "display_name": "Ashby",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "jobsRead",
+          "candidatesRead",
+          "Manual credential value must be base64(API_KEY + \":\"), without the Basic prefix; raw API key rejected by provider."
+        ],
+        "primary_sources": [
+          "https://developers.ashbyhq.com/docs/authentication"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {
+          "Ashby-Version": "2026-01-01"
+        }
+      },
+      "operation_names": [
+        "files.ashby.jobs.list",
+        "files.ashby.candidates.list"
+      ],
+      "primary_sources": [
+        "https://developers.ashbyhq.com/docs/authentication",
+        "https://developers.ashbyhq.com/reference/candidatelist",
+        "https://developers.ashbyhq.com/reference/joblist",
+        "https://developers.ashbyhq.com/reference/versioning"
+      ],
+      "notes": [
+        "Two compiled read-list POSTs, not generic RPC. No candidate emails/attachments or hiring actions. Existing Apply receives pre-encoded Basic credential; no auth-body workaround."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "dovetail",
+      "display_name": "Dovetail",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [],
+        "primary_sources": [
+          "https://developers.dovetail.com/docs/authorization"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.dovetail.projects.list",
+        "files.dovetail.projects.get"
+      ],
+      "primary_sources": [
+        "https://developers.dovetail.com/docs/authorization",
+        "https://developers.dovetail.com/reference/get_v1-projects",
+        "https://developers.dovetail.com/reference/get_v1-projects-project-id"
+      ],
+      "notes": [
+        "Owner personal API token is time-limited and revocable; no renewal/registration assumed. No arbitrary search DSL, raw research records, content export or mutations.",
+        "Success response schemas read from official API reference SSR document.api.schema. Lists return data[] and page; get returns data with overview, not description. First page only; no returned cursor is followed."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "launchdarkly",
+      "display_name": "LaunchDarkly",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "Access token restricted to Reader role/resource access"
+        ],
+        "primary_sources": [
+          "https://launchdarkly.com/docs/api#authentication"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.launchdarkly.projects.list",
+        "files.launchdarkly.flags.list"
+      ],
+      "primary_sources": [
+        "https://launchdarkly.com/docs/api#authentication",
+        "https://launchdarkly.com/docs/api/feature-flags/get-feature-flags",
+        "https://launchdarkly.com/docs/api/projects/get-projects"
+      ],
+      "notes": [
+        "Flag metadata only, not evaluation rules/targets/context data, environments or flag mutation."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "statsig",
+      "display_name": "Statsig",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "Read-only Console API key, not a client/secret SDK key"
+        ],
+        "primary_sources": [
+          "https://docs.statsig.com/console-api/introduction"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.statsig.gates.list",
+        "files.statsig.experiments.list"
+      ],
+      "primary_sources": [
+        "https://docs.statsig.com/api-reference/experiments/list-experiments",
+        "https://docs.statsig.com/api-reference/gates/list-gates",
+        "https://docs.statsig.com/console-api/introduction"
+      ],
+      "notes": [
+        "Console metadata reads only; no exposure checks, experiment allocation, mutations or SDK event logging."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "rootly",
+      "display_name": "Rootly",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "API key with read access constrained by existing organization/user role"
+        ],
+        "primary_sources": [
+          "https://docs.rootly.com/api-reference/overview"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.rootly.incidents.list",
+        "files.rootly.services.list"
+      ],
+      "primary_sources": [
+        "https://docs.rootly.com/api-reference/incidents/list-incidents",
+        "https://docs.rootly.com/api-reference/overview",
+        "https://docs.rootly.com/api-reference/services/list-services"
+      ],
+      "notes": [
+        "No incident declaration, escalation, pulse, webhook or on-call changes."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    },
+    {
+      "provider": "incident_io",
+      "display_name": "incident.io",
+      "auth": {
+        "mode": "manual_token",
+        "permissions": [
+          "API key with View data access; private incident permission only if owner explicitly grants it"
+        ],
+        "primary_sources": [
+          "https://docs.incident.io/api-reference/introduction"
+        ],
+        "common_oauth_enabled": false,
+        "real_qa": false,
+        "fixed_headers": {}
+      },
+      "operation_names": [
+        "files.incident_io.incidents.list",
+        "files.incident_io.roles.list"
+      ],
+      "primary_sources": [
+        "https://docs.incident.io/api-reference/incident-roles-v1/list",
+        "https://docs.incident.io/api-reference/incidents-v2/list",
+        "https://docs.incident.io/api-reference/introduction"
+      ],
+      "notes": [
+        "No incident creation, status changes, escalation, alert routes or integrations mutation."
+      ],
+      "external_gates": [],
+      "status": "source_candidate_not_registered_not_qualified"
+    }
+  ],
+  "qualification_gates": [
+    "shared strict consumer root review",
+    "remote real-adapter synthetic request/schema/error/projection fixtures",
+    "source/full module/security gates",
+    "normal installed product and UI lifecycle",
+    "authorized vendor credential reads and eventual refresh/restart/disconnect; no grants assumed",
+    "public release/pins only after qualification"
+  ],
+  "reserves": [
+    {
+      "name": "Jotform",
+      "primary_docs": "https://api.jotform.com/docs/",
+      "state": "reserve_not_counted_not_implemented"
+    },
+    {
+      "name": "CloudConvert",
+      "primary_docs": "https://cloudconvert.com/docs/api-reference/jobs",
+      "state": "reserve_not_counted_not_implemented"
+    },
+    {
+      "name": "Capacities",
+      "primary_docs": "https://docs.capacities.io/developer/api",
+      "state": "reserve_not_counted_not_implemented"
+    },
+    {
+      "name": "ClickHouse",
+      "primary_docs": "https://clickhouse.com/docs/interfaces/http",
+      "state": "reserve_not_counted_not_implemented"
+    },
+    {
+      "name": "Document360",
+      "primary_docs": "https://apidocs.document360.com/",
+      "state": "reserve_not_counted_not_implemented"
+    },
+    {
+      "name": "Reclaim.ai",
+      "primary_docs": "https://reclaim.ai/developers",
+      "state": "reserve_not_counted_not_implemented"
+    }
+  ],
+  "response_fixture_coverage": {
+    "providers_with_official_example_or_schema": 30,
+    "missing_primary_envelope": [],
+    "real_provider_calls": 0
+  }
+}

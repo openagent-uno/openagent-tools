@@ -151,7 +151,7 @@ func DirectAdsFeatureFlags() []FeatureFlagDefinition {
 var (
 	providerNamePattern  = regexp.MustCompile(`^[a-z][a-z0-9_-]{1,31}$`)
 	operationNamePattern = regexp.MustCompile(`^[a-z][a-z0-9._-]{2,127}$`)
-	headerNamePattern    = regexp.MustCompile(`^[A-Za-z0-9-]{1,64}$`)
+	headerNamePattern    = regexp.MustCompile(`^[A-Za-z0-9_-]{1,64}$`)
 	toolNamePattern      = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$`)
 	pipeboardOrigins     = map[string]string{
 		"meta_ads":   "https://meta-ads.mcp.pipeboard.co",
@@ -379,9 +379,6 @@ func validateProviderPath(path string, prefix bool) error {
 		if strings.ContainsAny(segment, "{}") && !validTemplateSegment(segment) {
 			return errors.New("provider path contains an invalid template")
 		}
-	}
-	if !prefix && path != "/" && strings.HasSuffix(path, "/") {
-		return errors.New("typed provider path cannot end in a slash")
 	}
 	return nil
 }

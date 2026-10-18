@@ -81,7 +81,7 @@ var (
 	sessionIDPattern     = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._:@-]{0,127}$`)
 	providerPattern      = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]{0,63}$`)
 	providerScopePattern = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9._:/-]{0,255}$`)
-	headerPattern        = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9-]{0,63}$`)
+	headerPattern        = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$`)
 	schemePattern        = regexp.MustCompile(`^[A-Za-z][A-Za-z0-9._-]{0,31}$`)
 	actorUserPattern     = regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$`)
 )

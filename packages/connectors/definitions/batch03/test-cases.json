@@ -1,0 +1,3861 @@
+{
+  "schema_version": 1,
+  "batch_id": "batch03",
+  "status": "designed_not_executed",
+  "test_execution_performed": false,
+  "provider_calls": 0,
+  "requirements": [
+    "Use actual shared reviewed-batch consumer/HTTPAdapter for remote fixtures.",
+    "Preview and validation must not resolve a credential or perform HTTP.",
+    "All reads have one attempt, a finite output leaf projection and 4MiB response bound.",
+    "Synthetic fixtures do not qualify vendor entitlement, grants, refresh/restart/disconnect or full ChatGPT parity."
+  ],
+  "cases": [
+    {
+      "provider": "contentful",
+      "operation": "files.contentful.content_types.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "contentful",
+        "space_id": "qa-space",
+        "environment_id": "master"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://cdn.contentful.com",
+        "path_template": "/spaces/{space_id}/environments/{environment_id}/content_types",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "items[].sys.id",
+          "items[].name",
+          "items[].description",
+          "items[].fields[].id",
+          "items[].fields[].name",
+          "items[].fields[].type",
+          "total"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "contentful",
+      "operation": "files.contentful.assets.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "contentful",
+        "space_id": "qa-space",
+        "environment_id": "master"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://cdn.contentful.com",
+        "path_template": "/spaces/{space_id}/environments/{environment_id}/assets",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "items[].sys.id",
+          "items[].fields.title",
+          "items[].fields.description",
+          "items[].fields.file.contentType",
+          "items[].fields.file.details.size",
+          "total"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "postman",
+      "operation": "files.postman.collections.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "postman"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.postman.com",
+        "path_template": "/collections",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "X-Api-Key",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "collections[].id",
+          "collections[].uid",
+          "collections[].name",
+          "collections[].createdAt",
+          "collections[].updatedAt"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "postman",
+      "operation": "files.postman.collections.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "postman",
+        "collection_id": "123-collection-example"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.postman.com",
+        "path_template": "/collections/{collection_id}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "X-Api-Key",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "collection.info._postman_id",
+          "collection.info.name",
+          "collection.info.schema"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "smartsheet",
+      "operation": "files.smartsheet.sheets.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "smartsheet"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.smartsheet.com",
+        "path_template": "/2.0/sheets",
+        "query_mapping": {
+          "pageSize": "pageSize"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data[].id",
+          "data[].name",
+          "data[].modifiedAt",
+          "totalCount",
+          "totalPages"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "smartsheet",
+      "operation": "files.smartsheet.sheets.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "smartsheet",
+        "sheet_id": "123"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.smartsheet.com",
+        "path_template": "/2.0/sheets/{sheet_id}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "id",
+          "name",
+          "version",
+          "columns[].id",
+          "columns[].title",
+          "columns[].type",
+          "rows[].id",
+          "rows[].rowNumber",
+          "rows[].cells[].columnId",
+          "rows[].cells[].displayValue"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "surveymonkey",
+      "operation": "files.surveymonkey.surveys.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "surveymonkey"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.surveymonkey.com",
+        "path_template": "/v3/surveys",
+        "query_mapping": {
+          "per_page": "per_page"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data[].id",
+          "data[].title",
+          "total"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "surveymonkey",
+      "operation": "files.surveymonkey.surveys.details",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "surveymonkey",
+        "survey_id": "123"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.surveymonkey.com",
+        "path_template": "/v3/surveys/{survey_id}/details",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "id",
+          "title",
+          "pages[].id",
+          "pages[].title",
+          "pages[].questions[].id",
+          "pages[].questions[].family",
+          "pages[].questions[].subtype",
+          "pages[].questions[].headings[].heading"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "wistia",
+      "operation": "files.wistia.media.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "wistia"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.wistia.com",
+        "path_template": "/modern/medias",
+        "query_mapping": {
+          "per_page": "per_page"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {
+          "X-Wistia-API-Version": "2026-09"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "[].hashed_id",
+          "[].name",
+          "[].type",
+          "[].duration",
+          "[].created",
+          "[].updated"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "wistia",
+      "operation": "files.wistia.folders.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "wistia"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.wistia.com",
+        "path_template": "/modern/folders",
+        "query_mapping": {
+          "per_page": "per_page"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {
+          "X-Wistia-API-Version": "2026-09"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "[].id",
+          "[].name",
+          "[].created",
+          "[].updated",
+          "[].media_count"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "workos",
+      "operation": "files.workos.organizations.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "workos"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.workos.com",
+        "path_template": "/organizations",
+        "query_mapping": {
+          "limit": "limit",
+          "after": "after"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data[].id",
+          "data[].name",
+          "data[].created_at",
+          "list_metadata.after"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "after"
+          ],
+          "response_fields": [
+            "list_metadata.after"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "workos",
+      "operation": "files.workos.directories.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "workos"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.workos.com",
+        "path_template": "/directory_sync/directories",
+        "query_mapping": {
+          "limit": "limit",
+          "after": "after"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data[].id",
+          "data[].name",
+          "data[].type",
+          "data[].state",
+          "data[].organization_id",
+          "list_metadata.after"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "after"
+          ],
+          "response_fields": [
+            "list_metadata.after"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "elevenlabs",
+      "operation": "files.elevenlabs.voices.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "elevenlabs"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.elevenlabs.io",
+        "path_template": "/v2/voices",
+        "query_mapping": {
+          "page_size": "page_size",
+          "next_page_token": "next_page_token"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "xi-api-key",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "voices[].voice_id",
+          "voices[].name",
+          "voices[].category",
+          "next_page_token",
+          "has_more"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "next_page_token"
+          ],
+          "response_fields": [
+            "next_page_token"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "elevenlabs",
+      "operation": "files.elevenlabs.models.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "elevenlabs"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.elevenlabs.io",
+        "path_template": "/v1/models",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "xi-api-key",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "[].model_id",
+          "[].name",
+          "[].can_do_text_to_speech",
+          "[].can_do_voice_conversion"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "heygen",
+      "operation": "files.heygen.avatars.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "heygen"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.heygen.com",
+        "path_template": "/v3/avatars",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "X-Api-Key",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data[].id",
+          "data[].name",
+          "data[].gender",
+          "data[].looks_count",
+          "data[].status",
+          "data[].created_at",
+          "has_more",
+          "next_token"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "token"
+          ],
+          "response_fields": [
+            "next_token"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "heygen",
+      "operation": "files.heygen.voices.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "heygen"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.heygen.com",
+        "path_template": "/v3/voices",
+        "query_mapping": {
+          "limit": "limit",
+          "language": "language"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "X-Api-Key",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data[].voice_id",
+          "data[].name",
+          "data[].language",
+          "data[].gender",
+          "data[].type",
+          "has_more",
+          "next_token"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "token"
+          ],
+          "response_fields": [
+            "next_token"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "grain",
+      "operation": "files.grain.recordings.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "grain",
+        "body": {}
+      },
+      "expected": {
+        "method": "POST",
+        "origin": "https://api.grain.com",
+        "path_template": "/_/public-api/v2/recordings",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "json",
+        "fixed_headers": {
+          "Public-Api-Version": "2026-10-01"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "recordings[].id",
+          "recordings[].title",
+          "recordings[].start_datetime",
+          "recordings[].duration_ms",
+          "cursor"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "body.cursor"
+          ],
+          "response_fields": [
+            "cursor"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "grain",
+      "operation": "files.grain.recordings.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "grain",
+        "recording_id": "recording-example",
+        "body": {}
+      },
+      "expected": {
+        "method": "POST",
+        "origin": "https://api.grain.com",
+        "path_template": "/_/public-api/v2/recordings/{recording_id}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "json",
+        "fixed_headers": {
+          "Public-Api-Version": "2026-10-01"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "id",
+          "title",
+          "source",
+          "media_type",
+          "start_datetime",
+          "end_datetime",
+          "duration_ms"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "brex",
+      "operation": "files.brex.users.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "brex"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.brex.com",
+        "path_template": "/v2/users",
+        "query_mapping": {
+          "limit": "limit",
+          "cursor": "cursor"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "items[].id",
+          "items[].first_name",
+          "items[].last_name",
+          "items[].email",
+          "items[].status",
+          "next_cursor"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "cursor"
+          ],
+          "response_fields": [
+            "next_cursor"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "brex",
+      "operation": "files.brex.departments.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "brex"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.brex.com",
+        "path_template": "/v2/departments",
+        "query_mapping": {
+          "limit": "limit",
+          "cursor": "cursor"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "items[].id",
+          "items[].name",
+          "next_cursor"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "cursor"
+          ],
+          "response_fields": [
+            "next_cursor"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "spotify",
+      "operation": "files.spotify.playlists.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "spotify"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.spotify.com",
+        "path_template": "/v1/me/playlists",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "items[].id",
+          "items[].name",
+          "items[].description",
+          "items[].public",
+          "total"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "spotify",
+      "operation": "files.spotify.saved_tracks.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "spotify"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.spotify.com",
+        "path_template": "/v1/me/tracks",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "items[].added_at",
+          "items[].track.id",
+          "items[].track.name",
+          "items[].track.duration_ms",
+          "items[].track.artists[].name",
+          "total"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "pandadoc",
+      "operation": "files.pandadoc.documents.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "pandadoc"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.pandadoc.com",
+        "path_template": "/public/v1/documents",
+        "query_mapping": {
+          "count": "count"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "API-Key",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "results[].id",
+          "results[].name",
+          "results[].status",
+          "results[].date_created",
+          "results[].date_modified"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "pandadoc",
+      "operation": "files.pandadoc.documents.details",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "pandadoc",
+        "document_id": "doc-example"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.pandadoc.com",
+        "path_template": "/public/v1/documents/{document_id}/details",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "API-Key",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "id",
+          "name",
+          "status",
+          "date_created",
+          "date_modified",
+          "version"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "cal_com",
+      "operation": "files.cal_com.profile.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "cal_com"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.cal.com",
+        "path_template": "/v2/me",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {
+          "cal-api-version": "2024-08-13"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "status",
+          "data.id",
+          "data.name",
+          "data.username",
+          "data.email",
+          "data.timeZone"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "cal_com",
+      "operation": "files.cal_com.bookings.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "cal_com",
+        "booking_uid": "booking-example"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.cal.com",
+        "path_template": "/v2/bookings/{booking_uid}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {
+          "cal-api-version": "2024-08-13"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "status",
+          "data.id",
+          "data.uid",
+          "data.title",
+          "data.status",
+          "data.start",
+          "data.end",
+          "data.duration"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "tally",
+      "operation": "files.tally.forms.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "tally"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.tally.so",
+        "path_template": "/forms",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "items[].id",
+          "items[].name",
+          "items[].status",
+          "hasMore"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "tally",
+      "operation": "files.tally.submissions.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "tally",
+        "form_id": "form-example"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.tally.so",
+        "path_template": "/forms/{form_id}/submissions",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "submissions[].id",
+          "submissions[].formId",
+          "submissions[].submittedAt",
+          "submissions[].isCompleted",
+          "hasMore"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "onesignal",
+      "operation": "files.onesignal.apps.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "onesignal"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.onesignal.com",
+        "path_template": "/apps",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Key",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "[].id",
+          "[].name",
+          "[].players",
+          "[].messageable_players",
+          "[].created_at",
+          "[].updated_at"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "onesignal",
+      "operation": "files.onesignal.apps.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "onesignal",
+        "app_id": "app-example"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.onesignal.com",
+        "path_template": "/apps/{app_id}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Key",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "id",
+          "name",
+          "players",
+          "messageable_players",
+          "created_at",
+          "updated_at"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "hunter",
+      "operation": "files.hunter.account.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "hunter"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.hunter.io",
+        "path_template": "/v2/account",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data.first_name",
+          "data.last_name",
+          "data.email",
+          "data.plan_name",
+          "data.requests.searches.used",
+          "data.requests.searches.available"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "hunter",
+      "operation": "files.hunter.domains.search",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "hunter",
+        "domain": "example.com",
+        "limit": 5
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.hunter.io",
+        "path_template": "/v2/domain-search",
+        "query_mapping": {
+          "domain": "domain",
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data.domain",
+          "data.organization",
+          "data.emails[].value",
+          "data.emails[].type",
+          "data.emails[].confidence"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "revenuecat",
+      "operation": "files.revenuecat.projects.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "revenuecat"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.revenuecat.com",
+        "path_template": "/v2/projects",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "items[].id",
+          "items[].name",
+          "items[].created_at"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "revenuecat",
+      "operation": "files.revenuecat.apps.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "revenuecat",
+        "project_id": "projExample"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.revenuecat.com",
+        "path_template": "/v2/projects/{project_id}/apps",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "items[].id",
+          "items[].name",
+          "items[].type",
+          "items[].created_at"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "close",
+      "operation": "files.close.leads.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "close"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.close.com",
+        "path_template": "/api/v1/lead/",
+        "query_mapping": {
+          "limit": "_limit"
+        },
+        "fixed_query": {
+          "_fields": "id,display_name,name,status_label"
+        },
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data[].id",
+          "data[].display_name",
+          "data[].name",
+          "data[].status_label",
+          "has_more"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "close",
+      "operation": "files.close.contacts.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "close"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.close.com",
+        "path_template": "/api/v1/contact/",
+        "query_mapping": {
+          "limit": "_limit"
+        },
+        "fixed_query": {
+          "_fields": "id,name,title,lead_id"
+        },
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data[].id",
+          "data[].name",
+          "data[].title",
+          "data[].lead_id",
+          "has_more"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "instantly",
+      "operation": "outreach.instantly.campaigns.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "instantly"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.instantly.ai",
+        "path_template": "/api/v2/campaigns",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "items[].id",
+          "items[].name",
+          "items[].status",
+          "items[].timestamp_created"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "instantly",
+      "operation": "outreach.instantly.campaigns.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "instantly",
+        "campaign_id": "campaign-example"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.instantly.ai",
+        "path_template": "/api/v2/campaigns/{campaign_id}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "id",
+          "name",
+          "status",
+          "timestamp_created"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "lemlist",
+      "operation": "outreach.lemlist.campaigns.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "lemlist"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.lemlist.com",
+        "path_template": "/api/campaigns",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Basic",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "[]._id",
+          "[].name",
+          "[].status"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "lemlist",
+      "operation": "outreach.lemlist.campaigns.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "lemlist",
+        "campaign_id": "cam_example"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.lemlist.com",
+        "path_template": "/api/campaigns/{campaign_id}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Basic",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "_id",
+          "name",
+          "status",
+          "isArchived"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "signnow",
+      "operation": "files.signnow.documents.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "signnow"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.signnow.com",
+        "path_template": "/user/documentsv2",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "[].id",
+          "[].document_name",
+          "[].page_count",
+          "[].created",
+          "[].updated"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "signnow",
+      "operation": "files.signnow.documents.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "signnow",
+        "document_id": "abcdef0123456789"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.signnow.com",
+        "path_template": "/document/{document_id}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "id",
+          "document_name",
+          "page_count",
+          "created",
+          "updated"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "pendo",
+      "operation": "files.pendo.features.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "pendo"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://app.pendo.io",
+        "path_template": "/api/v1/feature",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "X-Pendo-Integration-Key",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "[].id",
+          "[].name",
+          "[].appId",
+          "[].createdAt",
+          "[].lastUpdatedAt"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "pendo",
+      "operation": "files.pendo.pages.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "pendo"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://app.pendo.io",
+        "path_template": "/api/v1/page",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "X-Pendo-Integration-Key",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "[].id",
+          "[].name",
+          "[].appId",
+          "[].createdAt",
+          "[].lastUpdatedAt"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "capsule",
+      "operation": "files.capsule.parties.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "capsule"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.capsulecrm.com",
+        "path_template": "/api/v2/parties",
+        "query_mapping": {
+          "perPage": "perPage"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "parties[].id",
+          "parties[].type",
+          "parties[].name",
+          "parties[].firstName",
+          "parties[].lastName",
+          "meta.totalCount"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "capsule",
+      "operation": "files.capsule.opportunities.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "capsule"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.capsulecrm.com",
+        "path_template": "/api/v2/opportunities",
+        "query_mapping": {
+          "perPage": "perPage"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "opportunities[].id",
+          "opportunities[].name",
+          "opportunities[].description",
+          "opportunities[].expectedCloseOn",
+          "meta.totalCount"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "lucid",
+      "operation": "files.lucid.documents.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "lucid",
+        "document_id": "110808fd-4553-4316-bccf-4f25ff59a532"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.lucid.co",
+        "path_template": "/v1/documents/{document_id}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {
+          "Lucid-Api-Version": "1"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "documentId",
+          "title",
+          "version",
+          "created",
+          "modified"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "lucid",
+      "operation": "files.lucid.threads.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "lucid",
+        "document_id": "110808fd-4553-4316-bccf-4f25ff59a532"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.lucid.co",
+        "path_template": "/v1/documents/{document_id}/threads",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {
+          "Lucid-Api-Version": "1"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "[].id",
+          "[].created",
+          "[].status"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "ashby",
+      "operation": "files.ashby.jobs.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "ashby",
+        "body": {
+          "limit": 25
+        }
+      },
+      "expected": {
+        "method": "POST",
+        "origin": "https://api.ashbyhq.com",
+        "path_template": "/job.list",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "json",
+        "fixed_headers": {
+          "Ashby-Version": "2026-01-01"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "Basic",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "success",
+          "results[].id",
+          "results[].title",
+          "results[].status",
+          "nextCursor",
+          "moreDataAvailable"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "body.cursor"
+          ],
+          "response_fields": [
+            "nextCursor"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "HTTP200 success false or errors present",
+          "expected": "provider_operation_error"
+        }
+      ]
+    },
+    {
+      "provider": "ashby",
+      "operation": "files.ashby.candidates.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "ashby",
+        "body": {
+          "limit": 25
+        }
+      },
+      "expected": {
+        "method": "POST",
+        "origin": "https://api.ashbyhq.com",
+        "path_template": "/candidate.list",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "json",
+        "fixed_headers": {
+          "Ashby-Version": "2026-01-01"
+        },
+        "credential_header": "Authorization",
+        "credential_scheme": "Basic",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "success",
+          "results[].id",
+          "results[].name",
+          "results[].createdAt",
+          "nextCursor",
+          "moreDataAvailable"
+        ],
+        "pagination": {
+          "mode": "cursor",
+          "request_arguments": [
+            "body.cursor"
+          ],
+          "response_fields": [
+            "nextCursor"
+          ],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "HTTP200 success false or errors present",
+          "expected": "provider_operation_error"
+        }
+      ]
+    },
+    {
+      "provider": "dovetail",
+      "operation": "files.dovetail.projects.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "dovetail"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://dovetail.com",
+        "path_template": "/api/v1/projects",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data[].id",
+          "data[].title",
+          "data[].created_at"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "dovetail",
+      "operation": "files.dovetail.projects.get",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "dovetail",
+        "project_id": "1kf00nQk9yfWKfsTDni8aO"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://dovetail.com",
+        "path_template": "/api/v1/projects/{project_id}",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data.id",
+          "data.title",
+          "data.overview",
+          "data.type",
+          "data.created_at",
+          "data.deleted"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "launchdarkly",
+      "operation": "files.launchdarkly.projects.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "launchdarkly"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://app.launchdarkly.com",
+        "path_template": "/api/v2/projects",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "items[]._id",
+          "items[].key",
+          "items[].name",
+          "totalCount"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "launchdarkly",
+      "operation": "files.launchdarkly.flags.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "launchdarkly",
+        "project_key": "default"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://app.launchdarkly.com",
+        "path_template": "/api/v2/flags/{project_key}",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "items[].key",
+          "items[].name",
+          "items[].description",
+          "items[].kind",
+          "totalCount"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "statsig",
+      "operation": "files.statsig.gates.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "statsig"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://statsigapi.net",
+        "path_template": "/console/v1/gates",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "STATSIG-API-KEY",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data[].id",
+          "data[].name",
+          "data[].description",
+          "data[].isEnabled"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "statsig",
+      "operation": "files.statsig.experiments.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "statsig"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://statsigapi.net",
+        "path_template": "/console/v1/experiments",
+        "query_mapping": {
+          "limit": "limit"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "STATSIG-API-KEY",
+        "credential_scheme": "",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data[].id",
+          "data[].name",
+          "data[].description",
+          "data[].status"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "rootly",
+      "operation": "files.rootly.incidents.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "rootly"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.rootly.com",
+        "path_template": "/v1/incidents",
+        "query_mapping": {
+          "page_size": "page[size]"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data[].id",
+          "data[].attributes.title",
+          "data[].attributes.status",
+          "data[].attributes.created_at"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "rootly",
+      "operation": "files.rootly.services.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "rootly"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.rootly.com",
+        "path_template": "/v1/services",
+        "query_mapping": {
+          "page_size": "page[size]"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "data[].id",
+          "data[].attributes.name",
+          "data[].attributes.description"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "incident_io",
+      "operation": "files.incident_io.incidents.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "incident_io"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.incident.io",
+        "path_template": "/v2/incidents",
+        "query_mapping": {
+          "page_size": "page_size"
+        },
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "incidents[].id",
+          "incidents[].name",
+          "incidents[].summary",
+          "incidents[].created_at",
+          "incidents[].incident_status.name",
+          "incidents[].incident_status.category"
+        ],
+        "pagination": {
+          "mode": "first_page",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    },
+    {
+      "provider": "incident_io",
+      "operation": "files.incident_io.roles.list",
+      "fixture_kind": "designed_synthetic_not_executed",
+      "valid_arguments": {
+        "connection_id": "qa-connection",
+        "provider": "incident_io"
+      },
+      "expected": {
+        "method": "GET",
+        "origin": "https://api.incident.io",
+        "path_template": "/v1/incident_roles",
+        "query_mapping": {},
+        "fixed_query": {},
+        "body_mode": "none",
+        "fixed_headers": {},
+        "credential_header": "Authorization",
+        "credential_scheme": "Bearer",
+        "maximum_attempts": 1,
+        "risk": "read",
+        "output_projection": [
+          "incident_roles[].id",
+          "incident_roles[].name",
+          "incident_roles[].description",
+          "incident_roles[].shortform"
+        ],
+        "pagination": {
+          "mode": "none",
+          "request_arguments": [],
+          "response_fields": [],
+          "automatic_follow": false
+        }
+      },
+      "negative_cases": [
+        {
+          "change": "unknown URL/method/path/headers/query property, duplicate/trailing JSON or wrong scalar type",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "wrong provider/capability/connection/tenant/owner or none/revoked credential",
+          "expected": "denied_before_http"
+        },
+        {
+          "change": "path traversal/control bytes or oversized scalar/body",
+          "expected": "invalid_arguments_before_http"
+        },
+        {
+          "change": "401/403/429, redirect, unexpected content type or oversized response",
+          "expected": "provider_error_no_retry"
+        },
+        {
+          "change": "extra password/API-key/URL object fields in provider body",
+          "expected": "not_in_leaf_projection_and_no_follow"
+        },
+        {
+          "change": "foreign/stale cursor from another operation/connection",
+          "expected": "denied_before_http"
+        }
+      ]
+    }
+  ]
+}
