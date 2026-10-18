@@ -5,17 +5,21 @@ records all publicly observed category cards, the editorial Popular order and
 the API/MCP research backlog. Implementation, registration, published artifacts
 and real provider qualification are recorded separately.
 
-The published shared SDK/runner is **0.1.7**, with twenty-two official entries.
-The [0.1.6 qualification receipt](connector-keyless-0.1.6-qualification.json)
-records the remote build and actual read boundaries. OpenAgent Server/CLI
-**1.1.0-beta.43** remains pinned to SDK 0.1.6; App **1.1.0-beta.20** is its matching
-native release. The [coverage index](chatgpt-app-coverage.md) links the evidence.
+The [published shared SDK/runner **0.1.8**](https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.8)
+contains **114 official entries plus Custom MCP**, **315 read tools** and **82
+actions**. Its [publication/qualification receipt](connector-sdk-0.1.8-qualification.json)
+binds source, manifest, 11 verified public assets and actual Linux-native checks.
+The new cohort comprises 90 manual-credential profiles with two typed reads each,
+and OneDrive/SharePoint with 12 reads. These are limited API subsets, not full
+ChatGPT app parity, new common OAuth registrations or new live-provider QA.
 
-The [**0.1.7 prerelease**](https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.7) adds Google Calendar, Outlook Mail and Outlook
-Calendar. Its [operation contract](connector-calendar-mail-0.1.7-candidate.md)
-and [qualification receipt](connector-calendar-mail-0.1.7-qualification.json) record
-six cross-platform bundles and actual Linux runner/acquisition checks. Provider
-registrations, secret custody and actual Google/Microsoft OAuth acceptance remain separate gates; common enrollment for these three providers stays closed.
+OpenAgent Server/CLI **44** and App **21** remain public on SDK **0.1.7**.
+The [coverage index](chatgpt-app-coverage.md) separates SDK publication from
+receiving-product adoption and provider acceptance. The historical
+[0.1.7 contract](connector-calendar-mail-0.1.7-candidate.md) and
+[qualification receipt](connector-calendar-mail-0.1.7-qualification.json) remain
+unchanged. Real Google/Microsoft consent and common enrollment remain separate
+gates; no provider is activated by this SDK release.
 
 The public capability guide is at
 [openagent.uno](https://openagent.uno/guide/mcp); this repository remains the

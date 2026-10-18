@@ -1,19 +1,29 @@
 # OpenAgent official connectors
 
 Shared Go module `github.com/openagent-uno/openagent-tools/packages/connectors`.
-The published SDK/runner is **0.1.7**, a contract-qualified prerelease.
-It adds Google Calendar, Outlook Mail and Outlook Calendar; their real OAuth
-acceptance and common enrollment remain pending. Embedding hosts link this module into
-their local gateways. The standalone server invokes the same adapters through
-`openagent-connector-runner` and the `openagent-connectors` Python package.
-OpenAgent Core receives managed capability sources through its public catalog
-APIs; it does not import product accounts, OAuth or storage code.
+The [published SDK/runner **0.1.8**](https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.8)
+is a contract-qualified prerelease with **114 official entries plus Custom MCP**,
+**315 read tools** and **82 actions**. The
+[publication and qualification receipt](../../docs/connector-sdk-0.1.8-qualification.json)
+binds source, manifest, 11 verified assets, six bundles and the Python wheel.
+Actual native installed-runner, acquisition and broker-fixture checks passed on
+Linux x64; the other five targets have cross-build evidence only.
 
-Published 0.1.7 contains twenty-two official entries, including five read-only
-keyless services. The [SDK qualification](../../docs/connector-keyless-0.1.6-qualification.json)
-and [coverage index](../../docs/chatgpt-app-coverage.md) distinguish fixture checks,
-actual provider calls, product execution and native acquisition. These are
-finite operation subsets, not full feature parity with ChatGPT apps.
+The new cohort adds 90 manual-credential API profiles (180 typed read-only tools)
+and OneDrive/SharePoint (5+7 reads). Their finite endpoint/schema/projection
+contracts are shared across hosts. Manual credentials do not establish verified
+OAuth scope claims: vendor permissions remain setup documentation. Neither this
+publication nor its mock-HTTP fixtures establish live-provider QA, full API/MCP
+coverage, ChatGPT parity or a common OAuth registration. Forty-five of the 90 profiles
+include provenance-bound shared SVG marks; missing marks remain absent.
+
+Embedding hosts link this module into their local gateways. The standalone server
+invokes the same adapters through `openagent-connector-runner` and the
+`openagent-connectors` Python package. Core receives managed capability sources
+through public catalog APIs; it does not import product accounts, OAuth or
+storage code. Public Server/CLI 44 and App 21 remain on SDK 0.1.7; later product
+adoption is separate. The [coverage index](../../docs/chatgpt-app-coverage.md)
+preserves earlier actual provider-call evidence without relabeling it as SDK 0.1.8 QA.
 
 Google Calendar and Outlook's operation boundaries, account binding, scopes,
 page/sync cursors and remaining registration gates are in the
@@ -30,7 +40,7 @@ registrations.
 
 Version 0.1.2 adds a durable fence for the calling installation/provider/app grant during revocation and explicit installation/store admission for real-provider QA. This fence does not correlate other Google aliases, consents or servers by account; those bindings depend on Google's project-wide revocation and local handling of `401`/`invalid_grant`. No additional account-identity scopes are requested. The QA mode is unavailable to public enrollment and reports `/readyz` as 503. See [the operator procedure and exact revocation limits](../../deploy/connector-auth/qa-enrollment.md). Rollback must retain the new broker and its metadata; an older broker can lose revocation tombstones. Artifacts use the exact Go 1.26.9 toolchain, record it in their manifests and pin `golang.org/x/text` 0.41.0. The versioned library does not activate provider apps or bypass product privacy/release gates.
 
-Version 0.1.3 is a Postiz protocol correction: its registered app determines the callback, authorization/token requests omit `redirect_uri`, and the confidential code exchange uses JSON. The [official Postiz OAuth contract](https://docs.postiz.com/oauth) returns non-expiring access tokens; refresh is not applicable, and account holders revoke access through Postiz Approved Apps. The previous test incorrectly modeled Postiz as an expiring PKCE/form provider. Dedicated fixtures now verify exact request fields/content type, callback omission, sanitized failures and no retry/redirect of code exchange. Catalog IDs, tools, scopes and product credentials are unchanged. This candidate does not establish a real Postiz registration or user grant; a real Postiz registration still needs operator verification, and public common enrollment remains closed. Version 0.1.2 artifacts and existing host pins remain immutable until consumers explicitly adopt a qualified 0.1.3 release.
+Version 0.1.3 is a Postiz protocol correction: its registered app determines the callback, authorization/token requests omit `redirect_uri`, and the confidential code exchange uses JSON. The [official Postiz OAuth contract](https://docs.postiz.com/oauth) returns non-expiring access tokens; refresh is not applicable, and account holders revoke access through Postiz Approved Apps. The historical test incorrectly modeled Postiz as an expiring PKCE/form provider. Dedicated fixtures now verify exact request fields/content type, callback omission, sanitized failures and no retry/redirect of code exchange. Catalog IDs, tools, scopes and product credentials are unchanged. That protocol qualification did not establish a user grant. The existing Postiz registration is now recorded as staged and disabled, with credential rotation required before activation; see the [metadata-only registration](../../deploy/connector-auth/registrations/postiz.json). Public common enrollment remains closed. Version 0.1.2 artifacts and existing host pins remain immutable until consumers explicitly adopt a qualified 0.1.3 release.
 
 ## Ownership and compatibility
 
@@ -81,7 +91,7 @@ Version 0.1.1 binds Shopify grants to their numeric shop ID with a fixed, minima
 
 Reviewed `--legacy-shopify-webhooks` routes preserve the existing app's product privacy processor through a durable encrypted outbox, including shops not yet enrolled in a broker group. Notifications are minimized, signed for the same app, keep their webhook ID/time, and retry offline recipients after restart without following redirects. A native recipient's acknowledgment cannot remove a payload still owed to the legacy processor. Qualify this compatibility path before replacing provider webhook URLs. Version 0.1.0 artifacts remain immutable.
 
-Run `GOWORK=off go test -race ./...` inside this module. Build artifacts with `python3 scripts/build_connectors.py --out <empty-directory>` at the Tools repository root. The builder snapshots all tracked/nonignored sources once, records source digests, cross-compiles runner and broker for macOS/Linux/Windows arm64/x64 and creates the Python wheel, catalog, manifest and `SHA256SUMS`. Dirty sources require explicit `--allow-dirty` and produce unqualified artifacts. After publication, Go module tags use `packages/connectors/v<version>`; the currently published tag is `packages/connectors/v0.1.7`. Binaries use the matching version. Verify both archive and extracted binary checksums. Cross-compilation is not native OS qualification.
+Run `GOWORK=off go test -race ./...` inside this module. Build artifacts with `python3 scripts/build_connectors.py --out <empty-directory>` at the Tools repository root. The builder snapshots all tracked/nonignored sources once, records source digests, cross-compiles runner and broker for macOS/Linux/Windows arm64/x64 and creates the Python wheel, catalog, manifest and `SHA256SUMS`. Dirty sources require explicit `--allow-dirty` and produce unqualified artifacts. After publication, Go module tags use `packages/connectors/v<version>`; the currently published tag is `packages/connectors/v0.1.8`. Binaries use the matching version. Verify both archive and extracted binary checksums. Cross-compilation is not native OS qualification.
 
 ## Host-owned privacy binding
 
@@ -98,7 +108,7 @@ supply a storage/export/redaction implementation.
 
 ## Optional own apps
 
-The standalone accepts a host-owned `connectors.oauth_providers_file` containing an array of the same provider descriptors. The current local loopback implementation explicitly admits only Gmail, Google Drive, Google Analytics, ClickUp and Postiz. Their own-app callbacks bind only to explicit `http://127.0.0.1:<port>/<path>` URLs registered with that provider. The runner handles state, PKCE, single-use exchange and issuer-bound renewal locally; central availability is irrelevant for these credentials. Secret files remain on the user's server and never become tool arguments. Protect configuration/key files and reserve unique callback ports when multiple agents use own-app flows on one machine.
+The standalone accepts a host-owned `connectors.oauth_providers_file` containing an array of the same provider descriptors. The SDK 0.1.8 local loopback implementation explicitly admits Gmail, Google Drive, Google Analytics, Google Calendar, Outlook Mail, Outlook Calendar, OneDrive, SharePoint, ClickUp and Postiz. Their own-app callbacks bind only to explicit `http://127.0.0.1:<port>/<path>` URLs registered with that provider. The runner handles state, PKCE, single-use exchange and issuer-bound renewal locally; central availability is irrelevant for these credentials. Secret files remain on the user's server and never become tool arguments. Protect configuration/key files and reserve unique callback ports when multiple agents use own-app flows on one machine.
 
 GitHub, Notion, Slack and Atlassian protocol support in the 0.1.4 broker does not add them to that local allowlist; configuring those providers in the loopback flow is rejected. Shopify own apps that serve several servers use a separately configured instance of the broker, preserving the same group coordination. Host-owned app setup remains compatible with its existing callbacks.
 
@@ -107,13 +117,13 @@ See [deployment and activation](../../deploy/connector-auth/README.md). Provider
 ## Remote qualification staging
 
 Paid GitHub Actions qualification is on hold under the current resource/cost
-instruction; the 0.1.7 qualification used one bounded remote Linux worker.
-The [0.1.7 receipt](../../docs/connector-calendar-mail-0.1.7-qualification.json)
+instruction; the 0.1.8 qualification used one bounded remote Linux worker.
+The [0.1.8 receipt](../../docs/connector-sdk-0.1.8-qualification.json)
 records race/vet/vulnerabilities, all six bundles, wheel/acquisition and actual
 Linux-native checks. The older [0.1.4 workspace receipt](../../docs/connector-candidate-0.1.4-workspace-qualification.json)
 is historical. Neither receipt establishes real Google/Microsoft OAuth acceptance.
 
-The existing manual `Qualify shared connectors` Actions recipe accepts a reviewed full
+The historical optional manual `Qualify shared connectors` Actions recipe (not used for 0.1.8) accepts a reviewed full
 source SHA and runs one standard hosted macOS ARM64 job. Builds and tests run
 sequentially with Go 1.26.9, `GOMAXPROCS=2` and `-p=1`; no credentials, provider
 grants, tags or releases are created. It verifies all six bundles, installs the

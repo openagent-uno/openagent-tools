@@ -4,11 +4,32 @@ Rilevazione: **16 ottobre 2026**, browser pubblico senza accesso. [Directory ric
 
 Osservate **16 categorie, 4,219 occorrenze di card e 4,133 nomi distinti**. Alcuni ID distinti hanno lo stesso nome: il numero di nomi non è un numero di app univoche. La vista può variare per regione, lingua, account e data; questa fotografia non include integrazioni private o non esposte dalla directory pubblica.
 
-## Stato corrente del 17 ottobre
+## Stato corrente del 18 ottobre
 
-[SDK **0.1.7**](https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.7) è pubblicato da `f2cecfe3672e48a7724324fef5e41072cde697bf`: **22 connector ufficiali più Custom MCP**, con Google Calendar (7 operazioni), Outlook Mail (9, invio con grant separato) e Outlook Calendar (7). La [qualifica](connector-calendar-mail-0.1.7-qualification.json) comprende race/vet/vulnerabilità, dodici binari per sei target, wheel Python, acquisizione da host pubblico e fixture native Linux. Gli altri cinque target sono cross-build; **nessun consenso o accesso reale Google/Microsoft è qualificato**. L'iscrizione comune ai tre nuovi provider resta chiusa. [Contratto e gate](connector-calendar-mail-0.1.7-candidate.md).
+[SDK **0.1.8**](https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.8)
+è pubblico dal sorgente `5a7dea3ec5edf183545ea703538d56b208069250`:
+**114 connector ufficiali più Custom MCP**, **315 letture e 82 azioni**.
+La [ricevuta pubblica](connector-sdk-0.1.8-qualification.json) registra 11 asset
+verificati, race/vet/vulnerabilità, dodici binari per sei target, wheel Python,
+acquisizione da host pubblico e fixture native Linux x64. Gli altri cinque
+target sono cross-build, non runtime nativi qualificati.
 
-[Server/CLI **44**](https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.44) e [App **21**](https://github.com/openagent-uno/openagent-app/releases/tag/v1.1.0-beta.21) sono pubblici con SDK **0.1.7** e **22** connector ufficiali. Le prove GUI e di installazione sono distinte dai consensi OAuth Google/Microsoft, ancora non qualificati. La nuova coorte di 90 profili API a token e due adapter Microsoft file è candidata per SDK0.1.8: porta il catalogo sorgente a114 ufficiali, senza dichiarare una nuova pubblicazione o copertura completa delle app ChatGPT.
+La nuova coorte comprende **90 profili API con credenziale manuale e 180 letture**,
+due per provider, più **OneDrive e SharePoint con 12 letture**. Sono sottoinsiemi
+API typed e read-only con endpoint fissi: non dichiarano parità con le app
+ChatGPT, l'intero MCP del vendor o una nuova registrazione OAuth. I requisiti di
+permesso dei token manuali sono documentazione di setup, non scope OAuth
+attestati. I metadati condivisi includono 45 marchi SVG verificati; i marchi
+mancanti restano assenti. Le fixture HTTP/schema e i controlli del runner non
+sono nuove chiamate o consensi reali ai provider.
+
+[Server/CLI **44**](https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.44)
+e [App **21**](https://github.com/openagent-uno/openagent-app/releases/tag/v1.1.0-beta.21)
+restano pubblici con SDK **0.1.7** e 22 connector ufficiali. Adozione prodotto 45,
+App 22 e relativa accettazione sono separate. Google Calendar e Outlook
+mantengono il [contratto SDK 0.1.7](connector-calendar-mail-0.1.7-candidate.md);
+nessun consenso reale Google/Microsoft o nuova attivazione comune è qualificato
+con SDK 0.1.8. Anche la selezione host-owned di siti/drive Graph non concede accesso.
 
 ## Come leggere lo stato
 
@@ -45,7 +66,7 @@ La [ricevuta primaria del 17 ottobre](chatgpt-primary-interface-audit-2026-10-17
 
 La [preparazione Parallel](parallel-search-preparation.md) conserva le tre richieste iniziali di soli metadati e le distingue dalle due letture effettivamente riuscite nel successivo SDK 16. Context7 espone due operazioni documentali; CoinGecko soltanto due template SDK compilati per dati pubblici. Nessun execute generico, account, wallet o fallback a pagamento è esposto. Tutti usano una connessione locale autorizzata con credenziale esplicita `none`.
 
-Il catalogo SDK16 di questo checkpoint contiene 19 connector ufficiali; i conteggi della directory e la ricerca primaria di 32 nomi restano invariati. La qualifica SDK resta distinta dai successivi installer e sei workflow 43 riusciti; non qualifica automaticamente App 20. Nel JSON `historical_sdk15_checkpoint` conserva il precedente catalogo pubblico, lifecycle41/installer42 e accettazione App 19; `historical_sdk16_checkpoint` conserva questi artefatti; `published_catalog` identifica SDK17.
+Il catalogo SDK16 di questo checkpoint contiene 19 connector ufficiali; i conteggi della directory e la ricerca primaria di 32 nomi restano invariati. La qualifica SDK resta distinta dai successivi installer e sei workflow 43 riusciti; non qualifica automaticamente App 20. Nel JSON `historical_sdk15_checkpoint` conserva il precedente catalogo pubblico, lifecycle41/installer42 e accettazione App 19; `historical_sdk16_checkpoint` conserva questi artefatti; `published_catalog` conserva il checkpoint SDK17; la ricevuta SDK18 sopra identifica la nuova pubblicazione, senza riscrivere quella fotografia.
 
 ## Categorie osservate
 
@@ -83,49 +104,49 @@ Le occorrenze sono conservate per categoria e possono ripetersi fra categorie. N
 | 5 | [WPVibe](https://chatgpt.com/plugins/plugin_asdk_app_6a244fb509e481918985fee76373b0f9) | Da implementare/qualificare | [MCP OAuth per client indipendenti](https://wpvibe.ai/docs/ai-client-setup/) |
 | 6 | [GitHub](https://chatgpt.com/plugins/plugin_connector_1p_1a69035c238881919c4190932b2df699) | SDK 0.1.4 pubblicato: 17 tool; consenso comune pubblico, copertura strumenti e accettazione App separate | [REST API](https://docs.github.com/en/rest); [MCP ufficiale documentato](https://github.com/github/github-mcp-server) |
 | 7 | [Health](https://chatgpt.com/plugins/plugin_connector_1p_e569f8b8dfd08191903c9bd2cd7da9ac) | Da implementare/qualificare | Da verificare |
-| 8 | [Outlook Email](https://chatgpt.com/plugins/plugin_connector_1p_6bcb5879c73c819196abc70016166099) | Da implementare/qualificare | [API pubblica documentata](https://learn.microsoft.com/en-us/graph/api/resources/mail-api-overview?view=graph-rest-1.0) |
-| 9 | [Supabase](https://chatgpt.com/plugins/plugin_asdk_app_69d3e5ee6a708191baa733f7b8931995) | Da implementare/qualificare | [MCP ufficiale documentato](https://supabase.com/docs/guides/ai-tools/mcp) |
+| 8 | [Outlook Email](https://chatgpt.com/plugins/plugin_connector_1p_6bcb5879c73c819196abc70016166099) | SDK 0.1.7/0.1.8 pubblicato: 9 tool typed; consenso reale Microsoft non qualificato | [API pubblica documentata](https://learn.microsoft.com/en-us/graph/api/resources/mail-api-overview?view=graph-rest-1.0) |
+| 9 | [Supabase](https://chatgpt.com/plugins/plugin_asdk_app_69d3e5ee6a708191baa733f7b8931995) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [MCP ufficiale documentato](https://supabase.com/docs/guides/ai-tools/mcp) |
 | 10 | [Firecrawl](https://chatgpt.com/plugins/plugin_asdk_app_6a314a73f8ac819195b0d55e36b9c609) | Incluso SDK 0.1.6/server 43; Scrape/lifecycle41 e GUI19 restano prove storiche separate | [MCP keyless ufficiale](https://docs.firecrawl.dev/mcp-server/keyless) |
 | 11 | [Windsor.ai](https://chatgpt.com/plugins/plugin_asdk_app_694a52cfaa3c819192bea84eaa254968) | Da implementare/qualificare | [MCP OAuth con DCR](https://mcp.windsor.ai/) |
 | 12 | [Exa](https://chatgpt.com/plugins/plugin_asdk_app_69ea4ed2cf7c8191b742ef3622479ddd) | SDK 0.1.5/server 42 pubblici, fresh installer PASS; Fetch/lifecycle limitato su 41 PASS, App separata | [MCP keyless ufficiale](https://exa.ai/docs/get-started/exa-mcp) |
-| 13 | [Render](https://chatgpt.com/plugins/plugin_asdk_app_6a624c56bfe081918f7544f7d58f6faf) | Da implementare/qualificare | [MCP ufficiale documentato](https://render.com/docs/mcp-server) |
+| 13 | [Render](https://chatgpt.com/plugins/plugin_asdk_app_6a624c56bfe081918f7544f7d58f6faf) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [MCP ufficiale documentato](https://render.com/docs/mcp-server) |
 | 14 | [Upwork](https://chatgpt.com/plugins/plugin_asdk_app_6a75165ed2d8819182548553aa4cb6d5) | Da implementare/qualificare | [MCP ufficiale](https://www.upwork.com/ai/mcp?trk=public_profile__reactions-text); [manifest vendor](https://github.com/upwork/upwork-agent-plugin/blob/master/mcp.json) |
 | 15 | [Notion](https://chatgpt.com/plugins/plugin_asdk_app_69c18c28f1188191bf5b8445c4ab0a2e) | SDK 0.1.4 pubblicato: 8 tool; consenso comune pubblico, copertura strumenti e accettazione App separate | [REST API versionata](https://developers.notion.com/reference/versioning); [MCP ufficiale documentato](https://developers.notion.com/guides/mcp/overview) |
 | 16 | [Slack](https://chatgpt.com/plugins/plugin_asdk_app_69a1d78e929881919bba0dbda1f6436d) | SDK 0.1.4 pubblico: 9 tool; [lifecycle QA limitato 16 ottobre PASS](https://github.com/openagent-uno/openagent/blob/main/docs/qualification/slack-oauth-2026-10-16.json), distribuzione/common enrollment OFF | [Web API](https://docs.slack.dev/apis/); [MCP separato soggetto ad approvazione](https://docs.slack.dev/ai/slack-mcp-server/) |
-| 17 | [Parallel Search](https://chatgpt.com/plugins/plugin_asdk_app_69fb9378663481919a68e8a2109644e5) | SDK 0.1.6/server 43 pubblici: 2 letture SDK e 2 Fetch workflow PASS; App 20 candidata | [MCP ufficiale](https://docs.parallel.ai/integrations/mcp/search-mcp) |
+| 17 | [Parallel Search](https://chatgpt.com/plugins/plugin_asdk_app_69fb9378663481919a68e8a2109644e5) | SDK 0.1.6/server 43 pubblici: 2 letture SDK e 2 Fetch workflow PASS; accettazione App distinta | [MCP ufficiale](https://docs.parallel.ai/integrations/mcp/search-mcp) |
 | 18 | [Shopify](https://chatgpt.com/plugins/plugin_asdk_app_69e65c430b3081919aa4d962ab5d1698) | Adapter presente; common OAuth bloccato | [API pubblica documentata](https://shopify.dev/docs/api/admin-graphql/latest) |
 | 19 | [Granola](https://chatgpt.com/plugins/plugin_asdk_app_697761cab6f48191b5ed345919a3ce8b) | Da implementare/qualificare | [MCP OAuth con DCR](https://docs.granola.ai/help-center/sharing/integrations/mcp) |
-| 20 | [Klaviyo](https://chatgpt.com/plugins/plugin_asdk_app_694421e60cc88191a1e5bb4aa79950e4) | Da implementare/qualificare | [API pubblica documentata](https://developers.klaviyo.com/en/reference/api_overview) |
+| 20 | [Klaviyo](https://chatgpt.com/plugins/plugin_asdk_app_694421e60cc88191a1e5bb4aa79950e4) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [API pubblica documentata](https://developers.klaviyo.com/en/reference/api_overview) |
 | 21 | [SentinelX](https://chatgpt.com/plugins/plugin_asdk_app_69f63e01766881919640f03b5e7912a5) | Da implementare/qualificare | Da verificare |
 | 22 | [TinyFish](https://chatgpt.com/plugins/plugin_asdk_app_695325bae7348191b58ae9349a963d22) | Da implementare/qualificare | Da verificare |
 | 23 | [Wispr Flow](https://chatgpt.com/plugins/plugin_asdk_app_6a5ae9736be0819199d06d61ac171080) | Da implementare/qualificare | Da verificare |
-| 24 | [Canva](https://chatgpt.com/plugins/plugin_connector_68df33b1a2d081918778431a9cfca8ba) | Da implementare/qualificare | [API pubblica documentata](https://www.canva.dev/docs/apps/rest-apis/) |
-| 25 | [Railway](https://chatgpt.com/plugins/plugin_asdk_app_6a502589384081919c5decf93496c9d1) | Da implementare/qualificare | [MCP ufficiale documentato](https://docs.railway.com/ai/mcp-server) |
+| 24 | [Canva](https://chatgpt.com/plugins/plugin_connector_68df33b1a2d081918778431a9cfca8ba) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [API pubblica documentata](https://www.canva.dev/docs/apps/rest-apis/) |
+| 25 | [Railway](https://chatgpt.com/plugins/plugin_asdk_app_6a502589384081919c5decf93496c9d1) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [MCP ufficiale documentato](https://docs.railway.com/ai/mcp-server) |
 | 26 | [Adspirer](https://chatgpt.com/plugins/plugin_asdk_app_69461dc91ee48191ae4a14eb9bde1c21) | Da implementare/qualificare | Da verificare |
-| 27 | [Vercel](https://chatgpt.com/plugins/plugin_connector_690a90ec05c881918afb6a55dc9bbaa1) | Da implementare/qualificare | [MCP ufficiale documentato](https://vercel.com/docs/agent-resources/vercel-mcp) |
+| 27 | [Vercel](https://chatgpt.com/plugins/plugin_connector_690a90ec05c881918afb6a55dc9bbaa1) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [MCP ufficiale documentato](https://vercel.com/docs/agent-resources/vercel-mcp) |
 | 28 | [Otter.ai](https://chatgpt.com/plugins/plugin_asdk_app_695d84e2f06c8191861b9bac9b3fd53b) | Da implementare/qualificare | Da verificare |
-| 29 | [GitLab (Beta)](https://chatgpt.com/plugins/plugin_connector_1p_5925693c1aa88191a4959257e60d0734) | Da implementare/qualificare | [MCP ufficiale documentato](https://docs.gitlab.com/user/model_context_protocol/mcp_server/) |
-| 30 | [HubSpot](https://chatgpt.com/plugins/plugin_asdk_app_697acb8e53d88191bf7a79e62012ae14) | Da implementare/qualificare | [MCP ufficiale documentato](https://developers.hubspot.com/ai-tools/mcp) |
+| 29 | [GitLab (Beta)](https://chatgpt.com/plugins/plugin_connector_1p_5925693c1aa88191a4959257e60d0734) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [MCP ufficiale documentato](https://docs.gitlab.com/user/model_context_protocol/mcp_server/) |
+| 30 | [HubSpot](https://chatgpt.com/plugins/plugin_asdk_app_697acb8e53d88191bf7a79e62012ae14) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [MCP ufficiale documentato](https://developers.hubspot.com/ai-tools/mcp) |
 | 31 | [GSC Wizard](https://chatgpt.com/plugins/plugin_asdk_app_6a258ab1e0908191aa647c33299ad14c) | Da implementare/qualificare | Da verificare |
 | 32 | [vidIQ](https://chatgpt.com/plugins/plugin_asdk_app_69dd11f3e50c8191b1ca48d03cf7e2ad) | Da implementare/qualificare | Da verificare |
-| 33 | [Asana](https://chatgpt.com/plugins/plugin_asdk_app_69616780bd208191b4fb44ba44f72b61) | Da implementare/qualificare | [API pubblica documentata](https://developers.asana.com/docs/overview) |
+| 33 | [Asana](https://chatgpt.com/plugins/plugin_asdk_app_69616780bd208191b4fb44ba44f72b61) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [API pubblica documentata](https://developers.asana.com/docs/overview) |
 | 34 | [Metricool](https://chatgpt.com/plugins/plugin_asdk_app_69d73fc8aa5c8191bec1583760b130c7) | Da implementare/qualificare | Da verificare |
 | 35 | [Superhuman Mail](https://chatgpt.com/plugins/plugin_asdk_app_69a21e4058dc8191a6220fa911310d7b) | Da implementare/qualificare | Da verificare |
 | 36 | [IOL invertironline](https://chatgpt.com/plugins/plugin_asdk_app_6a207f00eed0819181227b2ea257ff0b) | Da implementare/qualificare | Da verificare |
-| 37 | [Fathom](https://chatgpt.com/plugins/plugin_asdk_app_69d88b99c5c481918e8da9225737e1e9) | Da implementare/qualificare | Da verificare |
-| 38 | [Fireflies](https://chatgpt.com/plugins/plugin_connector_6912075cb358819187346bcafb601db8) | Da implementare/qualificare | Da verificare |
+| 37 | [Fathom](https://chatgpt.com/plugins/plugin_asdk_app_69d88b99c5c481918e8da9225737e1e9) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [Contratti API e fonti primarie](../packages/connectors/definitions/batch01/providers.json) |
+| 38 | [Fireflies](https://chatgpt.com/plugins/plugin_connector_6912075cb358819187346bcafb601db8) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [Contratti API e fonti primarie](../packages/connectors/definitions/batch01/providers.json) |
 | 39 | [ClickUp](https://chatgpt.com/plugins/plugin_asdk_app_69431e6d26b88191b4029488aeb42f5b) | Adapter presente; consenso comune pubblico, qualifica delimitata | [API pubblica documentata](https://developer.clickup.com/) |
 | 40 | [Interactive Brokers (IBKR)](https://chatgpt.com/plugins/plugin_asdk_app_69bc11db874881918718abaca20b68ce) | Da implementare/qualificare | Da verificare |
-| 41 | [Todoist: To Do List & Calendar](https://chatgpt.com/plugins/plugin_asdk_app_6943b73823548191a9f9216c6790c453) | Da implementare/qualificare | Da verificare |
+| 41 | [Todoist: To Do List & Calendar](https://chatgpt.com/plugins/plugin_asdk_app_6943b73823548191a9f9216c6790c453) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [Contratti API e fonti primarie](../packages/connectors/definitions/batch01/providers.json) |
 | 42 | [Opera Browser Connector](https://chatgpt.com/plugins/plugin_asdk_app_69d669e1d5c88191957786fbcd38b411) | Da implementare/qualificare | Da verificare |
-| 43 | [Ahrefs](https://chatgpt.com/plugins/plugin_asdk_app_6966958473488191b775fdb667c52eab) | Da implementare/qualificare | [MCP commerciale con restrizioni di client](https://docs.ahrefs.com/en/mcp/docs/introduction); [API su piano commerciale](https://docs.ahrefs.com/en/api/docs/introduction) |
-| 44 | [monday.com](https://chatgpt.com/plugins/plugin_connector_690aabb71bf481918b8d5b614ed3fd4c) | Da implementare/qualificare | [API pubblica documentata](https://developer.monday.com/api-reference/docs/basics) |
+| 43 | [Ahrefs](https://chatgpt.com/plugins/plugin_asdk_app_6966958473488191b775fdb667c52eab) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [MCP commerciale con restrizioni di client](https://docs.ahrefs.com/en/mcp/docs/introduction); [API su piano commerciale](https://docs.ahrefs.com/en/api/docs/introduction) |
+| 44 | [monday.com](https://chatgpt.com/plugins/plugin_connector_690aabb71bf481918b8d5b614ed3fd4c) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [API pubblica documentata](https://developer.monday.com/api-reference/docs/basics) |
 | 45 | [Tredict](https://chatgpt.com/plugins/plugin_asdk_app_69aef5b699a0819184512d57743fc1cd) | Da implementare/qualificare | Da verificare |
-| 46 | [Webflow](https://chatgpt.com/plugins/plugin_asdk_app_6a0783a98c4c8191841404d786d4a4b9) | Da implementare/qualificare | [API pubblica documentata](https://developers.webflow.com/data/reference/rest-introduction) |
+| 46 | [Webflow](https://chatgpt.com/plugins/plugin_asdk_app_6a0783a98c4c8191841404d786d4a4b9) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [API pubblica documentata](https://developers.webflow.com/data/reference/rest-introduction) |
 | 47 | [HYPD AI - Paid Ads & Analytics](https://chatgpt.com/plugins/plugin_asdk_app_6a3170ea7fc88191be6c0b9ff250a4b4) | Da implementare/qualificare | Da verificare |
-| 48 | [SharePoint](https://chatgpt.com/plugins/plugin_connector_1p_dca009ae2c848191ae14df3a47c5e7fd) | Da implementare/qualificare | [API pubblica documentata](https://learn.microsoft.com/en-us/graph/api/resources/sharepoint?view=graph-rest-1.0) |
+| 48 | [SharePoint](https://chatgpt.com/plugins/plugin_connector_1p_dca009ae2c848191ae14df3a47c5e7fd) | SDK 0.1.8 pubblicato: 7 letture Graph; consenso reale Microsoft non qualificato | [API pubblica documentata](https://learn.microsoft.com/en-us/graph/api/resources/sharepoint?view=graph-rest-1.0) |
 | 49 | [Floot](https://chatgpt.com/plugins/plugin_asdk_app_6a500d350f8c819194e30335a7b134af) | Da implementare/qualificare | Da verificare |
-| 50 | [Quo](https://chatgpt.com/plugins/plugin_asdk_app_69e6af3297d88191b4925772c50df286) | Da implementare/qualificare | Da verificare |
+| 50 | [Quo](https://chatgpt.com/plugins/plugin_asdk_app_69e6af3297d88191b4925772c50df286) | SDK 0.1.8 pubblicato: 2 letture API typed, token manuale; QA reale e parità ChatGPT non qualificate | [Contratti API e fonti primarie](../packages/connectors/definitions/batch01/providers.json) |
 
 ## Confini già noti
 
@@ -135,7 +156,7 @@ Le occorrenze sono conservate per categoria e possono ripetersi fra categorie. N
 - **GitHub e Notion:** adapter pubblicati in SDK 0.1.4 e consenso comune pubblico abilitato il 17 ottobre. I collaudi limitati già citati restano separati dalla copertura di tutti gli strumenti e dall’accettazione delle operazioni nella App nativa. Il checkpoint pubblico del broker non aggiunge un nuovo collaudo OAuth.
 - **Slack:** SDK 0.1.4 pubblica nove tool Web API typed mantenendo l’ID `slack-import`, provider `slack_import` e capability Social. La [ricevuta QA del 16 ottobre](https://github.com/openagent-uno/openagent/blob/main/docs/qualification/slack-oauth-2026-10-16.json) conserva consenso, letture autorizzate, messaggio create/read/delete con pulizia verificata, rinnovo dopo recupero esplicito, lettura dopo restart e disconnessione locale. La precedente ricevuta descrive correttamente il candidato allora non pubblicato e rimane immutata; **distribuzione pubblica e common enrollment sono ancora OFF**. Non sono qualificati tutti i tool, la App nativa o il [MCP ufficiale](https://docs.slack.dev/ai/slack-mcp-server/), che richiede approvazione separata. History/replies restano limitati a 15 messaggi senza retry automatico, rispettando il [confine delle app commerciali non Marketplace](https://docs.slack.dev/changelog/2025/05/29/rate-limit-changes-for-non-marketplace-apps/).
 - **Ahrefs:** [MCP commerciale](https://docs.ahrefs.com/en/mcp/docs/introduction) e [API pubblica](https://docs.ahrefs.com/en/api/docs/introduction) hanno condizioni differenti. La documentazione vieta bridge/script/client HTTP autonomi sull’MCP esterno: usare l’API supportata o ottenere autorizzazione esplicita.
-- **Atlassian:** nove tool Jira REST pubblicati dal SDK 0.1.4 e inclusi nel corrente 0.1.6, con sito `cloud_id` scelto dall’host e mai dagli argomenti del modello. App creata, callback e due scope classici read/write salvati; custodia del segreto e consenso reale per il sito restano pendenti. La qualifica delle API non estende l’accettazione a Confluence o al [MCP Rovo](https://support.atlassian.com/atlassian-ai-gateway/docs/get-started-with-the-atlassian-remote-mcp-server/), che conserva condizioni e crediti separati.
+- **Atlassian:** nove tool Jira REST pubblicati dal SDK 0.1.4 e inclusi anche nel SDK 0.1.8, con sito `cloud_id` scelto dall’host e mai dagli argomenti del modello. App creata, callback e due scope classici read/write salvati; custodia del segreto e consenso reale per il sito restano pendenti. La qualifica delle API non estende l’accettazione a Confluence o al [MCP Rovo](https://support.atlassian.com/atlassian-ai-gateway/docs/get-started-with-the-atlassian-remote-mcp-server/), che conserva condizioni e crediti separati.
 - **Outlook Email e SharePoint:** le API Microsoft Graph documentate non sono equivalenti a un accesso generico IMAP o all’intera esperienza ChatGPT.
 
 ## Tre integrazioni keyless ora pubblicate nel SDK
@@ -157,7 +178,7 @@ Il JSON conserva tutte le voci del catalogo sorgente, anche se il relativo nome 
 ## Lavoro necessario per coprire tutte le voci
 
 1. Conservare questa fotografia come backlog completo delle card osservate e risolvere gli omonimi tramite ID pubblico prima di creare registrazioni.
-2. SDK/runner 0.1.6 e server/CLI 43 sono pubblici, con installer normale e sei workflow provider/restart/disconnect PASS. App 20 pubblicazione/GUI resta pendente; il collaudo GUI Linux x64 App 19/server42 e i controlli locali keyless sono PASS, distinti dai workflow provider limitati già passati su 41 e dal nuovo installer 42. Qualificare separatamente GUI degli altri sistemi, sicurezza sandbox e operazioni provider nella App. Per gli adapter già pubblicati, completare i gate ancora aperti per strumenti, App nativa e consenso generale dei provider rimasti chiusi; il consenso pubblico ClickUp/GitHub/Notion non estende l’accettazione agli altri.
+2. SDK 0.1.8 è pubblico con 114 profili ufficiali; Server/CLI 44 e App 21 restano i prodotti pubblici su SDK 0.1.7. I sei workflow provider/restart/disconnect PASS su 43 restano prove storiche delimitate; il collaudo GUI Linux x64 App 19/server42 e i controlli locali keyless sono PASS, distinti dai workflow provider limitati già passati su 41 e dal nuovo installer 42. Qualificare separatamente GUI degli altri sistemi, sicurezza sandbox e operazioni provider nella App. Per gli adapter già pubblicati, completare i gate ancora aperti per strumenti, App nativa e consenso generale dei provider rimasti chiusi; il consenso pubblico ClickUp/GitHub/Notion non estende l’accettazione agli altri.
 3. Per ogni voce verificare prima fonte ufficiale, condizioni commerciali, autenticazione e disponibilità fuori da ChatGPT. Le interfacce sconosciute restano esplicitamente da ricercare.
 4. Riutilizzare un MCP ufficiale quando trasporto, autenticazione e condizioni sono compatibili; altrimenti costruire un adapter API condiviso. Un servizio chiuso o riservato a partner richiede un accordo, non un endpoint inventato.
 5. Conservare token ed esecuzione nei server locali; usare il broker per i soli passaggi OAuth ammessi dal provider. Non trasferire cookie, endpoint privati o segreti di ChatGPT.

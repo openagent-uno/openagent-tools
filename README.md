@@ -13,14 +13,17 @@ are published in the repository releases.
 
 [`packages/connectors`](packages/connectors/README.md) owns the shared Go catalog, adapters, runner and authentication broker. The standalone Python/MCP adapter is `packages/connectors-python`; release bundles and checksums are built with `scripts/build_connectors.py`. [Authentication deployment runbook](deploy/connector-auth/README.md).
 
-The published SDK/runner is **0.1.7**, with twenty-two official connector entries.
-OpenAgent Server/CLI **1.1.0-beta.43** remains pinned to SDK 0.1.6; App **1.1.0-beta.20**
-was produced by the normal native release workflow. See the
-[coverage and qualification index](docs/chatgpt-app-coverage.md) for the exact
-source, artifact, provider-read and product-runtime boundaries.
+The [published SDK/runner **0.1.8**](https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.8)
+contains **114 official connectors plus Custom MCP**, with **315 read tools and
+82 actions**. It adds 90 manual-credential profiles (180 typed reads) and
+OneDrive/SharePoint (12 read-only operations). The
+[publication and qualification receipt](docs/connector-sdk-0.1.8-qualification.json)
+records 11 verified release assets, six cross-platform bundles and actual
+Linux-native installed-runner/acquisition checks.
 
-The [**0.1.7 prerelease**](https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.7) adds Google Calendar, Outlook Mail and Outlook
-Calendar. Contract, bundle and Linux-native qualification passed; real Google/Microsoft OAuth acceptance and common enrollment remain pending. See the
-[operation contract and remaining gates](docs/connector-calendar-mail-0.1.7-candidate.md).
-The directory inventory is a backlog; it does not claim that every ChatGPT app
-has an implemented or authorized OpenAgent integration.
+The 90 manual profiles implement finite API subsets, not complete ChatGPT app
+parity or shared OAuth registrations. Vendor permissions remain setup guidance;
+manually supplied credentials do not attest OAuth scopes. No new live-provider
+or Google/Microsoft consent acceptance is claimed. Server/CLI **44** and App
+**21** remain the public consumers on SDK **0.1.7**; SDK 0.1.8 product adoption is
+separate. See the [coverage and qualification index](docs/chatgpt-app-coverage.md).

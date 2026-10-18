@@ -1,0 +1,71 @@
+{
+  "format": 1,
+  "receipt_kind": "sanitized_public_qualification_summary",
+  "status": "published-contract-qualified-prerelease",
+  "version": "0.1.8",
+  "release_url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.8",
+  "published_at": "2026-10-18T18:52:51Z",
+  "source_commit": "5a7dea3ec5edf183545ea703538d56b208069250",
+  "source_sha256": "692ded782175a726d8851d00d2abd348cb00c5e2f492295113c949d234c3c87d",
+  "manifest": {
+    "url": "https://github.com/openagent-uno/openagent-tools/releases/download/connectors-v0.1.8/manifest.json",
+    "sha256": "85128fb54ae414269cfa70064bd9b0de724906770db416949e5747be97139916",
+    "bytes": 1979
+  },
+  "qualification": {
+    "url": "https://github.com/openagent-uno/openagent-tools/releases/download/connectors-v0.1.8/qualification.json",
+    "sha256": "3f20f8cceca7b83bb9e9d78b23166e21dfdedc1bf8c85cc20b5eedb2c1cbaeed",
+    "bytes": 4067
+  },
+  "publication_verification": {
+    "release_assets": 11,
+    "github_api_asset_digests_and_sizes": "verified",
+    "anonymous_manifest": "verified"
+  },
+  "catalog": {
+    "official": 114,
+    "custom_mcp": 1,
+    "read_tools": 315,
+    "action_tools": 82,
+    "sha256": "034b604f10918c3eaa60384e117cb7c1c21668b365d23774ec2c09af3f0c05e0",
+    "new_manual_profiles": 90,
+    "new_manual_read_operations": 180,
+    "new_graph_profiles": [
+      "onedrive",
+      "sharepoint"
+    ],
+    "new_graph_read_operations": 12,
+    "manual_profiles_with_shared_brandmark": 45
+  },
+  "checks": {
+    "go_toolchain": "go1.26.9",
+    "race": "passed",
+    "vet": "passed",
+    "govulncheck": "passed; no vulnerabilities found",
+    "platform_bundles": 6,
+    "compiled_binaries": 12,
+    "python_wheel": "normal isolated install and dependency check passed",
+    "public_beta39_host_acquisition": "passed",
+    "source_python_catalog_parity": "passed",
+    "installed_tools_metadata": {
+      "manual_reads": 180,
+      "graph_reads": 12,
+      "provider_calls": 0
+    },
+    "native_runtime": [
+      "linux-x64"
+    ],
+    "other_targets": "cross-compilation and checksum/toolchain verification only",
+    "cross_tenant_invoke": "denied before provider IO",
+    "broker": "ephemeral QA fixture only; no production secrets or enrollment change"
+  },
+  "acceptance_boundaries": {
+    "new_real_provider_calls": 0,
+    "new_real_provider_grants": 0,
+    "new_common_oauth_activation": false,
+    "manual_authentication": "Host-owned manually supplied credential; vendor permission requirements are documentation, not verified OAuth scope claims.",
+    "operation_scope": "Ninety finite read-only API subsets with two tools each; not full API/MCP or ChatGPT feature parity.",
+    "graph": "Read-only verified-account adapters; site/drive choices are host-owned and absent from model arguments. Real consent/refresh/restart/disconnect remain unqualified.",
+    "product_adoption": "Server/CLI 44 and App 21 remain public on SDK 0.1.7; this SDK release does not establish product 45/App 22 acceptance."
+  }
+}
