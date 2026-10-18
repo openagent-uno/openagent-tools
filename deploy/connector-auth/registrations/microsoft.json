@@ -7,16 +7,20 @@
   "sign_in_audience": "AzureADandPersonalMicrosoftAccount",
   "client_type": "web",
   "redirect_uris": [
-    "https://auth.openagent.uno/v1/oauth/outlook_mail/callback"
+    "https://auth.openagent.uno/v1/oauth/outlook_mail/callback",
+    "https://auth.openagent.uno/v1/oauth/outlook_calendar/callback",
+    "https://auth.openagent.uno/v1/oauth/onedrive/callback",
+    "https://auth.openagent.uno/v1/oauth/sharepoint/callback"
   ],
   "registration_verified": "2026-10-18",
   "broker_enabled": false,
   "secret_reference": null,
   "publisher_verified": false,
   "qualification_pending": [
-    "Configure per-provider callback URLs and delegated permissions",
+    "Configure delegated permissions",
     "Provision client authentication in the production secret manager",
     "Publisher verification required for external multitenant user consent",
     "Fresh receiving-installation consent and real lifecycle qualification"
-  ]
+  ],
+  "callbacks_saved": "2026-10-18"
 }
