@@ -38,9 +38,11 @@
     "https://www.googleapis.com/auth/drive",
     "https://www.googleapis.com/auth/gmail.modify",
     "https://www.googleapis.com/auth/gmail.send",
-    "https://www.googleapis.com/auth/analytics.readonly"
+    "https://www.googleapis.com/auth/analytics.readonly",
+    "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
+    "https://www.googleapis.com/auth/calendar.events"
   ],
-  "scope_declaration_saved": "2026-10-12",
+  "scope_declaration_saved": "2026-10-18",
   "enabled_apis": [
     "gmail.googleapis.com",
     "drive.googleapis.com",
@@ -59,12 +61,13 @@
     "callback_saved": "2026-10-17",
     "api_service": "calendar-json.googleapis.com",
     "api_enabled": true,
-    "calendar_scopes_declared": false,
+    "calendar_scopes_declared": true,
     "common_enrollment_enabled": false,
     "remaining": [
-      "Calendar scope declaration and provider verification where required",
+      "Provider verification where required",
       "Fresh receiving-installation consent and real lifecycle qualification"
     ],
-    "api_enablement_verified": "2026-10-18"
+    "api_enablement_verified": "2026-10-18",
+    "scope_declaration_saved": "2026-10-18"
   }
 }

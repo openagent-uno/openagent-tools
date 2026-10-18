@@ -1,0 +1,22 @@
+{
+  "provider_family": "microsoft",
+  "application_name": "OpenAgent",
+  "client_id": "c245634c-3535-44fd-a7ef-0fdd8040dc93",
+  "object_id": "e794f8e1-de97-480f-b3bc-1deae6324695",
+  "tenant_id": "260918f2-47f1-4958-bbc6-5df48b686766",
+  "sign_in_audience": "AzureADandPersonalMicrosoftAccount",
+  "client_type": "web",
+  "redirect_uris": [
+    "https://auth.openagent.uno/v1/oauth/outlook_mail/callback"
+  ],
+  "registration_verified": "2026-10-18",
+  "broker_enabled": false,
+  "secret_reference": null,
+  "publisher_verified": false,
+  "qualification_pending": [
+    "Configure per-provider callback URLs and delegated permissions",
+    "Provision client authentication in the production secret manager",
+    "Publisher verification required for external multitenant user consent",
+    "Fresh receiving-installation consent and real lifecycle qualification"
+  ]
+}
