@@ -377,13 +377,13 @@ class SDK18MetadataTests(unittest.TestCase):
         return [{"name": "files." + provider + "." + operation, "provider": provider,
                  "capability": "files", "risk": "read", "mode": "typed", "required_scopes": [scope],
                  "retry": {"max_attempts": 1}, "inputSchema": {"type": "object", "additionalProperties": False,
-                 "properties": {"connection_id": {"type": "string"}, "provider": {"enum": [provider]}}}}
+                 "properties": {}}}
                 for operation in sorted(operations)]
 
     def test_graph_metadata_does_not_accept_caller_tenant_or_scope_widening(self):
         for provider, count in (("onedrive", 5), ("sharepoint", 7)):
             self.assertEqual(REMOTE.verify_sdk18_tools(provider, self.graph_tools(provider))["operations"], count)
-        for field in ("drive_id", "site_id", "download_host", "bound_drive_id", "url", "headers", "access_token"):
+        for field in ("connection_id", "provider", "drive_id", "site_id", "download_host", "bound_drive_id", "url", "headers", "access_token"):
             rows = self.graph_tools()
             rows[0]["inputSchema"]["properties"][field] = {"type": "string"}
             with self.assertRaisesRegex(ValueError, "host binding"):
@@ -410,6 +410,14 @@ class SDK18MetadataTests(unittest.TestCase):
         definition = self.definition_fixture()
         rows = self.manual_tools(definition)
         self.assertEqual(REMOTE.verify_sdk18_tools("coda", rows, definition)["operations"], 2)
+        missing_binding = self.manual_tools(definition)
+        del missing_binding[0]["inputSchema"]["properties"]["connection_id"]
+        with self.assertRaisesRegex(ValueError, "manual schema binding"):
+            REMOTE.verify_sdk18_tools("coda", missing_binding, definition)
+        wrong_provider = self.manual_tools(definition)
+        wrong_provider[0]["inputSchema"]["properties"]["provider"] = {"enum": ["another-account-provider"]}
+        with self.assertRaisesRegex(ValueError, "manual schema binding"):
+            REMOTE.verify_sdk18_tools("coda", wrong_provider, definition)
         rows[0]["inputSchema"]["properties"]["url"] = {"type": "string"}
         with self.assertRaisesRegex(ValueError, "reviewed public schema"):
             REMOTE.verify_sdk18_tools("coda", rows, definition)

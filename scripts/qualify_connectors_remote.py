@@ -356,14 +356,14 @@ def verify_sdk18_tools(identifier, tools, definition=None):
             raise ValueError("SDK18 installed typed schema/scope/risk/retry differs")
         properties = schema["properties"]
         binding = properties.get("provider", {})
-        if ("connection_id" not in properties
-                or not (binding.get("const") == provider or binding.get("enum") == [provider])):
-            raise ValueError("SDK18 installed schema binding differs")
         if definition is not None:
+            if ("connection_id" not in properties
+                    or not (binding.get("const") == provider or binding.get("enum") == [provider])):
+                raise ValueError("SDK18 installed manual schema binding differs")
             operation = next(op for op in definition["manifest"]["Operations"] if op["Name"] == tool["name"])
             if schema != reviewed_public_schema(definition, operation):
                 raise ValueError("SDK18 installed schema differs from the reviewed public schema")
-        elif set(properties) & {"drive_id", "site_id", "download_host", "bound_drive_id", "bound_site_id", "url", "headers", "access_token"}:
+        elif set(properties) & {"connection_id", "provider", "drive_id", "site_id", "download_host", "bound_drive_id", "bound_site_id", "url", "headers", "access_token"}:
             raise ValueError("SDK18 Graph host binding leaked into caller schema")
     return {"catalog_id": identifier, "operations": len(tools), "provider_calls": 0,
             "schemas_sha256": sha(json.dumps(tools, sort_keys=True, separators=(",", ":")).encode())}
