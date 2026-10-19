@@ -4,7 +4,7 @@
   "client_id": "68874486fdb4c9948bfde28959dbd671",
   "app_id": "401590648833",
   "organization_id": "227881973",
-  "active_version": "openagent-branding-20261012",
+  "active_version": "openagent-shared-webhooks-20261019",
   "qualification_version": "openagent-branding-20261012",
   "qualification_version_id": "1164294258689",
   "qualification_version_released": true,
@@ -24,14 +24,15 @@
     "key": "shopify-client-secret",
     "mount_path": "/secrets/shopify-client-secret"
   },
-  "broker_enabled": false,
+  "broker_enabled": true,
   "qualification_pending": [
-    "public shared-connector identity and provider review requirements",
-    "central privacy delivery with backward compatibility for legacy installations",
-    "standalone derived-content privacy export and redaction",
-    "two-server real OAuth and token rotation acceptance"
+    "Host native-v2 qualification and exact shared-app issuer migration preserving existing credentials and scopes",
+    "Public host privacy polling after group revocation: actual beta50 failure reproduced; correction not yet qualified",
+    "Delayed uninstall after later authorization acquisition: auth-only guard candidate, not yet qualified",
+    "Provider-delayed shop/redact and retained offline privacy recipients; no synthetic completion claim",
+    "Receiving-host derived-content privacy coverage and operation qualification beyond bounded trials"
   ],
-  "active_version_id": "1164294258689",
+  "active_version_id": "1173066973185",
   "display_name": "OpenAgent",
   "display_name_verified_by": "Shopify CLI production config readback",
   "production_secret_storage": {
@@ -43,5 +44,31 @@
   "qualification_shared_redirect_uris": [
     "https://auth.openagent.uno/v1/oauth/shopify/callback"
   ],
-  "existing_host_redirect_uris_preserved": true
+  "existing_host_redirect_uris_preserved": true,
+  "shopify_enrollment": "paused",
+  "general_public_qualification": false,
+  "webhook_cutover_checkpoint": {
+    "status": "existing-approved-app-config-deployed-readback-verified",
+    "active_version": "openagent-shared-webhooks-20261019",
+    "active_version_id": "1173066973185",
+    "app_id": "401590648833",
+    "client_id": "68874486fdb4c9948bfde28959dbd671",
+    "changed": [
+      "privacy subscription URI",
+      "uninstall subscription URI"
+    ],
+    "provider_readback_semantically_equal_to_candidate": true,
+    "provider_readback_reordered_subscriptions_only": true,
+    "provider_readback_sha256": "c71090f3340bba652d46a5ea457eda52cd07ffb75d8d581a040499454530cce1",
+    "required_scopes": [
+      "read_inventory",
+      "read_products"
+    ],
+    "optional_scopes": [
+      "read_orders"
+    ],
+    "new_app_or_subscription": false,
+    "general_enrollment": "paused",
+    "genuine_uninstall_legacy_delivery": "one successful delivery attempt from authenticated durable broker queue; native product completion not established"
+  }
 }
