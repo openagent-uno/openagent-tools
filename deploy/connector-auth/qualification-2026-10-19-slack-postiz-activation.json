@@ -1,0 +1,87 @@
+{
+  "format": 1,
+  "date": "2026-10-19",
+  "status": "passed-configuration-only-no-new-provider-grants",
+  "image_manifest_sha256": "04d942f6cc69a59af958911a21a3f4ca2e1901a456d43220b8ac3061a6e13c5d",
+  "image_source": "645e0484c3ec40d4965de038be8d3a258ec44aac",
+  "image_changed": false,
+  "slack": {
+    "public_distribution_observed_active": true,
+    "operator_observed_controls": [
+      "Deactivate Public Distribution",
+      "Share Your App With Any Workspace"
+    ],
+    "same_registered_app_and_existing_credential_reference": true,
+    "configured": true,
+    "new_user_grants": 0,
+    "prior_limited_lifecycle_receipt": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/slack-oauth-2026-10-16.json",
+    "rollout": {
+      "finished_at": "2026-10-19T10:31:17.178847+00:00",
+      "generation": 30,
+      "provider_count": 12,
+      "providers_sha256": "a9f47898dc4ce4a81909b56d9b2759a192a278038312bed6f4b6a10dda084660",
+      "old_spec_sha256": "67b3ca775cddaac162ffd36ed7893c0bf740c314e417e6cc8c369a626c98e711",
+      "new_spec_sha256": "c43551a3825a019b5911470ece57d2014487e59dd69219f1b998904b33b707d1",
+      "full_spec_uid_resource_version_cas": true,
+      "server_dryrun_exact_spec": true,
+      "public_health_http": 200,
+      "public_readiness_http": 200,
+      "unsigned_protected_http": 401,
+      "restarts": 0,
+      "normal_nonroot_startup": true
+    }
+  },
+  "postiz": {
+    "same_registered_app_and_client_id": true,
+    "credential_rotated_by_operator": true,
+    "create_only_immutable_custody": true,
+    "secret_reference": "registrations/postiz.json",
+    "read_only_projected_mode": "0440",
+    "unique_projected_filename_avoids_old_base_secret_collision": true,
+    "old_secret_preserved": true,
+    "configured": true,
+    "new_user_grants": 0,
+    "real_provider_qualification": false,
+    "rollout": {
+      "finished_at": "2026-10-19T10:34:43.567985+00:00",
+      "generation": 31,
+      "provider_count": 13,
+      "providers_sha256": "66e5d54ae6a308b92d836dd77987b1aac210297d183baab2efb38261a63b4075",
+      "old_spec_sha256": "c43551a3825a019b5911470ece57d2014487e59dd69219f1b998904b33b707d1",
+      "new_spec_sha256": "7057bc2f702f738192f9eff4ffea5115418e36f817c02f98159e8a7fb466ac7c",
+      "full_spec_uid_resource_version_cas": true,
+      "server_dryrun_exact_spec": true,
+      "public_health_http": 200,
+      "public_readiness_http": 200,
+      "unsigned_protected_http": 401,
+      "restarts": 0,
+      "normal_nonroot_startup": true
+    }
+  },
+  "preserved_failures": {
+    "first_slack_attempt": "Kubernetes became Ready, then an immediate HTTPS health probe failed. The operator helper automatically restored the prior eleven-provider spec and verified rollback.",
+    "resumed_slack_attempt": "A bounded propagation probe observed HTTP503 followed by HTTP200 with twelve providers. The original failure and rollback evidence were retained.",
+    "new_exception_or_authentication_relaxation": false
+  },
+  "preservation": {
+    "slack_added_without_changing_old_eleven_rows": true,
+    "postiz_added_without_changing_old_twelve_rows": true,
+    "image_existing_secret_refs_projections_state_pvc_and_other_configuration_preserved": true,
+    "credential_record_relabel_or_database_rewrite": false
+  },
+  "acceptance_boundary": {
+    "operator_secret_values_read_or_exported": false,
+    "provider_api_or_token_calls": 0,
+    "new_provider_consents": 0,
+    "atlassian_enabled": false,
+    "postiz_added_to_product_defaults": false,
+    "new_slack_default_requires_separate_product_release": true,
+    "marketplace_or_separate_mcp_service_approval_claimed": false,
+    "new_real_provider_qualification_established_by_health": false
+  },
+  "evidence_sha256": {
+    "slack_activation": "1ce54c6fc650d3a47045c22901ff0964eafc8c509c4a2568d6ca84677106bdf9",
+    "postiz_activation": "db279c11463e1a22045dc769e5f2f38a5e60f8b0f0a9ab42c63ad0d45e2735dd",
+    "postiz_custody_ack": "759fa9087971337051facc1e08bcb9e2c0332a2cb069dbbb8ea5137bd1536b2b"
+  }
+}

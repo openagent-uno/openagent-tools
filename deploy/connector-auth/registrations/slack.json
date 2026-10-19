@@ -32,19 +32,19 @@
     "client_id_key": "slack-client-id",
     "client_secret_key": "slack-client-secret"
   },
-  "broker_enabled": false,
+  "broker_enabled": true,
   "installation_authorized": true,
   "real_oauth_grant": true,
-  "common_enrollment_enabled": false,
+  "common_enrollment_enabled": true,
   "real_provider_qualification": true,
   "notes": [
     "The confidential client secret remains in encrypted production secret storage; no secret bytes or private workspace identifiers are recorded here.",
     "A restricted QA installation completed consent, scoped reads, approved message create/read/delete with cleanup, owner refresh, post-restart read and local disconnect; its owned runtime was stopped.",
     "An initial refresh returned 503. The reviewed broker compatibility fix and explicit reconsent preceded the successful refresh; the earlier failure is retained in the lifecycle evidence.",
-    "The limited real-provider qualification does not enable common enrollment, publish candidate artifacts, qualify remaining tools or grant access to Slack's separate MCP service.",
-    "The current eleven-provider broker configuration excludes Slack. Earlier restricted QA enrollment remains historical evidence; public distribution/common enrollment remain off."
+    "The 16 October limited real-provider qualification did not itself enable common enrollment, qualify remaining tools or grant access to Slack's separate MCP service.",
+    "On 19 October the operator observed public distribution Active and the broker added Slack; prior restricted QA evidence remains historical and no new user grant was created by configuration."
   ],
-  "qa_only": true,
+  "qa_only": false,
   "qualification_scope": "One authorized receiving installation and explicitly approved QA resources; not full tool or native App acceptance",
   "historical_activation_metadata": [
     {
@@ -54,8 +54,20 @@
         "broker_enabled": true,
         "common_enrollment_enabled": false
       }
+    },
+    {
+      "recorded_before": "2026-10-19T10:31:17.178847+00:00",
+      "scope": "Before root-observed public distribution activation and additive broker rollout",
+      "values": {
+        "broker_enabled": false,
+        "common_enrollment_enabled": false,
+        "qa_only": true
+      }
     }
   ],
-  "broker_configuration_checked_at": "2026-10-19T10:16:55.262401+00:00",
-  "broker_configuration_checkpoint": "../qualification-2026-10-19-microsoft-sharepoint-rotation.json"
+  "broker_configuration_checked_at": "2026-10-19T10:34:43.567985+00:00",
+  "broker_configuration_checkpoint": "../qualification-2026-10-19-slack-postiz-activation.json",
+  "public_distribution_enabled": true,
+  "public_distribution_verified_date": "2026-10-19",
+  "marketplace_approval_claimed": false
 }

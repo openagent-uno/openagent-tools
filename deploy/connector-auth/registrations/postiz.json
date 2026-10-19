@@ -4,23 +4,22 @@
   "app_name": "OpenAgent",
   "client_id": "pca_Tp9WBESJqgEqDK6bDUxX0OhUWYgjNLnV",
   "callback_url": "https://auth.openagent.uno/v1/oauth/postiz/callback",
-  "registration_status": "existing-registration-staged-rotation-required",
-  "record_type": "metadata-only-not-broker-configuration",
-  "common_enrollment_enabled": false,
+  "registration_status": "credential-rotated-broker-configured-consent-pending",
+  "record_type": "registered-provider-configured-not-real-provider-qualified",
+  "common_enrollment_enabled": true,
   "real_provider_qualification": false,
-  "secret_rotation_required_before_activation": true,
+  "secret_rotation_required_before_activation": false,
   "secret_reference": {
     "namespace": "openagent-connectors",
-    "name": "connector-auth-secrets",
-    "client_id_key": "postiz-client-id",
+    "name": "connector-auth-postiz-20261019-r1",
     "key": "postiz-client-secret",
-    "mount_path": "/secrets/postiz-client-secret"
+    "mount_path": "/secrets/postiz-client-secret-r1"
   },
   "prepared_provider_requires_separate_activation_review": {
     "id": "postiz",
     "app_id": "postiz:pca_Tp9WBESJqgEqDK6bDUxX0OhUWYgjNLnV",
     "client_id": "pca_Tp9WBESJqgEqDK6bDUxX0OhUWYgjNLnV",
-    "secret_file": "/secrets/postiz-client-secret",
+    "secret_file": "/secrets/postiz-client-secret-r1",
     "authorization_url": "https://platform.postiz.com/oauth/authorize",
     "token_url": "https://api.postiz.com/oauth/token",
     "redirect_uri": "https://auth.openagent.uno/v1/oauth/postiz/callback",
@@ -28,8 +27,27 @@
     "pkce": false
   },
   "notes": [
-    "Reuse the existing registration. This record does not read credentials or enable the provider.",
-    "Exchange uses the registered callback and JSON confidential-client authentication; no refresh is claimed.",
-    "Credential rotation and protected readback must precede activation; actual consent and product acceptance remain pending."
-  ]
+    "The existing registration/client identity and empty scope contract are retained. The operator rotated the credential and transferred it directly from RAM to create-only immutable production custody; no secret value is recorded here.",
+    "The broker is configured and ready using a unique read-only projected R1 path. Existing provider rows, image and persistent state were preserved; this does not establish a real user grant or provider API acceptance.",
+    "Exchange uses the registered callback and JSON confidential-client authentication. No refresh or default-provider promotion is claimed; real consent/read acceptance remains pending."
+  ],
+  "historical_secret_references": [
+    {
+      "scope": "Previous reference retained; old Secret not deleted",
+      "reference": {
+        "namespace": "openagent-connectors",
+        "name": "connector-auth-secrets",
+        "client_id_key": "postiz-client-id",
+        "key": "postiz-client-secret",
+        "mount_path": "/secrets/postiz-client-secret"
+      }
+    }
+  ],
+  "broker_enabled": true,
+  "production_secret_stored": true,
+  "production_secret_mounted": true,
+  "production_secret_configured": true,
+  "source_credentials_rotated": true,
+  "broker_configuration_checked_at": "2026-10-19T10:34:43.567985+00:00",
+  "broker_configuration_checkpoint": "../qualification-2026-10-19-slack-postiz-activation.json"
 }

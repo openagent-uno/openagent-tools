@@ -204,5 +204,16 @@
       "https://graph.microsoft.com/Sites.Read.All"
     ],
     "pkce": true
+  },
+  {
+    "id": "postiz",
+    "app_id": "postiz:pca_Tp9WBESJqgEqDK6bDUxX0OhUWYgjNLnV",
+    "client_id": "pca_Tp9WBESJqgEqDK6bDUxX0OhUWYgjNLnV",
+    "secret_file": "/secrets/postiz-client-secret-r1",
+    "authorization_url": "https://platform.postiz.com/oauth/authorize",
+    "token_url": "https://api.postiz.com/oauth/token",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/postiz/callback",
+    "scopes": [],
+    "pkce": false
   }
 ]
