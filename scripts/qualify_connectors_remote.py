@@ -179,10 +179,11 @@ def verify_catalog_cohort(version, catalog):
                 "0.1.7": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS) | set(SDK17_OAUTH),
                 "0.1.8": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS) | set(SDK17_OAUTH) | set(SDK18_GRAPH) | set(SDK18_MANUAL),
                 "0.1.9": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS) | set(SDK17_OAUTH) | set(SDK18_GRAPH) | set(SDK18_MANUAL),
-                "0.1.10": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS) | set(SDK17_OAUTH) | set(SDK18_GRAPH) | set(SDK18_MANUAL)}.get(version)
+                "0.1.10": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS) | set(SDK17_OAUTH) | set(SDK18_GRAPH) | set(SDK18_MANUAL),
+                "0.1.11": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS) | set(SDK17_OAUTH) | set(SDK18_GRAPH) | set(SDK18_MANUAL)}.get(version)
     if expected is not None and set(official) != expected:
         raise ValueError("release catalog identities differ from the reviewed cohort")
-    if version in {"0.1.6", "0.1.7", "0.1.8", "0.1.9", "0.1.10"}:
+    if version in {"0.1.6", "0.1.7", "0.1.8", "0.1.9", "0.1.10", "0.1.11"}:
         for identifier, (provider, tools) in SDK16_KEYLESS.items():
             row = official[identifier]
             reads = row.get("readTools")
@@ -192,7 +193,7 @@ def verify_catalog_cohort(version, catalog):
                     or any(not isinstance(tool, str) for tool in reads)
                     or len(reads) != len(tools) or set(reads) != tools):
                 raise ValueError("new keyless connector contract differs from the reviewed cohort")
-    if version in {"0.1.7", "0.1.8", "0.1.9", "0.1.10"}:
+    if version in {"0.1.7", "0.1.8", "0.1.9", "0.1.10", "0.1.11"}:
         for identifier, (provider, capability, prefix, reads, writes, _) in SDK17_OAUTH.items():
             row = official[identifier]
             if (row.get("provider") != provider or row.get("auth") != "oauth"
@@ -204,7 +205,7 @@ def verify_catalog_cohort(version, catalog):
                 if (not isinstance(values, list) or any(not isinstance(value, str) for value in values)
                         or len(values) != len(operations) or set(values) != {prefix + op for op in operations}):
                     raise ValueError("new OAuth connector tools differ from the reviewed cohort")
-    if version in {"0.1.8", "0.1.9", "0.1.10"}:
+    if version in {"0.1.8", "0.1.9", "0.1.10", "0.1.11"}:
         for identifier, (provider, capability, reads) in SDK18_MANUAL.items():
             verify_read_catalog(official[identifier], provider, capability, "token", set(reads))
             verify_setup_brandmark(official[identifier], provider)
@@ -415,7 +416,7 @@ def source_sdk_version(source, expected=None):
 
 def verify_source_python_catalog(source, version, catalog):
     """SDK16's offline source fallback must not be repaired only in the build snapshot."""
-    if version not in {"0.1.6", "0.1.7", "0.1.8", "0.1.9", "0.1.10"}:
+    if version not in {"0.1.6", "0.1.7", "0.1.8", "0.1.9", "0.1.10", "0.1.11"}:
         return
     path = source / "packages/connectors-python/src/openagent_connectors/catalog.json"
     if json.loads(path.read_bytes()) != {"version": version, "connectors": catalog}:
@@ -661,7 +662,7 @@ def main():
         cohort = verify_catalog_cohort(sdk_version, catalog)
         verify_source_python_catalog(source, sdk_version, catalog)
         sdk18_definitions = None
-        if sdk_version in {"0.1.8", "0.1.9", "0.1.10"}:
+        if sdk_version in {"0.1.8", "0.1.9", "0.1.10", "0.1.11"}:
             sdk18_definitions, definition_receipt = verify_sdk18_definitions(source, catalog)
             write(evidence / "reviewed-definitions.json", definition_receipt)
         cohort["catalog_sha256"] = sha(catalog_bytes)
@@ -700,16 +701,16 @@ def main():
                 f"acquire(Path({str(evidence / lock_name)!r}), {native_target!r}, " + \
                 f"Path({str(temporary / bundle_name)!r}), Path({str(temporary / 'acquired-wheelhouse')!r}), Path({str(bundles)!r}))"
         run([str(host_python), "-I", "-c", acquire_code("acquisition-lock.json", "bundle")], "public-host-acquisition", temporary)
-        if sdk_version in {"0.1.7", "0.1.8", "0.1.9", "0.1.10"}:
+        if sdk_version in {"0.1.7", "0.1.8", "0.1.9", "0.1.10", "0.1.11"}:
             write(evidence / "calendar-mail-metadata.json", calendar_mail_native_metadata(
                 temporary / "bundle/bin/openagent-connector-runner"))
-        if sdk_version in {"0.1.8", "0.1.9", "0.1.10"}:
+        if sdk_version in {"0.1.8", "0.1.9", "0.1.10", "0.1.11"}:
             write(evidence / "sdk18-installed-metadata.json", sdk18_native_metadata(
                 temporary / "bundle/bin/openagent-connector-runner", sdk18_definitions))
         tests = temporary / "tests"
         tests.mkdir()
         shutil.copyfile(source / "packages/connectors-python/tests/test_privacy.py", tests / "test_privacy.py")
-        if sdk_version in {"0.1.7", "0.1.8", "0.1.9", "0.1.10"}:
+        if sdk_version in {"0.1.7", "0.1.8", "0.1.9", "0.1.10", "0.1.11"}:
             shutil.copyfile(source / "packages/connectors-python/tests/test_runner_provider_errors.py",
                             tests / "test_runner_provider_errors.py")
         run([str(sdk_python), "-I", "-m", "unittest", "discover", "-s", str(tests), "-v"], "privacy-tests", temporary)

@@ -5,7 +5,7 @@ import (
 	"github.com/openagent-uno/openagent-tools/packages/connectors/providers"
 )
 
-const Version = "0.1.10"
+const Version = "0.1.11"
 
 type Item struct {
 	ID                string   `json:"id"`
