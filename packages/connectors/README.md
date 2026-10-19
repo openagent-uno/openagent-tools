@@ -85,7 +85,7 @@ Privacy recipients remain in the durable delivery set after product disconnectio
 
 ## Authenticated Shopify receipt v2
 
-A host adopting SDK 0.1.12 must explicitly implement and request the native receipt-v2 contract before creating Shopify grants. In Go, set `Start.ReceiptVersion=2` (or the client's `ShopifyReceiptVersion=2`) and use `Client.EventsV2(ctx)`. `Client.Events(ctx)` deliberately remains version one. Runner/Python hosts send `receipt_version: 2` in Shopify `auth.start` and `auth.events` parameters. Other providers omit the Shopify-only start capability. Updating the binary alone is insufficient.
+A host adopting SDK 0.1.12 must explicitly implement and request the native receipt-v2 contract before creating Shopify grants. In Go, set `Start.ReceiptVersion=2` (or the client's `ShopifyReceiptVersion=2`) and use `Client.EventsV2(ctx)`. `Client.Events(ctx)` deliberately remains version one. Runner/Python hosts send `receipt_version: 2` in Shopify `auth.start` and `events` parameters. Other providers omit the Shopify-only start capability. Updating the binary alone is insufficient.
 
 Every v2 receipt retains `occurred_at` and adds `authorization_cutoff_at`. A `shop/redact` also names its unique eligible verified `uninstall_event_id`. Validate and durably store the complete authenticated receipt before ACK; use its cutoff for local revocation and content-generation fencing so a later new consent is preserved. Missing or ambiguous prior history stays pending and unacknowledgeable. Unsafe v1 delivery returns `unsupported_receipt_version`; old full receipts without authenticated cutoff metadata are not silently upgraded.
 
