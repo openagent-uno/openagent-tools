@@ -39,6 +39,41 @@ class ProviderPrivacySchemas(unittest.TestCase):
         self.assertEqual(fragment.selection.subjects,())
         self.assertTrue(fragment.selection.nonpersonal)
 
+    def test_products_list_count_matches_the_compiled_graphql_response(self):
+        # Reduced documented Shopify Count/pageInfo/cost envelopes, not live data.
+        for count in (0, 1, 2**31 - 1):
+            for precision in ("EXACT", "AT_LEAST"):
+                with self.subTest(count=count, precision=precision):
+                    payload={'data':{'productsCount':{'count':count,'precision':precision},
+                        'products':{'nodes':[], 'pageInfo':{'hasNextPage':False,'endCursor':None}}},
+                        'extensions':{'cost':{'requestedQueryCost':5,'actualQueryCost':2,
+                            'throttleStatus':{'maximumAvailable':1000,'currentlyAvailable':998,'restoreRate':50}}}}
+                    fragments=result_fragments('shopify','commerce.shopify.products.list',payload)
+                    records={fragment.path:fragment.selection for fragment in fragments}
+                    self.assertTrue(records[('data','productsCount')].nonpersonal)
+                    self.assertTrue(all(item.selection.nonpersonal and not item.selection.subjects for item in fragments))
+
+    def test_products_count_wrong_types_extra_fields_and_other_paths_remain_fenced(self):
+        operation='commerce.shopify.products.list'
+        invalid=[{'count':value,'precision':'EXACT'}
+                 for value in (True,False,-1,2**31,1.0,'1',None)]
+        invalid.extend({'count':1,'precision':value}
+                       for value in ('exact','ESTIMATE','',None,True,[],{}))
+        invalid.extend(({}, {'count':1}, {'precision':'EXACT'},
+                        {'count':1,'precision':'EXACT','extra':'UNREVIEWED'},
+                        {'count':1,'precision':'EXACT','subjects':['customer:23']}))
+        for value in invalid:
+            with self.subTest(value=value):
+                fragments=result_fragments('shopify',operation,{'data':{'productsCount':value}})
+                self.assertTrue(any(not item.selection.nonpersonal and not item.selection.subjects for item in fragments))
+                self.assertTrue(all(not item.selection.nonpersonal for item in fragments))
+        for name,payload in (
+                ('commerce.shopify.customers.list',{'data':{'productsCount':{'count':1,'precision':'EXACT'}}}),
+                (operation,{'unreviewed':{'productsCount':{'count':1,'precision':'EXACT'}}})):
+            with self.subTest(operation=name,payload=payload):
+                self.assertTrue(all(not item.selection.nonpersonal
+                    for item in result_fragments('shopify',name,payload)))
+
     def test_order_records_retain_order_subject_for_provider_requested_ids(self):
         fragments=result_fragments('shopify','commerce.shopify.orders.list',
             {'data':{'orders':{'nodes':[{'id':'gid://shopify/Order/42'},{'id':'gid://shopify/Order/43'}]}}})

@@ -89,6 +89,16 @@ def provider_fragment_specs(operation, data):
             # It still belongs to the verified app/shop/grant in the host.
             specs.append((path, None))
             return
+        if (operation == "commerce.shopify.products.list"
+                and path == ("data", "productsCount") and isinstance(value, dict)
+                and set(value) == {"count", "precision"}
+                and type(value["count"]) is int and 0 <= value["count"] < 2**31
+                and type(value["precision"]) is str
+                and value["precision"] in {"EXACT", "AT_LEAST"}):
+            # Shopify Count: Int! plus the closed CountPrecision enum.
+            # Technical store metadata retains the host's app/shop/grant origin.
+            specs.append((path, None))
+            return
         if path == ("extensions", "cost") and isinstance(value, dict):
             numeric = lambda item: type(item) in {int, float} and 0 <= item < 1e12
             allowed = {"requestedQueryCost", "actualQueryCost", "throttleStatus"}
