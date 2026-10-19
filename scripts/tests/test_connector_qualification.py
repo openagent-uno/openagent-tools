@@ -347,6 +347,32 @@ class SDK18MetadataTests(unittest.TestCase):
         self.assertEqual(sum(len(row[1]) for row in REMOTE.SDK18_GRAPH.values()), 12)
         self.assertEqual(len(REMOTE.SDK18_BRANDMARK_PROVIDERS), 45)
 
+    def test_sdk19_patch_preserves_all_sdk18_catalog_and_source_guards(self):
+        catalog = self.catalog()
+        receipt = REMOTE.verify_catalog_cohort("0.1.9", catalog)
+        self.assertTrue(receipt["exact_version_cohort"])
+        self.assertEqual(receipt["official_count"], 114)
+        self.assertEqual(receipt["official_ids"],
+                         REMOTE.verify_catalog_cohort("0.1.8", catalog)["official_ids"])
+        for identifier, field, value in (("coda", "auth", "oauth"),
+                ("onedrive", "agentTools", ["files.onedrive.write"]),
+                ("outlook-calendar", "readTools", ["files.outlook_calendar.raw"]),
+                ("parallel-search", "auth", "token")):
+            with self.subTest(identifier=identifier):
+                changed = copy.deepcopy(catalog)
+                next(row for row in changed if row["id"] == identifier)[field] = value
+                with self.assertRaises(ValueError):
+                    REMOTE.verify_catalog_cohort("0.1.9", changed)
+        with tempfile.TemporaryDirectory(prefix="connector-sdk19-source-") as temporary:
+            root = Path(temporary)
+            path = root / "packages/connectors-python/src/openagent_connectors/catalog.json"
+            path.parent.mkdir(parents=True)
+            path.write_text(json.dumps({"version": "0.1.9", "connectors": catalog}))
+            REMOTE.verify_source_python_catalog(root, "0.1.9", catalog)
+            path.write_text(json.dumps({"version": "0.1.8", "connectors": catalog}))
+            with self.assertRaisesRegex(ValueError, "Source Python fallback catalog differs"):
+                REMOTE.verify_source_python_catalog(root, "0.1.9", catalog)
+
     def test_same_size_substitution_and_manual_write_or_oauth_promotion_rejected(self):
         for field, value in (("id", "not-reviewed"), ("provider", "another-tenant-provider"),
                 ("auth", "oauth"), ("agentTools", ["files.coda.docs.write"]),

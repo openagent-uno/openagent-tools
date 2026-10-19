@@ -426,3 +426,80 @@ func TestMicrosoftGraphResponseBoundsAndNoRedirect(t *testing.T) {
 		}
 	}
 }
+
+// Microsoft calendar resource docs distinguish canEdit (also shared calendars)
+// from canShare (creator only). Both remain data, not a new write permission.
+func TestMicrosoftCalendarOwnershipMetadataProjection(t *testing.T) {
+	for _, operation := range []string{"calendars.list", "calendars.get"} {
+		for _, ownership := range []string{`true`, `false`, ``, `"true"`, `null`, `1`} {
+			t.Run(operation+"/"+ownership, func(t *testing.T) {
+				calls := 0
+				a, _ := NewMicrosoftGraphAdapter("outlook_calendar", doerFunc(func(req *http.Request) (*http.Response, error) {
+					calls++
+					if req.Method != "GET" || req.URL.Host != "graph.microsoft.com" || req.URL.Query().Get("$select") != "id,name,color,canEdit,canShare,owner" {
+						t.Fatal("calendar owner metadata must use the fixed Graph read projection")
+					}
+					body := `{"id":"CAL==","canEdit":true,"owner":{"address":"calendar-owner@example.invalid"}`
+					if ownership != "" {
+						body += `,"canShare":` + ownership
+					}
+					body += `}`
+					if operation == "calendars.list" {
+						body = `{"value":[` + body + `]}`
+					}
+					return jsonResponse(200, body, nil), nil
+				}))
+				args := `{}`
+				if operation == "calendars.get" {
+					args = `{"calendar_id":"CAL=="}`
+				}
+				inv := microsoftGraphInvocation(t, a, operation, args)
+				if len(inv.Operation.RequiredScopes) != 1 || inv.Operation.RequiredScopes[0] != "Calendars.ReadBasic" || inv.Operation.Risk != domain.RiskRead {
+					t.Fatal("owner metadata widened the read contract")
+				}
+				result, err := a.Invoke(context.Background(), inv)
+				if calls != 1 {
+					t.Fatal("calendar read was retried")
+				}
+				if ownership != "true" && ownership != "false" && ownership != "" {
+					var failure *domain.ProviderError
+					if !errors.As(err, &failure) || failure.Kind != "invalid_response" {
+						t.Fatal("malformed ownership metadata was accepted")
+					}
+					return
+				}
+				if err != nil {
+					t.Fatal(err)
+				}
+				calendar := result.Data.(map[string]any)
+				if operation == "calendars.list" {
+					calendar = calendar["value"].([]any)[0].(map[string]any)
+				}
+				value, exists := calendar["canShare"]
+				if ownership == "" {
+					if exists {
+						t.Fatal("missing ownership metadata was fabricated")
+					}
+				} else if !exists || value != (ownership == "true") {
+					t.Fatal("owned/shared distinction was not preserved")
+				}
+			})
+		}
+	}
+}
+
+func TestMicrosoftCalendarOwnershipCannotBeSelectedByCaller(t *testing.T) {
+	for _, arguments := range []string{`{"canShare":true}`, `{"$select":"id,canShare"}`, `{"owner":"another-user"}`} {
+		a, _ := NewMicrosoftGraphAdapter("outlook_calendar", doerFunc(func(*http.Request) (*http.Response, error) {
+			t.Fatal("caller-selected ownership reached Graph")
+			return nil, nil
+		}))
+		inv := microsoftGraphInvocation(t, a, "calendars.list", arguments)
+		if _, err := a.Preview(inv); err == nil {
+			t.Fatal("caller-selected ownership preview accepted")
+		}
+		if _, err := a.Invoke(context.Background(), inv); err == nil {
+			t.Fatal("caller-selected ownership invocation accepted")
+		}
+	}
+}

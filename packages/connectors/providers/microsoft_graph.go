@@ -429,7 +429,7 @@ func microsoftGraphSelect(name string) string {
 	case strings.Contains(name, ".attachments.list"):
 		return "id,name,contentType,size,isInline"
 	case strings.Contains(name, ".calendars."):
-		return "id,name,color,canEdit,owner"
+		return "id,name,color,canEdit,canShare,owner"
 	case strings.Contains(name, ".events."):
 		return "id,subject,body,bodyPreview,start,end,location,attendees,organizer,isCancelled,changeKey"
 	default:
@@ -740,6 +740,21 @@ func (a *MicrosoftGraphAdapter) Invoke(ctx context.Context, inv domain.Invocatio
 		id, ok := decoded["id"].(string)
 		if !ok || !validMicrosoftGraphID(id) {
 			return domain.Result{}, failure("invalid_response")
+		}
+	}
+	// canShare is provider-reported ownership metadata, never an authorization
+	// grant. Missing metadata remains absent; a truthy string is not proof.
+	if strings.Contains(p.op.Name, ".calendars.") {
+		calendars := []any{decoded}
+		if strings.HasSuffix(p.op.Name, ".list") {
+			calendars = decoded["value"].([]any)
+		}
+		for _, calendar := range calendars {
+			if value, exists := calendar.(map[string]any)["canShare"]; exists {
+				if _, ok := value.(bool); !ok {
+					return domain.Result{}, failure("invalid_response")
+				}
+			}
 		}
 	}
 	if tag, exists := decoded["@odata.etag"]; exists {
