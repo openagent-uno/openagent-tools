@@ -81,7 +81,11 @@ func NewServer(store *Store, engine oauth.Engine, providers []oauth.Provider, or
 		if err = s.Engine.ValidateConfiguration(p); err != nil {
 			return nil, err
 		}
-		if _, err = s.Engine.Authorize(p, "configuration-check", randomID(), "configuration-check.myshopify.com", p.Scopes); err != nil {
+		shop := ""
+		if p.ID == "shopify" {
+			shop = "configuration-check.myshopify.com"
+		}
+		if _, err = s.Engine.Authorize(p, "configuration-check", randomID(), shop, p.Scopes); err != nil {
 			return nil, err
 		}
 		s.Providers[p.ID] = p
