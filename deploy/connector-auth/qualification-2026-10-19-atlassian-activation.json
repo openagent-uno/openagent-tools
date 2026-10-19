@@ -1,0 +1,39 @@
+{
+  "format": 1,
+  "observed_at_utc": "2026-10-19T15:01:46Z",
+  "stage": "configuration-only-private-owner-qa",
+  "provider": "atlassian",
+  "existing_registration_reused": true,
+  "secret_custody": {
+    "created": true,
+    "immutable": true,
+    "production_encryption_enabled": true,
+    "values_read_back_logged_hashed_or_exported": false
+  },
+  "broker": {
+    "source_commit": "20bc4d3d1747ce8676c70c34ad2edaa86e33901d",
+    "image_sha256": "cdb0e3c3bb2d1e4582370acb2eb2d6e73e77eded612371c228fe93cec361bd1c",
+    "generation": 35,
+    "profiles_before": 14,
+    "profiles_after": 15,
+    "prior_profiles_and_Shopify_QA_gate_unchanged": true,
+    "image_PVC_resources_security_unchanged": true,
+    "health_http": 200,
+    "readiness_http": 200,
+    "unsigned_request_http": 401
+  },
+  "app": {
+    "private_owner_only": true,
+    "public_distribution": false,
+    "resource_level": true
+  },
+  "actual_provider_grants": 0,
+  "actual_provider_API_tests": 0,
+  "product_defaults_changed": false,
+  "remaining": [
+    "Owner OAuth and normal product API lifecycle trial",
+    "Personal-data reporting across receiving hosts before public-sharing declaration",
+    "Explicit public-sharing activation after qualification"
+  ],
+  "paid_subscriptions_activated": false
+}
