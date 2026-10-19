@@ -1,0 +1,86 @@
+{
+  "format": 1,
+  "date": "2026-10-19",
+  "status": "passed-broker-sdk18-image-only-rollout",
+  "source_commit": "5a7dea3ec5edf183545ea703538d56b208069250",
+  "sdk_version": "0.1.8",
+  "sdk_manifest_sha256": "85128fb54ae414269cfa70064bd9b0de724906770db416949e5747be97139916",
+  "image_manifest_sha256": "fc7c3ceba9f9db10746d8a9653245d0aa572aa370f58f50055a12fcb59166b19",
+  "image_config_sha256": "c70ccb07b2c9f56f08ae2d446c5c04a342b6711aa95e9607ad6ef952ccea1763",
+  "previous_image_manifest_sha256": "be7e7028c42b69547b5a14e07234117a06e24f2927764ee9ebfded24be35f702",
+  "auth_binary_sha256": "bd3ca36bcff8cc2c3b0f14b67728a42eb6736638a85f1f8a438eb1b5bbe1caa8",
+  "assembly": {
+    "mode": "append-qualified-public-linux-x64-auth-binary",
+    "go_compilation": false,
+    "parent_layers_retained": 4,
+    "only_added_path": "connector-auth",
+    "all_five_layer_hashes_and_diff_ids_verified": true,
+    "old_attestations_claimed": false
+  },
+  "scan": {
+    "scanner_version": "0.72.0",
+    "scanner_sha256": "0e69edd134a3c338baa1a6806920773615d682b18cbc6a0cba2a3b658ef9b63e",
+    "scanners": [
+      "vuln",
+      "secret"
+    ],
+    "severity": [
+      "HIGH",
+      "CRITICAL"
+    ],
+    "ignore_unfixed": true,
+    "custom_exceptions_added": false,
+    "scan_exit": 0,
+    "vulnerabilities": 0,
+    "secrets": 0,
+    "raw_scan_sha256": "d379a2c4692233bbb59b3140255c05151c077ae95806b9e803934bfa697eecee",
+    "raw_scan_bytes": 75497,
+    "archive_sha256": "8abce580bb994bf7e1abe88c097e358f1f183ef86914376c15964cb1d452fbec",
+    "finished_at": "2026-10-19T07:33:27.033037+00:00"
+  },
+  "upload": {
+    "digest_only": true,
+    "tags_written": false,
+    "post_read_digest_checks_passed": true
+  },
+  "rollout": {
+    "single_live_writer_observed": true,
+    "providers": [
+      "clickup",
+      "github",
+      "notion"
+    ],
+    "providers_sha256": "100eafec9acab2bf4735bbe0ca7d38b7916bb10fc6e38299514115607ff80cdb",
+    "health_http": 200,
+    "readiness_http": 200,
+    "unsigned_protected_http": 401,
+    "finished_at": "2026-10-19T07:39:51.556494+00:00"
+  },
+  "preserved": {
+    "provider_configuration": true,
+    "secret_mounts": true,
+    "event_key_reference": true,
+    "metadata_volume": true,
+    "metadata_restore": false
+  },
+  "cleanup": {
+    "all_four_owned_units_absent": true,
+    "temporary_relay_deleted": true,
+    "scanner_container_absent": true
+  },
+  "acceptance_boundary": {
+    "provider_calls": 0,
+    "new_provider_grants": false,
+    "new_providers_enabled": false,
+    "google_microsoft_activation": false,
+    "new_receiving_product_acceptance": false,
+    "native_app_acceptance": false
+  },
+  "safe_evidence_sha256": {
+    "scan-receipt.json": "cc7114c01f49f85a561d89b0db799dcf252f4ae71bb494e7c43cc49522a7083e",
+    "upload-receipt.json": "873eaa523ad7040dab13a2c3556deee61e950d99cb743b11ab317be5be8580cd",
+    "admission.json": "282fcc7b723525500de6e60fd74527f261cc640d7b667ec522395b2a509ed8c9",
+    "rollout-receipt.json": "8971e2f3fbe0088d4841e837366eb371c8a8798c06ca0ef5bf069771092b674d",
+    "quiescence.json": "f9ee5db2fe58804e29b65d6fedeeab92c8a328576fd3258bb004b4aa1f990696"
+  }
+}

@@ -10,4 +10,4 @@ configMapGenerator:
 images:
   - name: openagent-connector-auth
     newName: localhost:5000/openagent-connector-auth
-    digest: sha256:f5cb0256ef28919ccf2f3e27a47bdb5c87931a27d7e3197f870fb1a1a81f2777
+    digest: sha256:fc7c3ceba9f9db10746d8a9653245d0aa572aa370f58f50055a12fcb59166b19

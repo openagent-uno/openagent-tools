@@ -51,6 +51,14 @@ The identity file must be durably host-owned and survive restart. Kubernetes hos
 
 A provider outage leaves valid local tokens usable. New consents and renewals requiring app secrets fail closed. Legacy own-app configuration remains supported; do not replace old app config while old credentials rely on it. Disable new official enrollment to roll back, preserving official credentials/identity for their renewals.
 
+## Current image checkpoint
+
+The [19 October image checkpoint](qualification-2026-10-19.md) records the
+actual SDK18 broker rollout, normal raw scan and HTTPS smoke. ClickUp, GitHub
+and Notion remained the only active providers; the image change made no
+provider calls or new grants. The base still has zero configured providers
+and must not replace the live provider overlay.
+
 ## Qualification still required
 
 For a real-provider trial before public activation, use the explicit
