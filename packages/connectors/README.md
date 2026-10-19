@@ -1,15 +1,15 @@
 # OpenAgent official connectors
 
 Shared Go module `github.com/openagent-uno/openagent-tools/packages/connectors`.
-The [published SDK/runner **0.1.8**](https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.8)
+The [published SDK/runner **0.1.12**](https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.12)
 is a contract-qualified prerelease with **114 official entries plus Custom MCP**,
 **315 read tools** and **82 actions**. The
-[publication and qualification receipt](../../docs/connector-sdk-0.1.8-qualification.json)
+[publication and qualification receipt](../../docs/connector-sdk-0.1.12-qualification.json)
 binds source, manifest, 11 verified assets, six bundles and the Python wheel.
 Actual native installed-runner, acquisition and broker-fixture checks passed on
 Linux x64; the other five targets have cross-build evidence only.
 
-The new cohort adds 90 manual-credential API profiles (180 typed read-only tools)
+The cohort introduced in SDK 0.1.8 adds 90 manual-credential API profiles (180 typed read-only tools)
 and OneDrive/SharePoint (5+7 reads). Their finite endpoint/schema/projection
 contracts are shared across hosts. Manual credentials do not establish verified
 OAuth scope claims: vendor permissions remain setup documentation. Neither this
@@ -21,9 +21,7 @@ Embedding hosts link this module into their local gateways. The standalone serve
 invokes the same adapters through `openagent-connector-runner` and the
 `openagent-connectors` Python package. Core receives managed capability sources
 through public catalog APIs; it does not import product accounts, OAuth or
-storage code. Public Server/CLI 44 and App 21 remain on SDK 0.1.7; later product
-adoption is separate. The [coverage index](../../docs/chatgpt-app-coverage.md)
-preserves earlier actual provider-call evidence without relabeling it as SDK 0.1.8 QA.
+storage code. Product adoption is separate; see the [current public product status](https://openagent.uno/guide/connector-status). The [coverage index](../../docs/chatgpt-app-coverage.md) preserves earlier actual provider-call evidence under its original version.
 
 Google Calendar and Outlook's operation boundaries, account binding, scopes,
 page/sync cursors and remaining registration gates are in the
@@ -83,7 +81,17 @@ One lock and generation exist per OAuth app and shop. Acquisition and refresh re
 
 A missed envelope is recovered from a current peer via outgoing polling. If no current copy is available, the host requests new consent. A broker crash during an uncertain provider exchange persists `reconnect:true`; it cannot silently reuse an older generation. A host that already saved a completed exchange can commit that checkpoint after broker restart. The first implementation is deliberately single writer: one replica, `Recreate`, one PVC. Do not scale it or mount the same metadata file from multiple processes; a distributed transactional store is required before HA.
 
-Privacy recipients remain in the durable delivery set after product disconnection. Jobs retain only the customer/order identifiers needed by the recipient, encrypted at rest. Hosts acknowledge durable local receipt, retry their local processing and deduplicate. A delayed uninstall from an older grant cannot revoke a later reauthorization. The standalone retains a local encrypted privacy inbox; processing/export/redaction of stored agent content is not yet implemented in that product and blocks Shopify activation there.
+Privacy recipients remain in the durable delivery set after product disconnection. Jobs retain only the customer/order identifiers needed by the recipient, encrypted at rest. Hosts acknowledge durable local receipt, retry their local processing and deduplicate. A delayed uninstall from an older grant cannot revoke a later reauthorization. The standalone retains a local encrypted privacy inbox and separately qualified opt-in processing/export/redaction for a fresh canonical text-history cohort. Historical content and unsupported storage surfaces remain blocked; configuration alone cannot claim coverage. See the [current product qualification](https://openagent.uno/guide/connector-status).
+
+## Authenticated Shopify receipt v2
+
+A host adopting SDK 0.1.12 must explicitly implement and request the native receipt-v2 contract before creating Shopify grants. In Go, set `Start.ReceiptVersion=2` (or the client's `ShopifyReceiptVersion=2`) and use `Client.EventsV2(ctx)`. `Client.Events(ctx)` deliberately remains version one. Runner/Python hosts send `receipt_version: 2` in Shopify `auth.start` and `auth.events` parameters. Other providers omit the Shopify-only start capability. Updating the binary alone is insufficient.
+
+Every v2 receipt retains `occurred_at` and adds `authorization_cutoff_at`. A `shop/redact` also names its unique eligible verified `uninstall_event_id`. Validate and durably store the complete authenticated receipt before ACK; use its cutoff for local revocation and content-generation fencing so a later new consent is preserved. Missing or ambiguous prior history stays pending and unacknowledgeable. Unsafe v1 delivery returns `unsupported_receipt_version`; old full receipts without authenticated cutoff metadata are not silently upgraded.
+
+The legacy relay separately authenticates fresh delivery time, the exact receiver URL, original event metadata and body digest while preserving provider body HMAC. Receivers must qualify this protocol and their own processing before webhook cutover. The broker can pause new Shopify consents through `--shopify-new-consents-disabled` while continuing valid callbacks, existing refresh and privacy delivery. Once any v2 event is persisted, keep a compatible broker during rollback; restore routes/configuration with new consents paused rather than downgrade to a broker that ignores the cutoff or restore older state.
+
+This protocol does not establish real-provider cutover or local storage coverage. Those remain actual deployment and host qualification gates.
 
 ## Build and release
 
@@ -91,7 +99,7 @@ Version 0.1.1 binds Shopify grants to their numeric shop ID with a fixed, minima
 
 Reviewed `--legacy-shopify-webhooks` routes preserve the existing app's product privacy processor through a durable encrypted outbox, including shops not yet enrolled in a broker group. Notifications are minimized, signed for the same app, keep their webhook ID/time, and retry offline recipients after restart without following redirects. A native recipient's acknowledgment cannot remove a payload still owed to the legacy processor. Qualify this compatibility path before replacing provider webhook URLs. Version 0.1.0 artifacts remain immutable.
 
-Run `GOWORK=off go test -race ./...` inside this module. Build artifacts with `python3 scripts/build_connectors.py --out <empty-directory>` at the Tools repository root. The builder snapshots all tracked/nonignored sources once, records source digests, cross-compiles runner and broker for macOS/Linux/Windows arm64/x64 and creates the Python wheel, catalog, manifest and `SHA256SUMS`. Dirty sources require explicit `--allow-dirty` and produce unqualified artifacts. After publication, Go module tags use `packages/connectors/v<version>`; the currently published tag is `packages/connectors/v0.1.8`. Binaries use the matching version. Verify both archive and extracted binary checksums. Cross-compilation is not native OS qualification.
+Run `GOWORK=off go test -race ./...` inside this module. Build artifacts with `python3 scripts/build_connectors.py --out <empty-directory>` at the Tools repository root. The builder snapshots all tracked/nonignored sources once, records source digests, cross-compiles runner and broker for macOS/Linux/Windows arm64/x64 and creates the Python wheel, catalog, manifest and `SHA256SUMS`. Dirty sources require explicit `--allow-dirty` and produce unqualified artifacts. After publication, Go module tags use `packages/connectors/v<version>`; the currently published tag is `packages/connectors/v0.1.12`. Binaries use the matching version. Verify both archive and extracted binary checksums. Cross-compilation is not native OS qualification.
 
 ## Host-owned privacy binding
 
@@ -117,13 +125,13 @@ See [deployment and activation](../../deploy/connector-auth/README.md). Provider
 ## Remote qualification staging
 
 Paid GitHub Actions qualification is on hold under the current resource/cost
-instruction; the 0.1.8 qualification used one bounded remote Linux worker.
-The [0.1.8 receipt](../../docs/connector-sdk-0.1.8-qualification.json)
+instruction; the 0.1.12 qualification used one bounded remote Linux worker.
+The [0.1.12 receipt](../../docs/connector-sdk-0.1.12-qualification.json)
 records race/vet/vulnerabilities, all six bundles, wheel/acquisition and actual
 Linux-native checks. The older [0.1.4 workspace receipt](../../docs/connector-candidate-0.1.4-workspace-qualification.json)
 is historical. Neither receipt establishes real Google/Microsoft OAuth acceptance.
 
-The historical optional manual `Qualify shared connectors` Actions recipe (not used for 0.1.8) accepts a reviewed full
+The historical optional manual `Qualify shared connectors` Actions recipe (not used for 0.1.12) accepts a reviewed full
 source SHA and runs one standard hosted macOS ARM64 job. Builds and tests run
 sequentially with Go 1.26.9, `GOMAXPROCS=2` and `-p=1`; no credentials, provider
 grants, tags or releases are created. It verifies all six bundles, installs the
