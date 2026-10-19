@@ -28,6 +28,7 @@ func main() {
 	legacyPath := flag.String("legacy-shopify-webhooks", "", "Reviewed topic-to-HTTPS-product webhook routes for existing installations")
 	qaPath := flag.String("qa-enrollment", "", "Startup-only installation/store allowlist; public readiness remains disabled")
 	shopifyQAPath := flag.String("shopify-qa-enrollment", "", "Startup-only Shopify installation/store allowlist; other providers remain public")
+	shopifyClosed := flag.Bool("shopify-new-consents-disabled", false, "Pause new Shopify starts during webhook cutover; existing grants and other providers remain available")
 	flag.Parse()
 	if *statePath == "" || *providersPath == "" || *keyPath == "" {
 		fmt.Fprintln(os.Stderr, "state, providers and event-key are required")
@@ -81,6 +82,9 @@ func main() {
 		if err != nil || decoder.Decode(&config) != nil || decoder.Decode(new(any)) != io.EOF || handler.ConfigureShopifyQAEnrollment(config) != nil {
 			fatal()
 		}
+	}
+	if *shopifyClosed && handler.ConfigureShopifyNewConsentsDisabled() != nil {
+		fatal()
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {

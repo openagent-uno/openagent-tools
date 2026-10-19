@@ -31,3 +31,15 @@ conflicting event/body ledgers fail closed; this patch does not reset them.
 Genuine provider delivery, production compatibility, offline replay and public
 enrollment are separate operational gates. Synthetic fixtures are not evidence
 of Shopify delivering a notification.
+
+## Staged cutover without early public enrollment
+
+Start the broker with `--shopify-new-consents-disabled` while configuring the
+legacy routes and qualifying the central callback. `/healthz` reports
+`shopify_enrollment: "paused"`; the service and other providers remain ready.
+Only a new Shopify transaction is denied (`503 authorization_not_ready`).
+Existing valid pending callbacks/redeem, refresh, mail and privacy delivery keep
+their original authorization. The flag requires an actual Shopify provider row.
+After the reviewed genuine delivery/cutover gates pass, remove only this startup
+flag through a fresh image/config-preserving CAS rollout. This is not a caller
+privacy assertion or a bypass of the receiving host's qualification gate.

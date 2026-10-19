@@ -52,21 +52,22 @@ type Rotation struct {
 	Recipients []Installation `json:"recipients,omitempty"`
 }
 type Server struct {
-	Store                 *Store
-	Engine                oauth.Engine
-	Providers             map[string]oauth.Provider
-	Origin                string
-	EventKey              []byte
-	legacyShopifyWebhooks map[string]string
-	qa                    *qaAdmission
-	shopifyQA             *qaAdmission
-	mu                    sync.Mutex
-	transactions          map[string]*Transaction
-	nonces                map[string]time.Time
-	rates                 map[string][]time.Time
-	mail                  map[string][]Envelope
-	recoveries            map[string][]Recovery
-	now                   func() time.Time
+	Store                      *Store
+	Engine                     oauth.Engine
+	Providers                  map[string]oauth.Provider
+	Origin                     string
+	EventKey                   []byte
+	legacyShopifyWebhooks      map[string]string
+	qa                         *qaAdmission
+	shopifyQA                  *qaAdmission
+	shopifyNewConsentsDisabled bool
+	mu                         sync.Mutex
+	transactions               map[string]*Transaction
+	nonces                     map[string]time.Time
+	rates                      map[string][]time.Time
+	mail                       map[string][]Envelope
+	recoveries                 map[string][]Recovery
+	now                        func() time.Time
 }
 
 func NewServer(store *Store, engine oauth.Engine, providers []oauth.Provider, origin string, eventKey []byte) (*Server, error) {
@@ -93,6 +94,18 @@ func NewServer(store *Store, engine oauth.Engine, providers []oauth.Provider, or
 	}
 	return s, nil
 }
+
+// ConfigureShopifyNewConsentsDisabled is startup-only operator configuration.
+// It pauses new starts during webhook cutover without revoking pending consent,
+// existing grants, refresh or privacy delivery. There is no remote toggle API.
+func (s *Server) ConfigureShopifyNewConsentsDisabled() error {
+	if s.Providers["shopify"].ID != "shopify" {
+		return ErrDenied
+	}
+	s.shopifyNewConsentsDisabled = true
+	return nil
+}
+
 func writeJSON(w http.ResponseWriter, status int, value any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -166,7 +179,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			enrollment = "disabled"
 		}
 		health := map[string]any{"ok": true, "contract": "openagent-connectors/v1", "configured_providers": len(s.Providers), "enrollment": enrollment}
-		if s.shopifyQA != nil {
+		if s.shopifyNewConsentsDisabled {
+			health["shopify_enrollment"] = "paused"
+		} else if s.shopifyQA != nil {
 			health["shopify_enrollment"] = "qa"
 		}
 		writeJSON(w, 200, health)
@@ -310,6 +325,10 @@ func (s *Server) start(w http.ResponseWriter, installation Installation, body []
 	p, ok := s.Providers[start.Provider]
 	if !ok {
 		fail(w, 503, "provider_not_configured")
+		return
+	}
+	if p.ID == "shopify" && s.shopifyNewConsentsDisabled {
+		fail(w, 503, "authorization_not_ready")
 		return
 	}
 	if p.ID == "shopify" && start.Shop != "" && !oauth.ValidShop(start.Shop) || p.ID != "shopify" && start.Shop != "" {

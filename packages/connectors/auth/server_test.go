@@ -140,7 +140,11 @@ func (f *fixture) consent(t *testing.T, c *Client) Transaction {
 	tx, state := f.approval(t, c)
 	// Verify the signed provider callback over real HTTP, not by modifying the transaction.
 	q := url.Values{"state": {state}, "code": {"provider-code"}, "shop": {"example.myshopify.com"}, "timestamp": {strconv.FormatInt(time.Now().Unix(), 10)}}
-	mac := hmac.New(sha256.New, []byte("test-app-secret"))
+	secret, err := os.ReadFile(f.server.Providers["shopify"].SecretFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	mac := hmac.New(sha256.New, secret)
 	mac.Write([]byte(q.Encode()))
 	q.Set("hmac", hex.EncodeToString(mac.Sum(nil)))
 	res, err := http.Get(f.http.URL + "/v1/oauth/shopify/callback?" + q.Encode())
