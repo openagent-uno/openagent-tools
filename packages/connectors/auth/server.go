@@ -583,13 +583,20 @@ func (s *Server) finishRotation(id, operation, installation string, token *oauth
 		if token.ShopID == 0 || group.ShopID != 0 && group.ShopID != token.ShopID {
 			return ErrDenied
 		}
+		// Another installation joining the same active app/shop/scopes rotates
+		// its credential, not the shared privacy-consent generation.
+		sameActiveGrant := !group.AuthorizedAt.IsZero() && !group.Revoked &&
+			group.AppID == token.AppID && group.Shop == token.ExternalID &&
+			group.ShopID == token.ShopID && sameScopes(group.Scopes, token.Scopes)
 		group.ShopID = token.ShopID
 		group.Version++
 		group.RefreshHash = s.tokenHash(group.AppID, "shopify", token.RefreshToken)
 		group.CredentialDigest = tokenDigest(*token)
 		group.Scopes = append([]string{}, token.Scopes...)
 		if group.PendingAuthorization {
-			group.AuthorizedAt = s.now()
+			if !sameActiveGrant {
+				group.AuthorizedAt = s.now()
+			}
 			group.PendingAuthorization = false
 		}
 		grantTime := group.AuthorizedAt
