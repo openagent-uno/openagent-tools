@@ -318,18 +318,24 @@ func secret(p Provider) (string, error) {
 	return s, nil
 }
 func (e Engine) Exchange(ctx context.Context, p Provider, code, verifier, shop string, scopes []string) (Token, error) {
+	failure := func(reason string) error {
+		if microsoftProvider(p.ID) {
+			return microsoftExchangeFailure("preflight", reason, "none")
+		}
+		return ErrAuthentication
+	}
 	if code == "" || len(code) > 16384 || !approvedScopes(p, scopes) {
-		return Token{}, ErrAuthentication
+		return Token{}, failure("code_or_scopes")
 	}
 	fields := url.Values{"code": {code}, "redirect_uri": {p.RedirectURI}, "grant_type": {"authorization_code"}}
 	if calendarOrMicrosoft(p.ID) && (shop != "" || !validPKCEVerifier(verifier)) {
-		return Token{}, ErrAuthentication
+		return Token{}, failure("request_context")
 	}
 	if microsoftProvider(p.ID) {
 		canonical, ok := microsoftScopes(scopes)
 		wire, wireOK := microsoftRequestScopes(scopes)
 		if !ok || !wireOK || !hasOAuthScope(canonical, "offline_access") {
-			return Token{}, ErrAuthentication
+			return Token{}, failure("requested_scopes")
 		}
 		fields.Set("scope", wire)
 	}
@@ -355,6 +361,10 @@ func (e Engine) Exchange(ctx context.Context, p Provider, code, verifier, shop s
 		token.ShopID, err = e.shopIdentity(ctx, p, shop, token.AccessToken)
 	}
 	if err != nil {
+		var rejection *MicrosoftExchangeError
+		if microsoftProvider(p.ID) && errors.As(err, &rejection) {
+			return Token{}, rejection
+		}
 		return Token{}, ErrAuthentication
 	}
 	return token, nil
@@ -439,6 +449,9 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 		if p.ID == "slack_import" && fields.Get("grant_type") == "refresh_token" {
 			return slackRefreshFailure(stage, reason, "none")
 		}
+		if microsoftProvider(p.ID) && fields.Get("grant_type") == "authorization_code" {
+			return microsoftExchangeFailure(stage, reason, "none")
+		}
 		return ErrAuthentication
 	}
 	if !validWorkspaceProtocol(p, scopes) || !e.calendarMicrosoftTargets(p) {
@@ -458,14 +471,14 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	}
 	u, err := e.target(p, p.TokenURL, shop)
 	if err != nil {
-		if p.ID == "slack_import" && previous != "" {
+		if (p.ID == "slack_import" && previous != "") || (microsoftProvider(p.ID) && previous == "") {
 			return Token{}, failure("request", "target")
 		}
 		return Token{}, err
 	}
 	s, err := secret(p)
 	if err != nil {
-		if p.ID == "slack_import" && previous != "" {
+		if (p.ID == "slack_import" && previous != "") || (microsoftProvider(p.ID) && previous == "") {
 			return Token{}, failure("request", "secret")
 		}
 		return Token{}, err
@@ -520,13 +533,16 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 		return Token{}, failure("response", "response_read")
 	}
 	if res.StatusCode != 200 {
+		if microsoftProvider(p.ID) && fields.Get("grant_type") == "authorization_code" {
+			return Token{}, microsoftExchangeFailure("response", "http_status", microsoftExchangeProviderCode(b))
+		}
 		return Token{}, failure("response", "http_status")
 	}
 	if len(b) > 1<<20 {
 		return Token{}, failure("response", "response_size")
 	}
 	if calendarOrMicrosoft(p.ID) && !validAPIOnlyOAuthJSON(b) {
-		return Token{}, ErrAuthentication
+		return Token{}, failure("response", "json")
 	}
 	type tokenFields struct {
 		AccessToken      string `json:"access_token"`
@@ -550,6 +566,9 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 		return Token{}, failure("response", "json")
 	}
 	if calendarOrMicrosoft(p.ID) && len(response.Error) != 0 {
+		if microsoftProvider(p.ID) && fields.Get("grant_type") == "authorization_code" {
+			return Token{}, microsoftExchangeFailure("response", "provider_error", microsoftExchangeProviderCode(b))
+		}
 		return Token{}, ErrAuthentication
 	}
 	wire := response.tokenFields
@@ -614,13 +633,24 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 		return Token{}, failure("token", "token_bounds")
 	}
 	if calendarOrMicrosoft(p.ID) && (!validAPIOnlyToken(wire.AccessToken) || (wire.RefreshToken != "" && !validAPIOnlyToken(wire.RefreshToken))) {
-		return Token{}, ErrAuthentication
+		return Token{}, failure("token", "token_bounds")
 	}
 	if p.ID != "slack_import" && wire.TokenType != "" && !strings.EqualFold(wire.TokenType, "bearer") {
-		return Token{}, ErrAuthentication
+		return Token{}, failure("token", "token_type")
 	}
-	if microsoftProvider(p.ID) && (!strings.EqualFold(wire.TokenType, "bearer") || wire.ExpiresIn <= 0 || (previous == "" && (wire.RefreshToken == "" || wire.Scope == ""))) {
-		return Token{}, ErrAuthentication
+	if microsoftProvider(p.ID) {
+		if !strings.EqualFold(wire.TokenType, "bearer") {
+			return Token{}, failure("token", "token_type")
+		}
+		if wire.ExpiresIn <= 0 {
+			return Token{}, failure("token", "expiry_invalid")
+		}
+		if previous == "" && wire.RefreshToken == "" {
+			return Token{}, failure("token", "refresh_missing")
+		}
+		if previous == "" && wire.Scope == "" {
+			return Token{}, failure("token", "scope_missing")
+		}
 	}
 	granted := append([]string{}, scopes...)
 	if wire.Scope != "" {
@@ -628,13 +658,16 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	}
 	if microsoftProvider(p.ID) {
 		if strings.Contains(wire.Scope, ",") {
-			return Token{}, ErrAuthentication
+			return Token{}, failure("scopes", "scope_format")
 		}
 		var ok bool
 		granted, ok = microsoftScopes(granted)
 		requested, requestedOK := microsoftScopes(scopes)
-		if !ok || !requestedOK || !hasOAuthScope(granted, "User.Read") {
-			return Token{}, ErrAuthentication
+		if !ok || !requestedOK {
+			return Token{}, failure("scopes", "scope_format")
+		}
+		if !hasOAuthScope(granted, "User.Read") {
+			return Token{}, failure("scopes", "scope_identity")
 		}
 		// offline_access grants renewal rather than a Graph API operation and is
 		// commonly absent from response.scope. Retain it only from the bound
@@ -682,7 +715,7 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	if microsoftProvider(p.ID) {
 		verified, err := e.microsoftAccountIdentity(ctx, wire.AccessToken)
 		if err != nil || (shop != "" && verified != shop) {
-			return Token{}, ErrAuthentication
+			return Token{}, failure("identity", "account_verification")
 		}
 		externalID = verified
 	}

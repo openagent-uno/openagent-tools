@@ -627,6 +627,12 @@ func (s *Server) redeem(w http.ResponseWriter, r *http.Request, installation Ins
 	}
 	token, err := s.Engine.Exchange(r.Context(), p, copy.code, copy.verifier, copy.Shop, copy.Scopes)
 	if err != nil {
+		if p.ID == "outlook_mail" || p.ID == "outlook_calendar" || p.ID == "onedrive" || p.ID == "sharepoint" {
+			var rejection *oauth.MicrosoftExchangeError
+			if errors.As(err, &rejection) {
+				log.Printf("connector_oauth_exchange_failed provider=%s stage=%s reason=%s provider_error=%s", p.ID, rejection.Stage(), rejection.Reason(), rejection.ProviderCode())
+			}
+		}
 		if group != "" {
 			s.failedRotation(group, operation)
 		}
