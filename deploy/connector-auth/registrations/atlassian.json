@@ -17,10 +17,10 @@
     "offline_access"
   ],
   "terms_confirmed": true,
-  "registration_status": "credential-custodied-private-owner-qa-configured",
+  "registration_status": "private-owner-supported-surface-and-lifecycle-qualified",
   "production_secret_configured": true,
   "common_enrollment_enabled": true,
-  "real_provider_qualification": false,
+  "real_provider_qualification": true,
   "record_type": "metadata-only-not-broker-configuration",
   "prepared_provider_requires_separate_activation_review": {
     "id": "atlassian",
@@ -40,11 +40,22 @@
   "notes": [
     "Resource-level restricts accessible-resources to consented sites. The host independently verifies and stores cloud_id.",
     "The existing app credential is in immutable encrypted production custody; the additive broker configuration is Ready with fifteen profiles.",
-    "No API grant or real provider test has completed. The app remains private and limited to its owner.",
-    "Public distribution additionally requires implemented Personal Data Reporting API and explicit sharing; its declaration has not been confirmed."
+    "Private-owner OAuth, all nine supported operations through ordinary product routes/workflows, explicit refresh, same-identity restart, postread and disconnect passed on public product 1.1.0b49 / SDK 0.1.11. Only one generated QA issue and its comment were mutated; owner UI reconciled absence after one delete attempt returned a network alert. No API delete HTTP status was captured.",
+    "Public distribution additionally requires implemented Personal Data Reporting API and explicit sharing; its declaration has not been confirmed.",
+    "After normal disconnect, credential, nonce and transaction fields were verified NULL before the owned QA profile and keys were erased. This is scoped owner QA, not Personal Data Reporting API or public distribution qualification."
   ],
   "enrollment_scope": "private-app-owner-only",
   "public_distribution_enabled": false,
   "personal_data_reporting_implemented": false,
-  "configuration_checkpoint": "../qualification-2026-10-19-atlassian-activation.json"
+  "configuration_checkpoint": "../qualification-2026-10-19-atlassian-activation.json",
+  "real_provider_qualification_scope": "private-app-owner-only; public product 1.1.0b49 / SDK 0.1.11",
+  "general_public_qualification": false,
+  "owner_qa_qualification": {
+    "date": "2026-10-19",
+    "supported_operations": 9,
+    "successful_workflows": 13,
+    "normal_disconnect_and_profile_cleanup_passed": true,
+    "public_receipt": "https://github.com/openagent-uno/openagent/blob/b29d8be24c757ad4826af33f8bbdce7b37f9ccb6/docs/qualification/jira-product-1.1.0b49-2026-10-19.json",
+    "public_receipt_sha256": "c16517c16d26babc975bd61c30bc75b67bf77a45c28348b8574503c641ef9490"
+  }
 }
