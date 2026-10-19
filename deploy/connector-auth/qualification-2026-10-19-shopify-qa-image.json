@@ -1,0 +1,109 @@
+{
+  "format": 1,
+  "date": "2026-10-19",
+  "status": "passed-scoped-shopify-qa-broker-image-rollout",
+  "source_commit": "20bc4d3d1747ce8676c70c34ad2edaa86e33901d",
+  "source_qualification": {
+    "sdk_version": "0.1.11",
+    "sdk_manifest_sha256": "6c8ebaf5d3db1c4252f6ae5c4fe8372636b4e244945ba54bf4e7ca10a25757ee",
+    "canonical_passed": true,
+    "race_vet_govulncheck_passed": true,
+    "native_broker_fixture_passed": true,
+    "sdk_execution_receipt_sha256": "0c7822f08a4719866464baa13c3ab560106e639ad7b9efbfa6ed384cbde6c116",
+    "native_broker_receipt_sha256": "360f9fc64baaafed219269f61af607c8909d0ac2bbdd93f3548bfa0aac900d69",
+    "real_provider_calls_in_source_qualification": 0
+  },
+  "auth_binary": {
+    "sha256": "a7ccad1efeb24e5f0f26cba8a72ba21028ec19013c7b66d2bbb7eb80ab6d4a9b",
+    "bytes": 9298082,
+    "origin": "qualified SDK Linux x64 archive",
+    "additional_go_build": false
+  },
+  "image": {
+    "manifest_sha256": "cdb0e3c3bb2d1e4582370acb2eb2d6e73e77eded612371c228fe93cec361bd1c",
+    "config_sha256": "b3f2a100d94969a624f2013cd23a0a2c816b84f2ef141340f49ba2e892465b27",
+    "previous_manifest_sha256": "279833ea053cdd8e689d1cd8cd77fe1a52be128bb443ee3df3bbfcec80cf083c",
+    "parent_layers_retained": 9,
+    "total_layers": 10,
+    "only_added_path": "connector-auth",
+    "all_layer_hashes_and_diff_ids_verified": true,
+    "inherited_attestations_claimed": false
+  },
+  "scan": {
+    "scanner_version": "0.72.0",
+    "scanner_sha256": "0e69edd134a3c338baa1a6806920773615d682b18cbc6a0cba2a3b658ef9b63e",
+    "scanners": [
+      "vuln",
+      "secret"
+    ],
+    "severity": [
+      "HIGH",
+      "CRITICAL"
+    ],
+    "ignore_unfixed": true,
+    "custom_exceptions_added": false,
+    "scan_exit": 0,
+    "vulnerabilities": 0,
+    "secrets": 0,
+    "raw_scan_sha256": "be1eafc1e8026a90423404a0e3c687a37349b1fdb59839d361fc2b40666aa5cf",
+    "raw_scan_bytes": 78419,
+    "archive_sha256": "2ea95ec19811a830d76adcfe57bbfc22cf70ae7e2af568a3a395b71dbd1ce586",
+    "finished_at": "2026-10-19T14:06:44.372410+00:00"
+  },
+  "publication": {
+    "digest_only": true,
+    "tags_written": false,
+    "post_read_manifest_config_and_blob_digests_verified": true
+  },
+  "rollout": {
+    "finished_at": "2026-10-19T14:07:43.741362+00:00",
+    "generation": 34,
+    "single_writer": true,
+    "restart_count": 0,
+    "run_as_uid": 65532,
+    "configured_providers": 14,
+    "public_health_http": 200,
+    "public_ready_http": 200,
+    "unsigned_protected_http": 401,
+    "image_only_uid_resource_version_whole_spec_cas": true,
+    "server_dry_run_identical": true,
+    "configuration_secret_mounts_and_metadata_volume_preserved": true,
+    "metadata_restore": false,
+    "providers_sha256": "38766b52663a672fde14810743ceea88b20bbfcec8543c10d671e5128a474cbd",
+    "enrollment_sha256": "27da24be9a6a45ecffa373017ee70a98d12a5b5b148c3dc399c5ca5bf7ad512e"
+  },
+  "enrollment": {
+    "non_shopify_enrollment": "unchanged public policy",
+    "shopify_enrollment": "qa",
+    "shopify_installation_allowlist_count": 2,
+    "shopify_shop_allowlist_count": 1,
+    "existing_app_and_store_only": true,
+    "shopify_scopes": [
+      "read_inventory",
+      "read_products"
+    ],
+    "existing_thirteen_rows_preserved": true,
+    "general_public_shopify_activation": false,
+    "provider_webhook_destinations_changed": false,
+    "base_empty_configuration_preserved": true
+  },
+  "cleanup": {
+    "append_archive_upload_units_absent": true,
+    "scanner_container_absent": true,
+    "operator_image_job_terminal": true,
+    "qa_profiles_preserved_for_followup": true
+  },
+  "acceptance_boundary": {
+    "readiness_is_not_provider_acceptance": true,
+    "new_image_provider_oauth_or_tool_calls": 0,
+    "new_receiving_product_live_qualification": "pending",
+    "two_server_refresh_recovery_restart_qualification": "pending",
+    "privacy_webhook_live_delivery": "not claimed; provider destinations remain legacy",
+    "prior_product48_observation": "Both approved QA hosts connected; initial reads failed closed on the previous SDK privacy selector. A stale-peer refresh failed and B refreshed. These results are not reclassified as passed by this image checkpoint."
+  },
+  "safe_evidence_sha256": {
+    "raw_scan_receipt": "8cdfc1374b8db204ff23ac380c6de4f10eef6a983034be7138569423e17d9bc1",
+    "publication_receipt": "6e3a2e815e3fcbb9593f305b2358fa0fd9fac0032111e76604c286399816dd76",
+    "rollout_receipt": "79dd55bc067778ad0cc70b27e5ce4068437b8efe72f7d66bc5e8d347b9c8c367"
+  }
+}
