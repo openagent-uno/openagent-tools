@@ -44,16 +44,21 @@ type Group struct {
 	PrivacyRecipients    map[string]bool   `json:"privacy_recipients"`
 }
 type Event struct {
-	Legacy       *LegacyDelivery `json:"legacy_delivery,omitempty"`
-	ID           string          `json:"id"`
-	Group        string          `json:"group"`
-	Topic        string          `json:"topic"`
-	Ciphertext   string          `json:"ciphertext"`
-	Nonce        string          `json:"nonce"`
-	CreatedAt    time.Time       `json:"created_at"`
-	Acknowledged map[string]bool `json:"acknowledged"`
-	OccurredAt   time.Time       `json:"occurred_at"`
-	BodySHA256   string          `json:"body_sha256"`
+	ShopID                uint64          `json:"shop_id,omitempty"`
+	ReceiptVersion        int             `json:"receipt_version,omitempty"`
+	AuthorizationCutoffAt *time.Time      `json:"authorization_cutoff_at,omitempty"`
+	UninstallEventID      string          `json:"uninstall_event_id,omitempty"`
+	NativeEmitted         bool            `json:"native_emitted,omitempty"`
+	Legacy                *LegacyDelivery `json:"legacy_delivery,omitempty"`
+	ID                    string          `json:"id"`
+	Group                 string          `json:"group"`
+	Topic                 string          `json:"topic"`
+	Ciphertext            string          `json:"ciphertext"`
+	Nonce                 string          `json:"nonce"`
+	CreatedAt             time.Time       `json:"created_at"`
+	Acknowledged          map[string]bool `json:"acknowledged"`
+	OccurredAt            time.Time       `json:"occurred_at"`
+	BodySHA256            string          `json:"body_sha256"`
 }
 type Store struct {
 	mu    sync.Mutex

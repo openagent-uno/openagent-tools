@@ -43,3 +43,9 @@ their original authorization. The flag requires an actual Shopify provider row.
 After the reviewed genuine delivery/cutover gates pass, remove only this startup
 flag through a fresh image/config-preserving CAS rollout. This is not a caller
 privacy assertion or a bypass of the receiving host's qualification gate.
+
+## Native privacy receipt compatibility
+
+New Shopify enrollment requires the host to explicitly negotiate receipt version 2; upgrading the SDK alone does not enable it. Native v2 `shop/redact` receipts preserve the provider notification time and carry a separate authenticated uninstall cutoff. A verified, schema-marked v2 uninstall from the same app/shop must be the unique unused eligible counterpart at least 48 hours earlier, with a five-minute provider-clock tolerance. The persisted pairing becomes immutable before first emission. Historical v1 records are never upgraded by inference.
+
+Missing or ambiguous counterparts remain durable, are not emitted or acknowledged, and require investigation of the retained authenticated event history. Shopify supplies no uninstall correlation identifier, so ordering alone cannot establish a pair. Operators must not clear the queue, rewrite occurrence times, or mark the obligation complete to unblock enrollment. Legacy direct events continue under their existing contract; authenticated relay consumers must apply the same unique-counterpart guard to the original notification time. Old native v1 requests with pending `shop/redact` receive `unsupported_receipt_version` (HTTP 426).

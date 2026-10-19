@@ -72,7 +72,7 @@ func (f *fixture) client(t *testing.T, name string) *Client {
 	if err != nil {
 		t.Fatal(err)
 	}
-	client := &Client{Origin: f.http.URL, Identity: identity, AllowLoopback: true}
+	client := &Client{Origin: f.http.URL, Identity: identity, AllowLoopback: true, ShopifyReceiptVersion: 2}
 	if err = client.Register(context.Background()); err != nil {
 		t.Fatal(err)
 	}
@@ -290,7 +290,7 @@ func TestEnvelopeBindsRecipientVersionAndExpiry(t *testing.T) {
 func TestSignedRequestsRejectReplayAndBodySubstitution(t *testing.T) {
 	f := newFixture(t)
 	c := f.client(t, "A")
-	body := []byte(`{"provider":"shopify","shop":"example.myshopify.com"}`)
+	body := []byte(`{"provider":"shopify","shop":"example.myshopify.com","receipt_version":2}`)
 	r, _ := http.NewRequest("POST", f.http.URL+"/v1/transactions", strings.NewReader(string(body)))
 	c.Identity.Sign(r, body)
 	headers := r.Header.Clone()

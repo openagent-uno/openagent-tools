@@ -42,9 +42,10 @@ type Transaction struct {
 	approved         bool
 }
 type Start struct {
-	Provider string   `json:"provider"`
-	Shop     string   `json:"shop,omitempty"`
-	Scopes   []string `json:"scopes"`
+	ReceiptVersion int      `json:"receipt_version,omitempty"`
+	Provider       string   `json:"provider"`
+	Shop           string   `json:"shop,omitempty"`
+	Scopes         []string `json:"scopes"`
 }
 type Rotation struct {
 	Token      oauth.Token    `json:"token"`
@@ -261,7 +262,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if r.URL.Path == "/v1/events" && r.Method == "GET" {
-		s.events(w, installation)
+		s.events(w, r, installation)
 		return
 	}
 	if len(parts) == 4 && parts[0] == "v1" && parts[1] == "events" && parts[3] == "ack" && r.Method == "POST" {
@@ -329,6 +330,14 @@ func (s *Server) start(w http.ResponseWriter, installation Installation, body []
 	}
 	if p.ID == "shopify" && s.shopifyNewConsentsDisabled {
 		fail(w, 503, "authorization_not_ready")
+		return
+	}
+	if p.ID == "shopify" && start.ReceiptVersion != 2 {
+		fail(w, 426, "unsupported_receipt_version")
+		return
+	}
+	if p.ID != "shopify" && start.ReceiptVersion != 0 {
+		fail(w, 400, "invalid_start")
 		return
 	}
 	if p.ID == "shopify" && start.Shop != "" && !oauth.ValidShop(start.Shop) || p.ID != "shopify" && start.Shop != "" {
@@ -1125,7 +1134,8 @@ func (s *Server) webhook(w http.ResponseWriter, r *http.Request) {
 		}
 		occurredAt = s.now()
 	}
-	if occurredAt.After(s.now().Add(5 * time.Minute)) {
+	occurredAt = occurredAt.UTC()
+	if occurredAt.Unix() <= 0 || occurredAt.After(s.now().Add(5*time.Minute)) {
 		fail(w, 400, "invalid_webhook_time")
 		return
 	}
@@ -1155,11 +1165,16 @@ func (s *Server) webhook(w http.ResponseWriter, r *http.Request) {
 				acks[member] = false
 			}
 		}
-		state.Events[eventID] = &Event{ID: eventID, Group: group, Topic: topic, Ciphertext: encrypted, Nonce: nonce, CreatedAt: s.now(), OccurredAt: occurredAt, BodySHA256: hex.EncodeToString(bodyHash[:]), Acknowledged: acks}
+		state.Events[eventID] = &Event{ShopID: signedShopID, ReceiptVersion: 2, ID: eventID, Group: group, Topic: topic, Ciphertext: encrypted, Nonce: nonce, CreatedAt: s.now(), OccurredAt: occurredAt, BodySHA256: hex.EncodeToString(bodyHash[:]), Acknowledged: acks}
 		if legacyURL != "" {
 			state.Events[eventID].Legacy = &LegacyDelivery{URL: legacyURL, Shop: shop, WebhookID: deliveryID}
 		}
-		if g != nil && (topic == "app/uninstalled" || topic == "shop/redact") && !occurredAt.Before(g.AuthorizedAt) {
+		if topic != "shop/redact" {
+			cutoff := occurredAt
+			state.Events[eventID].AuthorizationCutoffAt = &cutoff
+		}
+		reconcileShopRedacts(state)
+		if g != nil && topic == "app/uninstalled" && !occurredAt.Before(g.AuthorizedAt) {
 			g.Revoked = true
 			g.Pending = ""
 			g.Reconnect = true
@@ -1172,22 +1187,71 @@ func (s *Server) webhook(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, 200, map[string]bool{"accepted": true})
 }
-func (s *Server) events(w http.ResponseWriter, installation Installation) {
-	state := s.Store.snapshot()
+func (s *Server) events(w http.ResponseWriter, r *http.Request, installation Installation) {
+	version := 1
+	if r.URL.RawQuery != "" {
+		if r.URL.RawQuery != "receipt_version=2" {
+			fail(w, 400, "unsupported_receipt_version")
+			return
+		}
+		version = 2
+	}
 	result := []map[string]any{}
-	for _, event := range state.Events {
-		ack, ok := event.Acknowledged[installation.ID]
-		if ok && !ack {
+	unsupported := false
+	err := s.Store.update(func(state *State) error {
+		reconcileShopRedacts(state)
+		ids := sortedEventIDs(state)
+		if version == 1 {
+			for _, id := range ids {
+				event := state.Events[id]
+				if ack, ok := event.Acknowledged[installation.ID]; ok && !ack && event.Topic == "shop/redact" {
+					unsupported = true
+					return nil
+				}
+			}
+		}
+		for _, id := range ids {
+			event := state.Events[id]
+			ack, ok := event.Acknowledged[installation.ID]
+			if !ok || ack {
+				continue
+			}
+			if version == 2 && !validNativeReceipt(state, event) {
+				continue
+			}
 			body, err := s.decryptEvent(event)
 			if err != nil {
-				fail(w, 500, "event_decode_failed")
-				return
+				return err
 			}
-			result = append(result, map[string]any{"id": event.ID, "group": event.Group, "topic": event.Topic, "payload": body, "created_at": event.CreatedAt, "occurred_at": event.OccurredAt})
+			item := map[string]any{"id": event.ID, "group": event.Group, "topic": event.Topic, "payload": body, "created_at": event.CreatedAt, "occurred_at": event.OccurredAt}
+			if version == 2 {
+				item["receipt_version"] = 2
+				item["authorization_cutoff_at"] = event.AuthorizationCutoffAt
+				if event.Topic == "shop/redact" {
+					item["uninstall_event_id"] = event.UninstallEventID
+					g := state.Groups[event.Group]
+					if g != nil && !event.AuthorizationCutoffAt.Before(g.AuthorizedAt) {
+						g.Revoked = true
+						g.Pending = ""
+						g.Reconnect = true
+					}
+				}
+				event.NativeEmitted = true
+			}
+			result = append(result, item)
 			if len(result) >= 100 {
 				break
 			}
 		}
+		return nil
+	})
+	if err != nil {
+		fail(w, 500, "event_decode_failed")
+		return
+	}
+	if unsupported {
+		fail(w, 426, "unsupported_receipt_version")
+		return
 	}
 	writeJSON(w, 200, map[string]any{"events": result})
 }
@@ -1195,6 +1259,9 @@ func (s *Server) ack(w http.ResponseWriter, installation Installation, id string
 	err := s.Store.update(func(state *State) error {
 		event := state.Events[id]
 		if event == nil {
+			return ErrDenied
+		}
+		if event.Topic == "shop/redact" && (!event.NativeEmitted || !validNativeReceipt(state, event)) {
 			return ErrDenied
 		}
 		if _, ok := event.Acknowledged[installation.ID]; !ok {
