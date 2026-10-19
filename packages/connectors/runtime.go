@@ -133,15 +133,18 @@ func (r *Runtime) Invoke(ctx context.Context, call Call) (domain.Result, error) 
 	return result, nil
 }
 
-// Only the reviewed calendar/mail and Microsoft files contracts expose these finite recovery signals.
+// Only the reviewed calendar/mail, Microsoft files and Postiz contracts expose these finite signals.
 // Copy just the class and HTTP status: wrapped messages, request identifiers,
 // byte counts and the provider's original error object never cross this boundary.
 func calendarMailFailure(provider string, err error) *domain.ProviderError {
-	if provider != "google_calendar" && provider != "outlook_mail" && provider != "outlook_calendar" && provider != "onedrive" && provider != "sharepoint" {
+	if provider != "google_calendar" && provider != "outlook_mail" && provider != "outlook_calendar" && provider != "onedrive" && provider != "sharepoint" && provider != "postiz" {
 		return nil
 	}
 	var failure *domain.ProviderError
 	if !errors.As(err, &failure) || failure == nil {
+		return nil
+	}
+	if provider == "postiz" && failure.Kind != "provider_error" && failure.Kind != "rate_limited" && failure.Kind != "network_error" {
 		return nil
 	}
 	valid := false
