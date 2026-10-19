@@ -29,7 +29,7 @@
   "oauth_settings_verified": true,
   "secret_reference": {
     "namespace": "openagent-connectors",
-    "name": "connector-auth-microsoft-sharepoint-20261019",
+    "name": "connector-auth-microsoft-sharepoint-20261019-r1",
     "key": "microsoft-sharepoint-client-secret",
     "mount_path": "/secrets/microsoft-sharepoint-client-secret"
   },
@@ -48,11 +48,12 @@
     "immutable": true,
     "creation_acknowledged": true,
     "transport": "anonymous stdin over authenticated SSH; no local credential file",
-    "deployment_modified": false,
-    "value_exported": false,
-    "created_at": "2026-10-19T09:07:33Z",
-    "metadata_verified_at": "2026-10-19T09:14:43.126748+00:00",
-    "key_names_exact": true
+    "value_exported_by_custody": false,
+    "key_names_exact": true,
+    "rotation": "r1",
+    "credential_lifetime_days": 180,
+    "projection_verified_at": "2026-10-19T09:42:51.823580+00:00",
+    "qualification_reference": "../qualification-2026-10-19-microsoft-sharepoint-rotation.json"
   },
   "delegated_permissions_checkpoint": {
     "date": "2026-10-19",
@@ -83,5 +84,38 @@
     "public_readiness_http": 200,
     "token_exchange_qualified_by_this_step": false,
     "provider_consent_qualified_by_this_step": false
+  },
+  "secret_reference_history": [
+    {
+      "reference": {
+        "namespace": "openagent-connectors",
+        "name": "connector-auth-microsoft-sharepoint-20261019",
+        "key": "microsoft-sharepoint-client-secret",
+        "mount_path": "/secrets/microsoft-sharepoint-client-secret"
+      },
+      "custody_checkpoint": {
+        "date": "2026-10-19",
+        "immutable": true,
+        "creation_acknowledged": true,
+        "transport": "anonymous stdin over authenticated SSH; no local credential file",
+        "deployment_modified": false,
+        "value_exported": false,
+        "created_at": "2026-10-19T09:07:33Z",
+        "metadata_verified_at": "2026-10-19T09:14:43.126748+00:00",
+        "key_names_exact": true
+      },
+      "replaced_at": "2026-10-19T09:42:51.823580+00:00",
+      "azure_credential_removed": true,
+      "kubernetes_secret_preserved": true
+    }
+  ],
+  "credential_rotation_checkpoint": {
+    "rotation": "r1",
+    "finished_at": "2026-10-19T09:42:51.823580+00:00",
+    "previous_azure_credential_removed": true,
+    "one_replacement_azure_credential_remaining": true,
+    "previous_kubernetes_secret_preserved": true,
+    "application_and_delegated_permissions_unchanged": true,
+    "qualification_reference": "../qualification-2026-10-19-microsoft-sharepoint-rotation.json"
   }
 }

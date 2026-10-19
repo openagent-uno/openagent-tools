@@ -1,0 +1,49 @@
+{
+  "format": 1,
+  "date": "2026-10-19",
+  "status": "passed-sharepoint-credential-rotation-r1",
+  "provider": "sharepoint",
+  "application_identity_changed": false,
+  "configured_delegated_scopes_changed": false,
+  "callback_changed": false,
+  "credential_lifetime_days": 180,
+  "custody": {
+    "replacement_created_immutable": true,
+    "anonymous_stdin_over_authenticated_ssh": true,
+    "secret_values_exported_by_custody": false,
+    "previous_azure_credential_removed_by_observed_provider_ui": true,
+    "one_replacement_credential_remaining_in_provider_ui": true,
+    "previous_kubernetes_secret_preserved": true,
+    "reference": "registrations/microsoft-sharepoint.json",
+    "historical_reference_retained": true
+  },
+  "rollout": {
+    "finished_at": "2026-10-19T09:42:51.823580+00:00",
+    "generation": 27,
+    "one_projected_secret_reference_changed": true,
+    "image_configmap_and_pvc_identities_unchanged": true,
+    "image_manifest_sha256": "04d942f6cc69a59af958911a21a3f4ca2e1901a456d43220b8ac3061a6e13c5d",
+    "provider_count": 11,
+    "public_health_http": 200,
+    "public_readiness_http": 200,
+    "unsigned_protected_http": 401,
+    "restarts": 0,
+    "uid_resource_version_spec_cas": true,
+    "server_dryrun_exact_spec": true,
+    "old_spec_sha256": "d092d10e8c79d1796c14734ad5322d78611c390ac8668d343ad71c548e7683b8",
+    "new_spec_sha256": "67b3ca775cddaac162ffd36ed7893c0bf740c314e417e6cc8c369a626c98e711"
+  },
+  "acceptance_boundary": {
+    "provider_api_or_token_calls": 0,
+    "invalid_password_probe_performed": false,
+    "new_provider_consent_granted": false,
+    "sharepoint_account_or_site_access_qualified": false,
+    "existing_personal_account_provider_ui_blocker_unchanged": true,
+    "general_public_qualification": false
+  },
+  "safe_evidence_sha256": {
+    "created-ack.json": "f5649c2c61364a9bacb5f1c31afe3bc03f0b4de8f877f1793aacab7cc46d1178",
+    "azure-old-credential-removed.json": "ea356373c011cd21eb247e7cedb7ee7c0df8086c9fbaf1fa64355d7bb5ef415e",
+    "switch-actual-result.json": "7111e0511c9ace5c3c19fd91a2e2a0755c821fabc1c63cd5d2f69d6abf2c028b"
+  }
+}
