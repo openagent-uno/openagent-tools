@@ -1,0 +1,104 @@
+{
+  "format": 1,
+  "status": "applied-ready-shopify-acquisition-safety-enrollment-paused",
+  "recorded_at": "2026-10-19T18:14:38.628758+00:00",
+  "auth_service_version": "0.1.7",
+  "source_commit": "7f6856f9b8c6942c54f421a3981f0add7c55ddd7",
+  "public_release": "https://github.com/openagent-uno/openagent-tools/releases/tag/connector-auth-v0.1.7",
+  "sdk_module_runner_version": "0.1.12",
+  "sdk_module_runner_republished": false,
+  "image": "localhost:5000/openagent-connector-auth@sha256:2f85d2a20c4ae7a163e9606282c05f962dbee2e356343dca91c8e64d200e8b48",
+  "image_config_sha256": "dad520f5c149308e4d569e105b10dc64bc9e25ab260d8ae774c7d8700728a7c9",
+  "generation": 38,
+  "previous_generation": 37,
+  "deployment_spec_sha256": "1fc4957f917bf1f49ebd35eb82257ec49e3fce9885fb17f7dca4f983cbca84f4",
+  "checks": {
+    "health_http": 200,
+    "readiness_http": 200,
+    "unsigned_events_http": 401,
+    "configured_providers": 15,
+    "shopify_enrollment": "paused",
+    "actual_runtime_image_id_equals_target": true,
+    "restart_count": 0,
+    "single_live_writer": true,
+    "only_image_changed": true,
+    "environment_resources_volumes_and_admission_preserved": true,
+    "compatible_control_plane_generation": 112,
+    "control_plane_issuer_mode_enabled": false,
+    "gateway_generation": 62,
+    "gateway_unchanged": true
+  },
+  "source_qualification": {
+    "auth_and_oauth_unit_tests_passed": 96,
+    "auth_and_oauth_race_tests_passed": 96,
+    "vet": "passed: auth, oauth and connector-auth command",
+    "skipped_tests": 0,
+    "linux_amd64_binary_sha256": "8ae5bd7b0b5d7737ead4959cd18df6e05d1ca8c2fcba7a13d3e676843dfd2c48",
+    "linux_amd64_binary_bytes": 9330850,
+    "standard_raw_trivy": {
+      "version": "0.72.0",
+      "severity": [
+        "HIGH",
+        "CRITICAL"
+      ],
+      "scanners": [
+        "vuln",
+        "secret"
+      ],
+      "ignore_unfixed": true,
+      "vulnerabilities": 0,
+      "secrets": 0,
+      "all_twelve_layer_hashes_and_diff_ids_verified": true
+    }
+  },
+  "required_predeployment_receipt_proof": {
+    "status": "passed",
+    "product_version": "1.1.0b51",
+    "source_commit": "1dd5c102d5ea6bc08314d713899a9a2d269e7dd7",
+    "sdk_version": "0.1.12",
+    "finished_at": "2026-10-19T18:12:32.082653+00:00",
+    "receiving_profiles": 2,
+    "genuine_app_uninstalled_receipts_per_profile": 1,
+    "receipt_version": 2,
+    "original_occurrence_and_authorization_cutoff_preserved": true,
+    "post_restart_single_record_unchanged": true,
+    "normal_background_ack_pending_after_processing": 0,
+    "observer_ack_calls": 0,
+    "live_forced_duplicate_claim": false,
+    "credentials_already_disconnected_before_proof": true,
+    "live_proof_caused_credential_erasure": false,
+    "customer_data_redaction_or_export_qualified": false,
+    "general_shopify_rollout_qualified": false,
+    "worker_cleanup_is_separate": true
+  },
+  "acquisition_safety": {
+    "last_successful_authorization_acquisition_persisted": true,
+    "uncertain_authorization_outcome_persisted_before_exchange": true,
+    "unknown_or_late_uninstall": "durably held without revocation, native emission, relay, ACK or pairing",
+    "historical_unknown_obligations_automatically_resolved": false,
+    "provider_installation_generation_inferred": false
+  },
+  "rollback": {
+    "minimum_compatible_auth_service": "0.1.7 after acquisition-safety fields have been persisted",
+    "automatic_rollback": false,
+    "older_image_or_state_restore": "unsupported; preserve compatible state and image, keep new consents paused while repairing"
+  },
+  "limits": {
+    "new_provider_calls": 0,
+    "new_oauth_grants": 0,
+    "secret_api_reads": 0,
+    "database_or_token_reads": false,
+    "new_configmaps_or_provider_changes": false,
+    "general_shopify_enrollment_open": false,
+    "existing_legacy_credentials_migrated": false,
+    "read_orders_reduced_or_replaced": false
+  },
+  "evidence_sha256": {
+    "operator_apply_receipt": "69f64d9b3277e2ca7d88fdbbc85d1e8b66657ac7be82cba6768332f5f6defd14",
+    "root_reviewed_product51_receipt_proof": "23a25d29874176a8f3c80947051ba8e0dcbb2df5f5501434d2630290933b2e3e",
+    "public_release_verification": "a0952724565e761cbfe3b4d3fbf6ffb64179460fa67cef7e5d249d432d9ce0f3",
+    "image_publication": "167d5fa899d2ec20ced65a2483cc30aafaaf9028ee014e1386f19552409494c8",
+    "standard_scan_receipt": "3b48ebb1c7ba859e712b336b65e682faa96eb120220fdbbbed6d4c1cf4490d74",
+    "raw_scan": "65f209f84d999f0c9e7d4cf77b971baee30f6d56b7270036ecce4b7226757f1b"
+  }
+}

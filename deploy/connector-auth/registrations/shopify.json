@@ -26,10 +26,9 @@
   },
   "broker_enabled": true,
   "qualification_pending": [
-    "Host native-v2 qualification and exact shared-app issuer migration preserving existing credentials and scopes",
-    "Public host privacy polling after group revocation: actual beta50 failure reproduced; correction not yet qualified",
-    "Delayed uninstall after later authorization acquisition: auth-only guard candidate, not yet qualified",
+    "General host native-v2 qualification, normalized SQL data generation coverage, and exact shared-app issuer migration preserving existing credentials and scopes",
     "Provider-delayed shop/redact and retained offline privacy recipients; no synthetic completion claim",
+    "Historical unknown authorization-acquisition obligations require reviewed reconciliation; auth-service0.1.7 preserves them pending instead of guessing",
     "Receiving-host derived-content privacy coverage and operation qualification beyond bounded trials"
   ],
   "active_version_id": "1173066973185",
@@ -70,5 +69,25 @@
     "new_app_or_subscription": false,
     "general_enrollment": "paused",
     "genuine_uninstall_legacy_delivery": "one successful delivery attempt from authenticated durable broker queue; native product completion not established"
+  },
+  "broker_runtime_checkpoint": {
+    "auth_service_version": "0.1.7",
+    "source_commit": "7f6856f9b8c6942c54f421a3981f0add7c55ddd7",
+    "generation": 38,
+    "image": "localhost:5000/openagent-connector-auth@sha256:2f85d2a20c4ae7a163e9606282c05f962dbee2e356343dca91c8e64d200e8b48",
+    "configured_providers": 15,
+    "shopify_enrollment": "paused",
+    "health_and_readiness_verified": true,
+    "qualification": "../qualification-2026-10-19-auth-service-0.1.7.json"
+  },
+  "native_host_checkpoint": {
+    "product_version": "1.1.0b51",
+    "sdk_version": "0.1.12",
+    "scope": "genuine queued app/uninstalled v2 processing on two preserved, already disconnected profiles",
+    "receipts_per_host": 1,
+    "same_profile_restart_record_unchanged": true,
+    "normal_background_ack_verified": true,
+    "live_connected_credential_erasure_claim": false,
+    "general_rollout_qualified": false
   }
 }
