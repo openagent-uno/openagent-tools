@@ -189,5 +189,34 @@
     "intended_use_selections_entered_in_form": true,
     "evidence_filename": "google-scope-review-awaiting-demo.jpg",
     "evidence_sha256": "f2e4698926c2da00698836f651c8493f7138a79926aff86a46467971597d92d8"
+  },
+  "data_access_review_status": "in_review",
+  "data_access_verification_submitted": true,
+  "data_access_review_checkpoint": {
+    "observed_at": "2026-10-19T16:54:00Z",
+    "source": "owner-authenticated Google Auth Platform verification progress dialog",
+    "branding": "verified_and_published",
+    "submission_received_by": "Google Trust & Safety",
+    "data_access": "in_review",
+    "completed_steps": [
+      "homepage_requirements",
+      "branding_guidelines"
+    ],
+    "in_progress_steps": [
+      "privacy_policy_requirements",
+      "app_functionality",
+      "appropriate_data_access",
+      "minimum_scopes",
+      "additional_requirements"
+    ],
+    "first_email_window_as_displayed": "3-5 days",
+    "review_window_as_displayed": "4-6 weeks",
+    "data_access_approved": false,
+    "security_assessment_completion_recorded": false,
+    "additional_operator_action_displayed": false,
+    "evidence_filename": "google-verification-final-status.jpg",
+    "evidence_sha256": "818a1e3f4ebcae937affb73514899afd12c470bd6cf6a9e3fa33a51aecbfc3c0",
+    "provider_settings_changed": false,
+    "private_video_url_published": false
   }
 }
