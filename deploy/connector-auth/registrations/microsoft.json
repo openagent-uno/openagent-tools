@@ -14,18 +14,23 @@
   ],
   "registration_verified": "2026-10-18",
   "broker_enabled": false,
-  "secret_reference": null,
+  "secret_reference": {
+    "namespace": "openagent-connectors",
+    "name": "connector-auth-microsoft-20261019",
+    "key": "microsoft-client-secret",
+    "mount_path": "/secrets/microsoft-client-secret"
+  },
   "publisher_verified": false,
   "qualification_pending": [
-    "Verify the remaining OAuth settings and client authentication",
-    "Provision client authentication in the production secret manager",
+    "Qualify confidential-client token exchange and refresh through a fresh authorized receiving installation",
+    "Mount the stored isolated client secret read-only in the broker through a separately reviewed configuration change",
     "Verify publisher status and any consent requirements imposed by the receiving tenant or risk policy",
     "Fresh receiving-installation consent and real lifecycle qualification"
   ],
   "callbacks_saved": "2026-10-18",
   "cloud": "global",
   "account_audience": "AzureADandPersonalMicrosoftAccount",
-  "oauth_settings_verified": false,
+  "oauth_settings_verified": true,
   "production_secret_configured": false,
   "public_console_checkpoint": {
     "date": "2026-10-18",
@@ -58,5 +63,33 @@
     "user_consent_granted": false,
     "client_authentication_verified": false,
     "remaining_oauth_settings_verified": false
+  },
+  "production_secret_stored": true,
+  "production_secret_mounted": false,
+  "secret_custody_checkpoint": {
+    "created_at": "2026-10-19T07:24:12Z",
+    "metadata_verified_at": "2026-10-19T07:25:05Z",
+    "immutable": true,
+    "credential_lifetime_days": 180,
+    "transport": "anonymous stdin over authenticated SSH; no local credential file",
+    "deployment_modified": false,
+    "value_exported": false
+  },
+  "oauth_settings_checkpoint": {
+    "date": "2026-10-19",
+    "evidence_references": [
+      "provider-activation-20261019/microsoft-callbacks-verified.jpg",
+      "provider-activation-20261019/microsoft-oauth-settings-verified.jpg"
+    ],
+    "evidence_visibility": "private",
+    "four_web_callbacks_verified": true,
+    "sign_in_audience": "AzureADandPersonalMicrosoftAccount",
+    "implicit_access_token_enabled": false,
+    "implicit_id_token_enabled": false,
+    "public_client_flows_enabled": false,
+    "front_channel_logout_url_configured": false,
+    "live_sdk_default_enabled": true,
+    "client_authentication_token_exchange_qualified": false,
+    "provider_consent_granted": false
   }
 }
