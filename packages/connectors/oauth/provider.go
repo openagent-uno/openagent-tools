@@ -322,6 +322,9 @@ func (e Engine) Exchange(ctx context.Context, p Provider, code, verifier, shop s
 		if microsoftProvider(p.ID) {
 			return microsoftExchangeFailure("preflight", reason, "none")
 		}
+		if p.ID == "postiz" {
+			return postizExchangeFailure("preflight", reason, "none", 0)
+		}
 		return ErrAuthentication
 	}
 	if code == "" || len(code) > 16384 || !approvedScopes(p, scopes) {
@@ -364,6 +367,10 @@ func (e Engine) Exchange(ctx context.Context, p Provider, code, verifier, shop s
 		var rejection *MicrosoftExchangeError
 		if microsoftProvider(p.ID) && errors.As(err, &rejection) {
 			return Token{}, rejection
+		}
+		var postizRejection *PostizExchangeError
+		if p.ID == "postiz" && errors.As(err, &postizRejection) {
+			return Token{}, postizRejection
 		}
 		return Token{}, ErrAuthentication
 	}
@@ -445,12 +452,16 @@ func (e Engine) Refresh(ctx context.Context, p Provider, refresh, shop string, s
 	return e.request(ctx, p, shop, url.Values{"grant_type": {"refresh_token"}, "refresh_token": {refresh}}, scopes, refresh)
 }
 func (e Engine) request(ctx context.Context, p Provider, shop string, fields url.Values, scopes []string, previous string) (Token, error) {
+	postizStatus, postizCode := 0, "none"
 	failure := func(stage, reason string) error {
 		if p.ID == "slack_import" && fields.Get("grant_type") == "refresh_token" {
 			return slackRefreshFailure(stage, reason, "none")
 		}
 		if microsoftProvider(p.ID) && fields.Get("grant_type") == "authorization_code" {
 			return microsoftExchangeFailure(stage, reason, "none")
+		}
+		if p.ID == "postiz" && fields.Get("grant_type") == "authorization_code" {
+			return postizExchangeFailure(stage, reason, postizCode, postizStatus)
 		}
 		return ErrAuthentication
 	}
@@ -471,14 +482,14 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	}
 	u, err := e.target(p, p.TokenURL, shop)
 	if err != nil {
-		if (p.ID == "slack_import" && previous != "") || (microsoftProvider(p.ID) && previous == "") {
+		if (p.ID == "slack_import" && previous != "") || (microsoftProvider(p.ID) && previous == "") || (p.ID == "postiz" && fields.Get("grant_type") == "authorization_code") {
 			return Token{}, failure("request", "target")
 		}
 		return Token{}, err
 	}
 	s, err := secret(p)
 	if err != nil {
-		if (p.ID == "slack_import" && previous != "") || (microsoftProvider(p.ID) && previous == "") {
+		if (p.ID == "slack_import" && previous != "") || (microsoftProvider(p.ID) && previous == "") || (p.ID == "postiz" && fields.Get("grant_type") == "authorization_code") {
 			return Token{}, failure("request", "secret")
 		}
 		return Token{}, err
@@ -528,9 +539,13 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 		return Token{}, failure("request", "network")
 	}
 	defer res.Body.Close()
+	postizStatus = res.StatusCode
 	b, err := io.ReadAll(io.LimitReader(res.Body, (1<<20)+1))
 	if err != nil {
 		return Token{}, failure("response", "response_read")
+	}
+	if p.ID == "postiz" && fields.Get("grant_type") == "authorization_code" {
+		postizCode = postizExchangeProviderCode(b)
 	}
 	if res.StatusCode != 200 {
 		if microsoftProvider(p.ID) && fields.Get("grant_type") == "authorization_code" {
@@ -655,6 +670,15 @@ func (e Engine) request(ctx context.Context, p Provider, shop string, fields url
 	granted := append([]string{}, scopes...)
 	if wire.Scope != "" {
 		granted = strings.Fields(strings.ReplaceAll(wire.Scope, ",", " "))
+	}
+	if p.ID == "postiz" && wire.Scope != "" {
+		// Static Postiz apps grant the fixed app-wide MCP bundle. They have no
+		// granular request scopes; preserve that existing host token contract.
+		if len(scopes) != 0 || len(p.Scopes) != 0 || strings.Contains(wire.Scope, ",") || len(granted) != 2 ||
+			!(granted[0] == "mcp:read" && granted[1] == "mcp:write" || granted[0] == "mcp:write" && granted[1] == "mcp:read") {
+			return Token{}, failure("scopes", "scope_config")
+		}
+		granted = []string{}
 	}
 	if microsoftProvider(p.ID) {
 		if strings.Contains(wire.Scope, ",") {

@@ -339,7 +339,7 @@ func (s *Server) start(w http.ResponseWriter, installation Installation, body []
 	writeJSON(w, 201, tx)
 }
 
-var consentPage = template.Must(template.New("consent").Parse(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Connect with OpenAgent</title><style>body{font:17px system-ui;max-width:560px;margin:12vh auto;padding:24px;color:#18212b}button,input{padding:12px 22px;border-radius:10px;font:inherit}button{border:0;background:#18212b;color:white}small{color:#566}</style><h1>Connect {{.Provider}}</h1><p>You are authorizing <strong>{{.Name}}</strong> ({{.Product}}) to use the OpenAgent connector.</p><p>Credentials and API data are stored on that server. OpenAgent handles authorization and token renewal.</p>{{if eq .Provider "shopify"}}<p>This server will join your store's connector credential synchronization group.</p>{{end}}<p>Installation: <code>{{.Installation}}</code></p><p>Permissions: {{.Scopes}}</p><p><small>This installation name is supplied by its operator. It is not an endorsement by OpenAgent.</small></p><form method="post"><input type="hidden" name="csrf" value="{{.CSRF}}">{{if eq .Provider "shopify"}}<p><label>Shopify store <input name="shop" type="text" value="{{.Shop}}" placeholder="your-store.myshopify.com" pattern="[a-z0-9-]+\.myshopify\.com" required></label></p>{{end}}<button>Continue to {{.Provider}}</button></form><p>You can close this window to cancel.</p></html>`))
+var consentPage = template.Must(template.New("consent").Parse(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Connect with OpenAgent</title><style>body{font:17px system-ui;max-width:560px;margin:12vh auto;padding:24px;color:#18212b}button,input{padding:12px 22px;border-radius:10px;font:inherit}button{border:0;background:#18212b;color:white}small{color:#566}</style><h1>Connect {{.Provider}}</h1><p>You are authorizing <strong>{{.Name}}</strong> ({{.Product}}) to use the OpenAgent connector.</p><p>Credentials and API data are stored on that server. OpenAgent handles authorization and token renewal.</p>{{if eq .Provider "shopify"}}<p>This server will join your store's connector credential synchronization group.</p>{{end}}<p>Installation: <code>{{.Installation}}</code></p><p>Permissions: {{if eq .Provider "postiz"}}Postiz app-wide read and write access (mcp:read and mcp:write). This app does not offer granular permission selection.{{else}}{{.Scopes}}{{end}}</p><p><small>This installation name is supplied by its operator. It is not an endorsement by OpenAgent.</small></p><form method="post"><input type="hidden" name="csrf" value="{{.CSRF}}">{{if eq .Provider "shopify"}}<p><label>Shopify store <input name="shop" type="text" value="{{.Shop}}" placeholder="your-store.myshopify.com" pattern="[a-z0-9-]+\.myshopify\.com" required></label></p>{{end}}<button>Continue to {{.Provider}}</button></form><p>You can close this window to cancel.</p></html>`))
 
 // A provider link is an explicit navigation, rather than a cross-origin
 // redirect following the consent POST (blocked by Chrome's form-action CSP).
@@ -631,6 +631,12 @@ func (s *Server) redeem(w http.ResponseWriter, r *http.Request, installation Ins
 			var rejection *oauth.MicrosoftExchangeError
 			if errors.As(err, &rejection) {
 				log.Printf("connector_oauth_exchange_failed provider=%s stage=%s reason=%s provider_error=%s", p.ID, rejection.Stage(), rejection.Reason(), rejection.ProviderCode())
+			}
+		}
+		if p.ID == "postiz" {
+			var rejection *oauth.PostizExchangeError
+			if errors.As(err, &rejection) {
+				log.Printf("connector_oauth_exchange_failed provider=postiz stage=%s reason=%s provider_error=%s http_status=%d", rejection.Stage(), rejection.Reason(), rejection.ProviderCode(), rejection.HTTPStatus())
 			}
 		}
 		if group != "" {
