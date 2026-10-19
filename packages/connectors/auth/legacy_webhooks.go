@@ -81,10 +81,13 @@ func (s *Server) RunLegacyShopifyDeliveries(ctx context.Context) {
 // DeliverLegacyShopifyWebhooks performs bounded, durable at-least-once delivery.
 // The product's normal webhook-ID deduplication handles a lost HTTP response.
 func (s *Server) DeliverLegacyShopifyWebhooks(ctx context.Context) {
+	if err := s.Store.update(func(state *State) error { reconcileShopRedacts(state); return nil }); err != nil {
+		return
+	}
 	snapshot := s.Store.snapshot()
 	ids := []string{}
 	for id, event := range snapshot.Events {
-		if event.Legacy != nil && !event.Legacy.Acknowledged && !s.now().Before(event.Legacy.NextAttempt) && !s.now().Before(event.Legacy.LeaseUntil) {
+		if event.Legacy != nil && !event.Legacy.Acknowledged && cutoffDeliveryReady(&snapshot, event) && !s.now().Before(event.Legacy.NextAttempt) && !s.now().Before(event.Legacy.LeaseUntil) {
 			ids = append(ids, id)
 		}
 	}
@@ -100,7 +103,7 @@ func (s *Server) DeliverLegacyShopifyWebhooks(ctx context.Context) {
 		var event *Event
 		err := s.Store.update(func(state *State) error {
 			candidate := state.Events[id]
-			if candidate == nil || candidate.Legacy == nil || candidate.Legacy.Acknowledged || s.now().Before(candidate.Legacy.NextAttempt) || s.now().Before(candidate.Legacy.LeaseUntil) {
+			if candidate == nil || candidate.Legacy == nil || candidate.Legacy.Acknowledged || !cutoffDeliveryReady(state, candidate) || s.now().Before(candidate.Legacy.NextAttempt) || s.now().Before(candidate.Legacy.LeaseUntil) {
 				return ErrConflict
 			}
 			candidate.Legacy.LeaseUntil = s.now().Add(25 * time.Second)

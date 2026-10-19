@@ -26,39 +26,43 @@ type TokenBinding struct {
 	Revoked      bool     `json:"revoked,omitempty"`
 }
 type Group struct {
-	CredentialDigest     string            `json:"credential_digest"`
-	RefreshHash          string            `json:"refresh_hash"`
-	Scopes               []string          `json:"scopes"`
-	ID                   string            `json:"id"`
-	AppID                string            `json:"app_id"`
-	Shop                 string            `json:"shop"`
-	ShopID               uint64            `json:"shop_id,omitempty"`
-	Version              uint64            `json:"version"`
-	Members              map[string]uint64 `json:"members"`
-	Pending              string            `json:"pending,omitempty"`
-	PendingUntil         time.Time         `json:"pending_until,omitempty"`
-	Reconnect            bool              `json:"reconnect"`
-	Revoked              bool              `json:"revoked"`
-	AuthorizedAt         time.Time         `json:"authorized_at"`
-	PendingAuthorization bool              `json:"pending_authorization"`
-	PrivacyRecipients    map[string]bool   `json:"privacy_recipients"`
+	CredentialDigest                  string            `json:"credential_digest"`
+	RefreshHash                       string            `json:"refresh_hash"`
+	Scopes                            []string          `json:"scopes"`
+	ID                                string            `json:"id"`
+	AppID                             string            `json:"app_id"`
+	Shop                              string            `json:"shop"`
+	ShopID                            uint64            `json:"shop_id,omitempty"`
+	Version                           uint64            `json:"version"`
+	Members                           map[string]uint64 `json:"members"`
+	Pending                           string            `json:"pending,omitempty"`
+	PendingUntil                      time.Time         `json:"pending_until,omitempty"`
+	Reconnect                         bool              `json:"reconnect"`
+	Revoked                           bool              `json:"revoked"`
+	AuthorizedAt                      time.Time         `json:"authorized_at"`
+	PendingAuthorization              bool              `json:"pending_authorization"`
+	LastAuthorizationAcquiredAt       time.Time         `json:"last_authorization_acquired_at,omitempty"`
+	AuthorizationAcquisitionUncertain bool              `json:"authorization_acquisition_uncertain,omitempty"`
+	PrivacyRecipients                 map[string]bool   `json:"privacy_recipients"`
 }
 type Event struct {
-	ShopID                uint64          `json:"shop_id,omitempty"`
-	ReceiptVersion        int             `json:"receipt_version,omitempty"`
-	AuthorizationCutoffAt *time.Time      `json:"authorization_cutoff_at,omitempty"`
-	UninstallEventID      string          `json:"uninstall_event_id,omitempty"`
-	NativeEmitted         bool            `json:"native_emitted,omitempty"`
-	Legacy                *LegacyDelivery `json:"legacy_delivery,omitempty"`
-	ID                    string          `json:"id"`
-	Group                 string          `json:"group"`
-	Topic                 string          `json:"topic"`
-	Ciphertext            string          `json:"ciphertext"`
-	Nonce                 string          `json:"nonce"`
-	CreatedAt             time.Time       `json:"created_at"`
-	Acknowledged          map[string]bool `json:"acknowledged"`
-	OccurredAt            time.Time       `json:"occurred_at"`
-	BodySHA256            string          `json:"body_sha256"`
+	ShopID                 uint64          `json:"shop_id,omitempty"`
+	ReceiptVersion         int             `json:"receipt_version,omitempty"`
+	AuthorizationCutoffAt  *time.Time      `json:"authorization_cutoff_at,omitempty"`
+	UninstallEventID       string          `json:"uninstall_event_id,omitempty"`
+	NativeEmitted          bool            `json:"native_emitted,omitempty"`
+	UninstallSafetyChecked bool            `json:"uninstall_safety_checked,omitempty"`
+	PendingReason          string          `json:"pending_reason,omitempty"`
+	Legacy                 *LegacyDelivery `json:"legacy_delivery,omitempty"`
+	ID                     string          `json:"id"`
+	Group                  string          `json:"group"`
+	Topic                  string          `json:"topic"`
+	Ciphertext             string          `json:"ciphertext"`
+	Nonce                  string          `json:"nonce"`
+	CreatedAt              time.Time       `json:"created_at"`
+	Acknowledged           map[string]bool `json:"acknowledged"`
+	OccurredAt             time.Time       `json:"occurred_at"`
+	BodySHA256             string          `json:"body_sha256"`
 }
 type Store struct {
 	mu    sync.Mutex
@@ -88,6 +92,14 @@ func NewStore(path string) (*Store, error) {
 			for id := range g.Members {
 				g.PrivacyRecipients[id] = true
 			}
+		}
+	}
+	for _, event := range s.state.Events {
+		if event.Topic == "app/uninstalled" && !event.UninstallSafetyChecked {
+			if err := s.update(func(state *State) error { reconcileShopRedacts(state); return nil }); err != nil {
+				return nil, err
+			}
+			break
 		}
 	}
 	return s, nil

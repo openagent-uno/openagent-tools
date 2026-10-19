@@ -596,6 +596,11 @@ func (s *Server) beginRotation(p oauth.Provider, shop, installation, operation s
 		}
 		group.Pending = operation
 		group.PendingAuthorization = authorize
+		if authorize {
+			// Persist before provider IO. Failure/expiry cannot prove that no new
+			// acquisition happened, so only a successful authorization clears it.
+			group.AuthorizationAcquisitionUncertain = true
+		}
 		group.PendingUntil = s.now().Add(time.Minute)
 		return nil
 	})
@@ -622,6 +627,8 @@ func (s *Server) finishRotation(id, operation, installation string, token *oauth
 		group.CredentialDigest = tokenDigest(*token)
 		group.Scopes = append([]string{}, token.Scopes...)
 		if group.PendingAuthorization {
+			group.LastAuthorizationAcquiredAt = s.now().UTC()
+			group.AuthorizationAcquisitionUncertain = false
 			if !sameActiveGrant {
 				group.AuthorizedAt = s.now()
 			}
@@ -1166,6 +1173,7 @@ func (s *Server) webhook(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 		state.Events[eventID] = &Event{ShopID: signedShopID, ReceiptVersion: 2, ID: eventID, Group: group, Topic: topic, Ciphertext: encrypted, Nonce: nonce, CreatedAt: s.now(), OccurredAt: occurredAt, BodySHA256: hex.EncodeToString(bodyHash[:]), Acknowledged: acks}
+		assessUninstallAtReceipt(g, state.Events[eventID])
 		if legacyURL != "" {
 			state.Events[eventID].Legacy = &LegacyDelivery{URL: legacyURL, Shop: shop, WebhookID: deliveryID}
 		}
@@ -1174,7 +1182,7 @@ func (s *Server) webhook(w http.ResponseWriter, r *http.Request) {
 			state.Events[eventID].AuthorizationCutoffAt = &cutoff
 		}
 		reconcileShopRedacts(state)
-		if g != nil && topic == "app/uninstalled" && !occurredAt.Before(g.AuthorizedAt) {
+		if g != nil && topic == "app/uninstalled" && cutoffDeliveryReady(state, state.Events[eventID]) && !occurredAt.Before(g.AuthorizedAt) {
 			g.Revoked = true
 			g.Pending = ""
 			g.Reconnect = true
@@ -1214,6 +1222,9 @@ func (s *Server) events(w http.ResponseWriter, r *http.Request, installation Ins
 			event := state.Events[id]
 			ack, ok := event.Acknowledged[installation.ID]
 			if !ok || ack {
+				continue
+			}
+			if !cutoffDeliveryReady(state, event) {
 				continue
 			}
 			if version == 2 && !validNativeReceipt(state, event) {
@@ -1259,6 +1270,10 @@ func (s *Server) ack(w http.ResponseWriter, installation Installation, id string
 	err := s.Store.update(func(state *State) error {
 		event := state.Events[id]
 		if event == nil {
+			return ErrDenied
+		}
+		quarantineHistoricalUninstalls(state)
+		if !cutoffDeliveryReady(state, event) {
 			return ErrDenied
 		}
 		if event.Topic == "shop/redact" && (!event.NativeEmitted || !validNativeReceipt(state, event)) {

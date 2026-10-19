@@ -74,6 +74,7 @@ func TestShopifyConsentGenerationResetsOnlyForNewGrant(t *testing.T) {
 			f.server.now = func() time.Time { return now }
 			g := &Group{ID: "fixture-group", AppID: "fixture-app", Shop: "example.myshopify.com", ShopID: 123,
 				Version: 5, AuthorizedAt: old, Scopes: []string{"read_products", "read_inventory"},
+				LastAuthorizationAcquiredAt: old, AuthorizationAcquisitionUncertain: true,
 				Pending: "fixture-operation", PendingUntil: now.Add(time.Minute), PendingAuthorization: tc.authorize,
 				Members: map[string]uint64{}, PrivacyRecipients: map[string]bool{}}
 			tc.mutate(g)
@@ -91,6 +92,14 @@ func TestShopifyConsentGenerationResetsOnlyForNewGrant(t *testing.T) {
 			}
 			if token.AuthorizedAt == nil || !token.AuthorizedAt.Equal(want) || token.Version != 6 {
 				t.Fatal("incorrect consent generation or credential version")
+			}
+			actual := f.server.Store.snapshot().Groups[g.ID]
+			if tc.authorize {
+				if !actual.LastAuthorizationAcquiredAt.Equal(now) || actual.AuthorizationAcquisitionUncertain {
+					t.Fatal("successful authorization lost actual acquisition checkpoint")
+				}
+			} else if !actual.LastAuthorizationAcquiredAt.Equal(old) || !actual.AuthorizationAcquisitionUncertain {
+				t.Fatal("refresh fabricated an acquisition or cleared uncertainty")
 			}
 		})
 	}

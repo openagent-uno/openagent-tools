@@ -33,13 +33,13 @@ func nativeEventID(value string) bool {
 func eligibleUninstall(event *Event) bool {
 	// Historical v1 metadata cannot establish a new authenticated pairing. In
 	// particular, old ACKed synthetic receipts are never silently upgraded.
-	return event != nil && event.ReceiptVersion == 2 && event.Topic == "app/uninstalled" &&
+	return event != nil && event.UninstallSafetyChecked && event.PendingReason == "" && event.ReceiptVersion == 2 && event.Topic == "app/uninstalled" &&
 		event.AuthorizationCutoffAt != nil && event.AuthorizationCutoffAt.Equal(event.OccurredAt) &&
 		event.OccurredAt.Unix() > 0 && event.ShopID > 0 && event.UninstallEventID == "" && nativeEventID(event.ID)
 }
 
 func validNativeReceipt(state *State, event *Event) bool {
-	if event == nil || event.ShopID == 0 || event.ReceiptVersion != 2 || !nativeEventID(event.ID) || !nativeEventID(event.Group) || event.OccurredAt.Unix() <= 0 || event.CreatedAt.Unix() <= 0 || event.AuthorizationCutoffAt == nil || event.AuthorizationCutoffAt.Unix() <= 0 {
+	if event == nil || event.PendingReason != "" || (event.Topic == "app/uninstalled" && !event.UninstallSafetyChecked) || event.ShopID == 0 || event.ReceiptVersion != 2 || !nativeEventID(event.ID) || !nativeEventID(event.Group) || event.OccurredAt.Unix() <= 0 || event.CreatedAt.Unix() <= 0 || event.AuthorizationCutoffAt == nil || event.AuthorizationCutoffAt.Unix() <= 0 {
 		return false
 	}
 	if group := state.Groups[event.Group]; group != nil && group.ShopID != event.ShopID {
@@ -59,10 +59,16 @@ func validNativeReceipt(state *State, event *Event) bool {
 // Missing or ambiguous counterparts remain durable and unacknowledgeable.
 // Shopify supplies no uninstall correlation ID, so event ordering is not proof.
 func reconcileShopRedacts(state *State) {
+	quarantineHistoricalUninstalls(state)
 	ids := sortedEventIDs(state)
 	used := map[string]bool{}
 	for _, id := range ids {
 		event := state.Events[id]
+		if event.Topic == "shop/redact" && event.NativeEmitted && !eligibleUninstall(state.Events[event.UninstallEventID]) {
+			// Preserve the sealed pair/cutoff, but do not release an obligation
+			// whose historical uninstall safety was never established.
+			event.PendingReason = uninstallPairPending
+		}
 		if event.Topic == "shop/redact" && event.NativeEmitted && event.UninstallEventID != "" {
 			used[event.UninstallEventID] = true
 		}
@@ -72,12 +78,21 @@ func reconcileShopRedacts(state *State) {
 		if event.Topic != "shop/redact" || event.ReceiptVersion != 2 || event.NativeEmitted {
 			continue
 		}
+		event.PendingReason = uninstallPairPending
 		event.UninstallEventID = ""
 		event.AuthorizationCutoffAt = nil
 		candidate := ""
 		ambiguous := false
 		for _, candidateID := range ids {
 			uninstall := state.Events[candidateID]
+			if !used[candidateID] && uninstall.Topic == "app/uninstalled" && uninstall.ReceiptVersion == 2 &&
+				uninstall.Group == event.Group && uninstall.ShopID == event.ShopID &&
+				!uninstall.OccurredAt.After(event.OccurredAt.Add(-shopRedactMinimumDelay)) && uninstall.PendingReason != "" {
+				// An uncertain counterpart must not make another older event look
+				// uniquely eligible. Retain the obligation without guessing a pair.
+				ambiguous = true
+				break
+			}
 			if used[candidateID] || !eligibleUninstall(uninstall) || uninstall.Group != event.Group || uninstall.ShopID != event.ShopID || uninstall.OccurredAt.After(event.OccurredAt.Add(-shopRedactMinimumDelay)) {
 				continue
 			}
@@ -91,6 +106,7 @@ func reconcileShopRedacts(state *State) {
 			cutoff := state.Events[candidate].OccurredAt
 			event.UninstallEventID = candidate
 			event.AuthorizationCutoffAt = &cutoff
+			event.PendingReason = ""
 			used[candidate] = true
 		}
 	}

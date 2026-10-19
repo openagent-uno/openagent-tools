@@ -93,10 +93,18 @@ func TestReceiptV2DelayedRedactPreservesFreshConsentAndOriginalTime(t *testing.T
 	ctx := context.Background()
 	now := time.Now().UTC()
 	old := now.Add(-49 * time.Hour)
+	knownAuthorizationBefore(t, f, group, old.Add(-time.Hour))
 	uninstallID := receiptWebhook(t, f, "app/uninstalled", "old-uninstall", old)
+	newConsent, err := c.Redeem(ctx, f.consent(t, c).ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Publish(ctx, newConsent); err != nil {
+		t.Fatal(err)
+	}
 	redactID := receiptWebhook(t, f, "shop/redact", "delayed-redact", now)
 	// Old hosts cannot consume or ACK unsafe notifications, including a guessed ID.
-	_, err := c.Events(ctx)
+	_, err = c.Events(ctx)
 	requireReceiptRemote(t, err, 426)
 	if err = c.Acknowledge(ctx, redactID); err == nil {
 		t.Fatal("unemitted redact acknowledged")
@@ -144,9 +152,10 @@ func TestReceiptV2DelayedRedactPreservesFreshConsentAndOriginalTime(t *testing.T
 }
 
 func TestReceiptV2OutOfOrderStaysDurableUntilVerifiedUninstall(t *testing.T) {
-	f, c, _ := receiptRecipient(t)
+	f, c, group := receiptRecipient(t)
 	ctx := context.Background()
 	now := time.Now().UTC()
+	knownAuthorizationBefore(t, f, group, now.Add(-70*time.Hour))
 	redactID := receiptWebhook(t, f, "shop/redact", "first-redact", now)
 	events, err := c.EventsV2(ctx)
 	if err != nil || len(events) != 0 {
@@ -186,7 +195,7 @@ func TestReceiptV2OutOfOrderStaysDurableUntilVerifiedUninstall(t *testing.T) {
 func testNativeEvent(id, group, topic string, at time.Time) *Event {
 	sum := sha256.Sum256([]byte(id))
 	cutoff := at
-	e := &Event{ShopID: 123, ID: hex.EncodeToString(sum[:]), Group: group, Topic: topic, ReceiptVersion: 2, OccurredAt: at, CreatedAt: at, AuthorizationCutoffAt: &cutoff, Acknowledged: map[string]bool{}}
+	e := &Event{UninstallSafetyChecked: topic == "app/uninstalled", ShopID: 123, ID: hex.EncodeToString(sum[:]), Group: group, Topic: topic, ReceiptVersion: 2, OccurredAt: at, CreatedAt: at, AuthorizationCutoffAt: &cutoff, Acknowledged: map[string]bool{}}
 	if topic == "shop/redact" {
 		e.AuthorizationCutoffAt = nil
 	}
@@ -245,8 +254,9 @@ func TestReceiptV2UniquePairMigrationAndImmutableEmission(t *testing.T) {
 }
 
 func TestReceiptV2AmbiguityNeverGuessesPair(t *testing.T) {
-	f, c, _ := receiptRecipient(t)
+	f, c, group := receiptRecipient(t)
 	now := time.Now().UTC()
+	knownAuthorizationBefore(t, f, group, now.Add(-70*time.Hour))
 	receiptWebhook(t, f, "app/uninstalled", "candidate-one", now.Add(-60*time.Hour))
 	receiptWebhook(t, f, "app/uninstalled", "candidate-two", now.Add(-55*time.Hour))
 	redactID := receiptWebhook(t, f, "shop/redact", "ambiguous", now)
@@ -272,6 +282,7 @@ func TestReceiptV2PairRejectsTamperAndRevokesOnlyOldGrant(t *testing.T) {
 	f, c, group := receiptRecipient(t)
 	now := time.Now().UTC()
 	old := now.Add(-49 * time.Hour)
+	knownAuthorizationBefore(t, f, group, old.Add(-time.Hour))
 	receiptWebhook(t, f, "app/uninstalled", "old-generation", old)
 	redactID := receiptWebhook(t, f, "shop/redact", "old-generation-redact", now)
 	// Exercise the old-grant branch without a provider call or fabricated receipt.

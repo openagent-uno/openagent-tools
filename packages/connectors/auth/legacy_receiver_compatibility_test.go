@@ -30,6 +30,22 @@ func TestLegacyShopifyReceiverVersionAndMinimalUninstallContract(t *testing.T) {
 	} {
 		t.Run(tc.topic, func(t *testing.T) {
 			f := newLegacyRelayFixture(t)
+			// Designed known-order history tests the relay wire, rather than
+			// treating absent historical acquisition evidence as verified.
+			now := time.Now().UTC()
+			group := groupID(f.server.Providers["shopify"].AppID, "legacy.myshopify.com")
+			if err := f.server.Store.update(func(state *State) error {
+				state.Groups[group] = &Group{ID: group, AppID: f.server.Providers["shopify"].AppID,
+					Shop: "legacy.myshopify.com", ShopID: 123, AuthorizedAt: now.Add(-60 * time.Hour),
+					LastAuthorizationAcquiredAt: now.Add(-60 * time.Hour), Members: map[string]uint64{}, PrivacyRecipients: map[string]bool{}}
+				if tc.topic == "shop/redact" {
+					counterpart := testNativeEvent("known-relay-uninstall", group, "app/uninstalled", now.Add(-49*time.Hour))
+					state.Events[counterpart.ID] = counterpart
+				}
+				return nil
+			}); err != nil {
+				t.Fatal(err)
+			}
 			const webhookID = "7b292bd9-7605-440c-9404-a10b2bc3b7cb"
 			at := time.Now().UTC().Format(time.RFC3339Nano)
 			var calls atomic.Int64
@@ -100,6 +116,9 @@ func TestLegacyShopifyReceiverVersionAndMinimalUninstallContract(t *testing.T) {
 				t.Fatal("signed synthetic notification rejected", response.StatusCode)
 			}
 			for _, event := range f.server.Store.snapshot().Events {
+				if event.Legacy == nil {
+					continue
+				}
 				body, err := f.server.decryptEvent(event)
 				if err != nil || !bytes.Contains(body, []byte(`"shop_domain":"legacy.myshopify.com"`)) {
 					t.Fatal("native receipt lost its authenticated shop binding")
@@ -110,7 +129,7 @@ func TestLegacyShopifyReceiverVersionAndMinimalUninstallContract(t *testing.T) {
 				t.Fatal("expected one legacy delivery")
 			}
 			for _, event := range f.server.Store.snapshot().Events {
-				if !event.Legacy.Acknowledged {
+				if event.Legacy != nil && !event.Legacy.Acknowledged {
 					t.Fatal("strict synthetic recipient did not acknowledge delivery")
 				}
 			}
