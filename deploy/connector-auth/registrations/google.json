@@ -231,6 +231,8 @@
     "setting_location": "OAuth client registration, not an authorization request parameter",
     "documentation": "https://support.google.com/cloud/answer/15549257?hl=en",
     "screenshot_sha256": "d30a3249f4fc4e0d5270bf999c8f6a7d5b6fd3338a0602fa47843a3866036e95",
-    "observed_at_precision": "minute"
+    "observed_at_precision": "minute",
+    "visible_checkbox_screenshot_sha256": "d146e523d177c75921dd1bfd343ef877f2470e864fd11996fcbc0843df6f933b",
+    "visible_checkbox_screenshot_recorded_at": "2026-10-19T17:19:17.861021+00:00"
   }
 }
