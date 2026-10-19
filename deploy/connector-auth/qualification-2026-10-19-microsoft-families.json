@@ -1,0 +1,85 @@
+{
+  "format": 1,
+  "date": "2026-10-19",
+  "status": "passed-separate-microsoft-family-config-only-rollout",
+  "provider_preparer_source_commit": "30f7fe32045c43a083c547390f6d85e08746daf0",
+  "binary_source_commit": "645e0484c3ec40d4965de038be8d3a258ec44aac",
+  "image_manifest_sha256": "04d942f6cc69a59af958911a21a3f4ca2e1901a456d43220b8ac3061a6e13c5d",
+  "image_changed": false,
+  "tests": {
+    "kind": "stdlib file-only designed fixtures",
+    "cases": 13,
+    "exit": 0,
+    "scope": [
+      "fixed family registration/key mapping",
+      "SharePoint organizations audience",
+      "wrong issuer/key/callback/custody/settings rejected",
+      "no original-registration fallback",
+      "exact eleven-provider baseline and three-row replacement",
+      "original Calendar and other seven rows preserved",
+      "no credential rewrite or live qualification claims"
+    ]
+  },
+  "registrations": {
+    "outlook_mail": "registrations/microsoft-mail.json",
+    "outlook_calendar": "registrations/microsoft.json",
+    "onedrive": "registrations/microsoft-onedrive.json",
+    "sharepoint": "registrations/microsoft-sharepoint.json"
+  },
+  "console_facts": {
+    "new_three_registrations_distinct": true,
+    "new_three_static_delegated_scopes_and_web_oauth_settings_verified": true,
+    "new_three_admin_or_user_consent_granted_by_this_step": false,
+    "mail_and_onedrive_audience": "AzureADandPersonalMicrosoftAccount",
+    "sharepoint_audience": "AzureADMultipleOrgs",
+    "calendar_original_client_and_secret_unchanged": true,
+    "calendar_sole_callback_and_three_static_scopes_verified": true,
+    "calendar_display_name": "OpenAgent Calendar",
+    "original_root_owned_qa_account_grant_removed_before_family_switch": true
+  },
+  "custody": {
+    "three_new_isolated_immutable_secrets_stored_and_mounted": true,
+    "secret_values_exported": false,
+    "projected_sources": 5,
+    "mode_octal": "0440",
+    "broker_uid_fs_group": 65532
+  },
+  "rollout": {
+    "finished_at": "2026-10-19T09:19:35.967443+00:00",
+    "generation": 26,
+    "one_ready_writer": true,
+    "restarts": 0,
+    "provider_count": 11,
+    "providers_sha256": "2f316f36a6bf551a264c6c557fe146259c57e04c4183f346fbe87aed9cb28096",
+    "image_configuration_other_than_provider_map_and_projected_sources_preserved": true,
+    "public_health_http": 200,
+    "public_readiness_http": 200,
+    "unsigned_protected_http": 401,
+    "old_spec_sha256": "ac6f2b083d11a454b79bd37d693bfb0a16b40e7edaa61948b3a92b8466fe7dbf",
+    "new_spec_sha256": "d092d10e8c79d1796c14734ad5322d78611c390ac8668d343ad71c548e7683b8",
+    "patch_sha256": "b0a50d574690b9f5459db7202bd42159effb3c0cff0d9df769dc6ab5b57b993f",
+    "server_dryrun_exact_spec": true,
+    "uid_resource_version_spec_cas": true
+  },
+  "preserved": {
+    "public_three_and_google_four_rows": true,
+    "original_calendar_provider_row_and_issuer": true,
+    "metadata_volume_event_key_and_installation_identity": true,
+    "credential_record_rewrite": false,
+    "metadata_restore": false
+  },
+  "acceptance_boundary": {
+    "provider_calls": 0,
+    "new_provider_grants": false,
+    "token_exchange_qualified_by_this_step": false,
+    "provider_lifecycle_qualified_by_this_step": false,
+    "general_public_qualification": false,
+    "sharepoint_tenant_consent_or_site_access_qualified": false
+  },
+  "safe_evidence_sha256": {
+    "family-activation-dryrun-result.json": "1516f60c47260b540789af18ecdc7b1fb5d42f642d228f7a8bac234f46d31079",
+    "family-config-actual-result.json": "b99e07e1b89d601c83f4d14ce9dee1d5b5de2f45787366fef4112d9b9b668087",
+    "three-secrets-metadata-receipt.json": "8630292c0abf440c3d5e2702aa154205b6bb360876c92506359a96f966ea1cfc",
+    "original-ms-known-qa-match.json": "613ad598f19dc383b0e47c07415f407d6b1075e89067801fa7cddf0d210366e9"
+  }
+}

@@ -36,15 +36,13 @@
     "mount_path": "/secrets/microsoft-mail-client-secret"
   },
   "production_secret_stored": true,
-  "production_secret_mounted": false,
-  "production_secret_configured": false,
-  "broker_enabled": false,
-  "broker_enabled_for_trial": false,
+  "production_secret_mounted": true,
+  "production_secret_configured": true,
+  "broker_enabled": true,
+  "broker_enabled_for_trial": true,
   "real_provider_qualification": false,
   "general_public_qualification": false,
   "qualification_pending": [
-    "Mount the stored Secret read-only only after reviewed configuration rollout",
-    "Prepare fresh configuration and exact old-issuer transition without rewriting credentials",
     "Fresh receiving-installation consent and real lifecycle qualification"
   ],
   "secret_custody_checkpoint": {
@@ -76,5 +74,16 @@
     "provider_consent_granted": false,
     "evidence_reference": "provider-activation-20261019/microsoft-mail-registration.json",
     "evidence_visibility": "private"
+  },
+  "app_id": "microsoft:7251fa1b-5dd9-4c29-8669-95b81156c26b",
+  "broker_activation_checkpoint": {
+    "activated_at": "2026-10-19T09:19:35.967443+00:00",
+    "qualification_reference": "../qualification-2026-10-19-microsoft-families.json",
+    "configured_provider_count": 11,
+    "secret_mount": "read-only projected source, mode 0440, broker UID/fsGroup 65532",
+    "public_health_http": 200,
+    "public_readiness_http": 200,
+    "token_exchange_qualified_by_this_step": false,
+    "provider_consent_qualified_by_this_step": false
   }
 }

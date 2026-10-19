@@ -1,16 +1,13 @@
 {
   "provider_family": "microsoft",
-  "application_name": "OpenAgent",
+  "application_name": "OpenAgent Calendar",
   "client_id": "c245634c-3535-44fd-a7ef-0fdd8040dc93",
   "object_id": "e794f8e1-de97-480f-b3bc-1deae6324695",
   "tenant_id": "260918f2-47f1-4958-bbc6-5df48b686766",
   "sign_in_audience": "AzureADandPersonalMicrosoftAccount",
   "client_type": "web",
   "redirect_uris": [
-    "https://auth.openagent.uno/v1/oauth/outlook_mail/callback",
-    "https://auth.openagent.uno/v1/oauth/outlook_calendar/callback",
-    "https://auth.openagent.uno/v1/oauth/onedrive/callback",
-    "https://auth.openagent.uno/v1/oauth/sharepoint/callback"
+    "https://auth.openagent.uno/v1/oauth/outlook_calendar/callback"
   ],
   "registration_verified": "2026-10-18",
   "broker_enabled": true,
@@ -40,16 +37,13 @@
       "work/school and personal Microsoft account audience",
       "four Web redirect callbacks saved"
     ],
-    "client_authentication_and_permissions_attested": false
+    "client_authentication_and_permissions_attested": false,
+    "historical": true
   },
   "configured_delegated_scopes": [
     "User.Read",
     "offline_access",
-    "Mail.ReadWrite",
-    "Mail.Send",
-    "Calendars.ReadWrite",
-    "Files.Read",
-    "Sites.Read.All"
+    "Calendars.ReadWrite"
   ],
   "delegated_permissions_saved": "2026-10-19",
   "delegated_permissions_checkpoint": {
@@ -61,7 +55,8 @@
     "admin_consent_granted": false,
     "user_consent_granted": false,
     "client_authentication_verified": false,
-    "remaining_oauth_settings_verified": false
+    "remaining_oauth_settings_verified": false,
+    "historical": true
   },
   "production_secret_stored": true,
   "production_secret_mounted": true,
@@ -89,7 +84,8 @@
     "front_channel_logout_url_configured": false,
     "live_sdk_default_enabled": true,
     "client_authentication_token_exchange_qualified": false,
-    "provider_consent_granted": false
+    "provider_consent_granted": false,
+    "historical": true
   },
   "broker_enabled_for_trial": true,
   "general_public_qualification": false,
@@ -103,5 +99,26 @@
     "provider_consent_qualified": false,
     "token_exchange_qualified": false,
     "secret_mount": "read-only projected Secret, mode 0440, broker UID/fsGroup 65532"
+  },
+  "provider": "outlook_calendar",
+  "homepage": "https://openagent.uno",
+  "privacy_url": "https://openagent.uno/privacy",
+  "app_id": "microsoft:c245634c-3535-44fd-a7ef-0fdd8040dc93",
+  "calendar_reuse_checkpoint": {
+    "date": "2026-10-19",
+    "verified_at_minute_utc": "09:20",
+    "client_and_issuer_unchanged": true,
+    "original_secret_unchanged": true,
+    "sole_web_callback": "https://auth.openagent.uno/v1/oauth/outlook_calendar/callback",
+    "configured_delegated_scopes": [
+      "User.Read",
+      "offline_access",
+      "Calendars.ReadWrite"
+    ],
+    "old_root_owned_qa_account_consent_removed": true,
+    "old_credential_issuer_rewritten": false,
+    "display_name_homepage_and_privacy_saved": true,
+    "provider_consent_qualified_by_configuration_step": false,
+    "qualification_reference": "../qualification-2026-10-19-microsoft-families.json"
   }
 }

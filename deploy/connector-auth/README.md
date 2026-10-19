@@ -60,7 +60,8 @@ issuer. `prepare-provider-trial.py --microsoft-family-switch --baseline-provider
 replacement of exactly those three issuer rows. It requires the exact current
 eleven-provider cohort, distinct registered clients, verified family-specific
 scopes/settings and immutable Secret custody. It preserves Calendar and every
-non-Microsoft row and never edits existing credential records. This output is
+non-Microsoft row and never edits existing credential records. The [19 October family checkpoint](qualification-2026-10-19-microsoft-families.md)
+records the subsequent configuration-only deployment. Generated output is
 not an apply authorization or provider qualification. Old-issuer refresh remains
 fail closed; retain the original Secret and use an explicit owner-authorized
 revocation/disconnect/reconsent transition rather than relabeling old tokens.
