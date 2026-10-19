@@ -1,0 +1,71 @@
+{
+  "format": 1,
+  "status": "applied-ready-restricted-shopify-receipt-v2-qa",
+  "recorded_at": "2026-10-19T15:44:21.769742+00:00",
+  "source_commit": "e5cbc0d933ea202ceb5bd41f3d01dd2098ccb10d",
+  "sdk_version": "0.1.12",
+  "image": "localhost:5000/openagent-connector-auth@sha256:fcba2fa8cc491ee3ca0d95d2307b6a58663260e9bf2c1370074658343b7951a6",
+  "generation": 36,
+  "checks": {
+    "health_http": 200,
+    "readiness_http": 200,
+    "unsigned_events_http": 401,
+    "configured_providers": 15,
+    "all_previous_provider_rows_byte_identical": true,
+    "jira_secret_projection_preserved": true,
+    "app_secret_pvc_resources_security_and_args_preserved": true,
+    "actual_ready_runtime_digest_verified": true,
+    "only_spec_leaves_changed": [
+      "broker.image",
+      "configuration.configMap.name"
+    ]
+  },
+  "shopify_enrollment": {
+    "mode": "qa",
+    "logical_authorized_servers": 2,
+    "current_fingerprints": 2,
+    "historical_retired_fingerprints_preserved": 2,
+    "qa_stores": 1,
+    "scopes": [
+      "read_inventory",
+      "read_products"
+    ],
+    "historical_privacy_recipients_deleted_or_acked": false,
+    "provider_routes_changed": false,
+    "general_enrollment_open": false
+  },
+  "protocol": {
+    "explicit_receipt_version": 2,
+    "host_adoption_and_coverage_separate": true,
+    "original_provider_time_preserved": true,
+    "delayed_redaction_requires_unique_prior_uninstall": true,
+    "ambiguous_or_missing_history": "durable pending, no ACK",
+    "after_any_v2_event": "No old broker downgrade or state restore; retain compatible image, pause new consents, correct routes/configuration"
+  },
+  "runtime": {
+    "status": "actual_runtime_digest_verified",
+    "pod": {
+      "uid": "94a568e4-72e3-4bca-8666-151d6fcc5210",
+      "phase": "Running",
+      "ready": true,
+      "image_ids": [
+        "localhost:5000/openagent-connector-auth@sha256:fcba2fa8cc491ee3ca0d95d2307b6a58663260e9bf2c1370074658343b7951a6"
+      ],
+      "started_at": [
+        "2026-10-19T15:44:19Z"
+      ]
+    }
+  },
+  "limits": {
+    "new_provider_calls": 0,
+    "new_oauth_grants": 0,
+    "shopify_live_host50_acceptance": false,
+    "genuine_provider_webhook_cutover": false,
+    "real_customer_erasure": false
+  },
+  "evidence": {
+    "qualified_sdk_receipt": "../../docs/connector-sdk-0.1.12-qualification.json",
+    "public_product_release": "https://github.com/openagent-uno/openagent/releases/tag/v1.1.0-beta.50",
+    "pre_apply_transport_note": "An initial non-root file read was denied before any mutation; the exact reviewed operation then ran with the existing production administrator authority. No file permissions were changed."
+  }
+}
