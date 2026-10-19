@@ -111,5 +111,69 @@ class RunnerProviderErrors(unittest.IsolatedAsyncioTestCase):
         self.assertIsNone(invalid.provider_status)
 
 
+
+
+class ReceiptVersionNegotiation(unittest.IsolatedAsyncioTestCase):
+    async def exchange(self, method, params, reply):
+        process = _Process(reply)
+        runner = ConnectorRunner("unused", identity_file="unused", product="fixture", name="receipt")
+        try:
+            with patch("openagent_connectors.runner.asyncio.create_subprocess_exec", new=AsyncMock(return_value=process)):
+                result = await runner.call(method, params)
+            return process.stdin.request, result
+        finally:
+            await runner.close()
+
+    async def test_default_stays_v1_explicit_v2_preserves_cutoff_and_pair(self):
+        request, _ = await self.exchange("events", None, {"result": []})
+        self.assertEqual(request["params"], {})
+        receipt = {"receipt_version": 2, "occurred_at": "2026-10-19T10:00:00Z",
+                   "authorization_cutoff_at": "2026-10-17T10:00:00Z", "uninstall_event_id": "a" * 64}
+        request, result = await self.exchange("events", {"receipt_version": 2}, {"result": [receipt]})
+        self.assertEqual(request["params"], {"receipt_version": 2})
+        self.assertEqual(result, [receipt])
+        for params in ({"provider": "shopify"}, {"provider": "shopify", "receipt_version": 2}):
+            request, _ = await self.exchange("auth.start", params, {"result": {}})
+            self.assertEqual(request["params"], params)
+
+    async def test_invalid_capability_rejected_before_subprocess(self):
+        for method in ("events", "auth.start"):
+            for value in (True, False, 2.0, "2", None, 0, 3):
+                runner = ConnectorRunner("unused", identity_file="unused", product="fixture", name="receipt")
+                params = {"receipt_version": value}
+                if method == "auth.start":
+                    params["provider"] = "shopify"
+                try:
+                    with patch("openagent_connectors.runner.asyncio.create_subprocess_exec", new=AsyncMock()) as spawn:
+                        with self.assertRaises(ConnectorError) as error:
+                            await runner.call(method, params)
+                        self.assertEqual(error.exception.code, "unsupported_receipt_version")
+                        spawn.assert_not_awaited()
+                finally:
+                    await runner.close()
+        for params in ([2], {"receipt_version": 2, "other": True}):
+            runner = ConnectorRunner("unused", identity_file="unused", product="fixture", name="receipt")
+            try:
+                with patch("openagent_connectors.runner.asyncio.create_subprocess_exec", new=AsyncMock()) as spawn:
+                    with self.assertRaises(ConnectorError):
+                        await runner.call("events", params)
+                    spawn.assert_not_awaited()
+            finally:
+                await runner.close()
+
+    async def test_version_error_is_safe_and_has_no_provider_status(self):
+        runner = ConnectorRunner("unused", identity_file="unused", product="fixture", name="receipt")
+        process = _Process({"error": "unsupported_receipt_version", "result": {"private": "discard"}})
+        try:
+            with patch("openagent_connectors.runner.asyncio.create_subprocess_exec", new=AsyncMock(return_value=process)):
+                with self.assertRaises(ConnectorError) as error:
+                    await runner.call("events")
+            self.assertEqual(error.exception.code, "unsupported_receipt_version")
+            self.assertIsNone(error.exception.provider_status)
+            self.assertEqual(str(error.exception), "unsupported_receipt_version")
+        finally:
+            await runner.close()
+
+
 if __name__ == "__main__":
     unittest.main()

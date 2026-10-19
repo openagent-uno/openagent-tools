@@ -129,7 +129,7 @@ func main() {
 				reply.Result = map[string]string{"installation": client.Identity.ID()}
 			case "auth.start":
 				var start auth.Start
-				err = json.Unmarshal(req.Params, &start)
+				start, err = startReceiptParams(req.Params)
 				if err == nil {
 					if local.HasProvider(start.Provider) {
 						reply.Result, err = local.Start(start)
@@ -235,7 +235,7 @@ func main() {
 					}
 				}
 			case "events":
-				reply.Result, err = client.Events(ctx)
+				reply.Result, err = dispatchEvents(ctx, client, req.Params)
 			case "events.ack":
 				var p struct {
 					ID string `json:"id"`

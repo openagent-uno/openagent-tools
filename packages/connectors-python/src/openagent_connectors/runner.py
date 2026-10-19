@@ -38,7 +38,7 @@ def _reply_error(reply):
                "oauth_app_mismatch", "rate_limited", "provider_exchange_failed",
                "provider_refresh_failed", "authorization_expired",
                "token_grant_revoked", "qa_installation_not_admitted",
-               "qa_shop_not_admitted", "sync_reset_required", "resource_gone",
+               "qa_shop_not_admitted", "unsupported_receipt_version", "sync_reset_required", "resource_gone",
                "version_conflict", "provider_permission", "network_error",
                "invalid_response", "provider_error"}
     code = reply["error"]
@@ -75,6 +75,14 @@ class ConnectorRunner:
     async def call(self, method: str, params=None, *, timeout=100):
         # Only the trusted host can populate binding/credential fields. Tool
         # arguments are always nested and cannot become runner configuration.
+        if method == "events":
+            if params is not None and (not isinstance(params, dict) or set(params) - {"receipt_version"}):
+                raise ConnectorError("unsupported_receipt_version")
+            if params and (type(params.get("receipt_version")) is not int or params["receipt_version"] not in (1, 2)):
+                raise ConnectorError("unsupported_receipt_version")
+        elif method == "auth.start" and isinstance(params, dict) and "receipt_version" in params:
+            if type(params["receipt_version"]) is not int or params["receipt_version"] not in (1, 2):
+                raise ConnectorError("unsupported_receipt_version")
         request_id = uuid.uuid4().hex
         data = (json.dumps({"id": request_id, "method": method, "params": params or {}},
                            separators=(",", ":")) + "\n").encode()

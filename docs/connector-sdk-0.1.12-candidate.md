@@ -1,7 +1,11 @@
 # Connector SDK 0.1.12 candidate
 
-Not published or qualified yet. Catalog114 plus Custom MCP, operation schemas, permissions and host defaults remain unchanged. Existing public product beta49/SDK0.1.11 clients retain the same broker API; this candidate does not imply a product50 or App rebuild.
+Not published or qualified yet. Catalog114 plus Custom MCP, operation schemas, permissions and host defaults remain unchanged. Existing public product beta49/SDK0.1.11 remains published. Safe native Shopify receipt handling requires explicit v2 adoption in product50; this candidate does not require an App rebuild.
 
 The shared legacy Shopify delivery MAC binds a fresh delivery timestamp and operator-configured receiver audience to the exact forwarded body digest and immutable original topic, shop, webhook ID, API version and occurrence timestamp. It supplements the provider body HMAC and durable deduplication; receivers retain every original metadata check and permit an occurrence older than24hours only after verifying the separate relay envelope. Original occurrence continues fencing older events against newer consent generations. Legacy uninstall projection is exact id-only, while native encrypted receipts retain verified shop binding.
 
 Qualification and release are pending. A future release must build all six native targets from one frozen source and verify public bytes and source provenance. Synthetic relay fixtures do not establish real provider delivery or actual receiver acceptance. General broker enrollment and each host's derived privacy qualification are separate operational boundaries.
+
+Native Shopify receipt v2 preserves `occurred_at` and supplies a separate authenticated `authorization_cutoff_at`. A delayed `shop/redact` also identifies its paired prior uninstall through `uninstall_event_id`; missing or invalid pairing remains pending. The SDK preserves these fields and validates the v2 contract before returning events.
+
+Capability negotiation is explicit: trusted hosts send `receipt_version: 2` in Shopify `auth.start` and `events` parameters. Go clients may set `ShopifyReceiptVersion: 2` for start and call `EventsV2`; default `Events` and omitted parameters stay v1. A package upgrade alone never attests host support. New Shopify authorization requires v2; an old events request with pending unsafe redaction returns `unsupported_receipt_version` without emitting or acknowledging it. Other provider protocols and catalog operations remain unchanged.

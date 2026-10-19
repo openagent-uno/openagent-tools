@@ -79,6 +79,8 @@ type Client struct {
 	Identity      Identity
 	HTTP          *http.Client
 	AllowLoopback bool
+	// Explicit trusted-host capability; zero preserves legacy receipt behavior.
+	ShopifyReceiptVersion int
 }
 type RemoteError struct {
 	Status int
@@ -124,7 +126,7 @@ func (c *Client) call(ctx context.Context, method, path string, input, output an
 			Error string `json:"error"`
 		}
 		_ = json.Unmarshal(data, &failure)
-		allowed := map[string]bool{"provider_not_configured": true, "authorization_not_ready": true, "authorization_expired": true, "oauth_app_mismatch": true, "credential_recovery_required": true, "rotation_in_progress": true, "rate_limited": true, "provider_exchange_failed": true, "provider_refresh_failed": true, "token_grant_revoked": true, "qa_installation_not_admitted": true, "qa_shop_not_admitted": true}
+		allowed := map[string]bool{"provider_not_configured": true, "authorization_not_ready": true, "authorization_expired": true, "oauth_app_mismatch": true, "credential_recovery_required": true, "rotation_in_progress": true, "rate_limited": true, "provider_exchange_failed": true, "provider_refresh_failed": true, "token_grant_revoked": true, "qa_installation_not_admitted": true, "qa_shop_not_admitted": true, "unsupported_receipt_version": true}
 		code := "request_failed"
 		if allowed[failure.Error] {
 			code = failure.Error
@@ -141,6 +143,14 @@ func (c *Client) Register(ctx context.Context) error {
 }
 func (c *Client) Start(ctx context.Context, start Start) (Transaction, error) {
 	var tx Transaction
+	if start.Provider == "shopify" {
+		if start.ReceiptVersion == 0 {
+			start.ReceiptVersion = c.ShopifyReceiptVersion
+		}
+		if start.ReceiptVersion != 0 && start.ReceiptVersion != 1 && start.ReceiptVersion != 2 {
+			return tx, ErrDenied
+		}
+	}
 	err := c.call(ctx, "POST", "/v1/transactions", start, &tx)
 	return tx, err
 }
@@ -247,12 +257,15 @@ func (c *Client) Publish(ctx context.Context, rotation Rotation) error {
 }
 
 type Delivery struct {
-	ID         string          `json:"id"`
-	Group      string          `json:"group"`
-	Topic      string          `json:"topic"`
-	Payload    json.RawMessage `json:"payload"`
-	CreatedAt  time.Time       `json:"created_at"`
-	OccurredAt time.Time       `json:"occurred_at"`
+	ID                    string          `json:"id"`
+	Group                 string          `json:"group"`
+	Topic                 string          `json:"topic"`
+	Payload               json.RawMessage `json:"payload"`
+	CreatedAt             time.Time       `json:"created_at"`
+	OccurredAt            time.Time       `json:"occurred_at"`
+	ReceiptVersion        int             `json:"receipt_version,omitempty"`
+	AuthorizationCutoffAt *time.Time      `json:"authorization_cutoff_at,omitempty"`
+	UninstallEventID      string          `json:"uninstall_event_id,omitempty"`
 }
 
 func (c *Client) Events(ctx context.Context) ([]Delivery, error) {
@@ -262,6 +275,50 @@ func (c *Client) Events(ctx context.Context) ([]Delivery, error) {
 	err := c.call(ctx, "GET", "/v1/events", nil, &result)
 	return result.Events, err
 }
+
+// EventsV2 explicitly opts into the authenticated generation-cutoff contract.
+// Events remains v1 so an SDK upgrade cannot claim an old host understands v2.
+func (c *Client) EventsV2(ctx context.Context) ([]Delivery, error) {
+	var result struct {
+		Events []Delivery `json:"events"`
+	}
+	if err := c.call(ctx, "GET", "/v1/events?receipt_version=2", nil, &result); err != nil {
+		return nil, err
+	}
+	for _, event := range result.Events {
+		if !validDeliveryV2(event) {
+			return nil, ErrDenied
+		}
+	}
+	return result.Events, nil
+}
+
+func receiptDigest(value string) bool {
+	decoded, err := hex.DecodeString(value)
+	return err == nil && len(decoded) == sha256.Size && hex.EncodeToString(decoded) == value
+}
+
+func validReceiptTime(value time.Time) bool {
+	_, offset := value.Zone()
+	return offset == 0 && value.After(time.Unix(0, 0))
+}
+
+func validDeliveryV2(event Delivery) bool {
+	if event.ReceiptVersion != 2 || !receiptDigest(event.ID) || !receiptDigest(event.Group) ||
+		!validReceiptTime(event.CreatedAt) || !validReceiptTime(event.OccurredAt) || event.AuthorizationCutoffAt == nil ||
+		!validReceiptTime(*event.AuthorizationCutoffAt) || event.AuthorizationCutoffAt.After(event.OccurredAt) || !json.Valid(event.Payload) || len(bytes.TrimSpace(event.Payload)) == 0 || bytes.TrimSpace(event.Payload)[0] != '{' {
+		return false
+	}
+	if event.Topic == "shop/redact" {
+		return receiptDigest(event.UninstallEventID) && event.UninstallEventID != event.ID &&
+			!event.AuthorizationCutoffAt.After(event.OccurredAt.Add(-48*time.Hour+5*time.Minute))
+	}
+	if event.Topic != "app/uninstalled" && event.Topic != "customers/redact" && event.Topic != "customers/data_request" {
+		return false
+	}
+	return event.UninstallEventID == "" && event.AuthorizationCutoffAt.Equal(event.OccurredAt)
+}
+
 func (c *Client) Acknowledge(ctx context.Context, id string) error {
 	return c.call(ctx, "POST", "/v1/events/"+url.PathEscape(id)+"/ack", struct{}{}, nil)
 }
