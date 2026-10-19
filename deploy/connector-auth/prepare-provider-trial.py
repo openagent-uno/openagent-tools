@@ -26,11 +26,13 @@ def registration_path(provider):
     return BASE / "registrations" / filename
 
 
-def reviewed_registration(row):
+def reviewed_registration(row, google_production_unverified_trial=False):
     provider = row["id"]
     if provider not in TRIAL:
         raise ValueError("provider is outside this finite trial")
     microsoft = provider in MICROSOFT
+    if google_production_unverified_trial and microsoft:
+        raise ValueError("Google limited-trial mode cannot prepare a Microsoft provider")
     registration = json.loads(registration_path(provider).read_text())
     expected_key = MICROSOFT_REGISTRATIONS[provider][1] if microsoft else "google-client-secret"
     if microsoft and provider != "outlook_calendar" and registration.get("provider") != provider:
@@ -85,13 +87,29 @@ def reviewed_registration(row):
         services = {"gmail": {"gmail.googleapis.com"}, "google_drive": {"drive.googleapis.com"},
                     "google_analytics": {"analyticsdata.googleapis.com", "analyticsadmin.googleapis.com"},
                     "google_calendar": {"calendar-json.googleapis.com"}}[provider]
-        if (registration.get("publication_status") != "testing" or not registration.get("test_users")
-                or row["authorization_url"] != "https://accounts.google.com/o/oauth2/v2/auth"
+        if google_production_unverified_trial:
+            publication = registration.get("production_publication_checkpoint") or {}
+            if not isinstance(publication, dict):
+                raise ValueError("a recorded Google publication checkpoint is required")
+            count = publication.get("observed_user_count")
+            if (registration.get("publication_status") != "in_production"
+                    or registration.get("verification_status") != "unverified"
+                    or registration.get("verification_complete") is not False
+                    or registration.get("general_public_qualification") is not False
+                    or publication.get("user_type") != "external"
+                    or publication.get("verification_complete") is not False
+                    or publication.get("general_public_qualification") is not False
+                    or publication.get("unverified_user_cap") != 100
+                    or type(count) is not int or not 0 <= count < 100):
+                raise ValueError("Google production-unverified mode requires a recorded limited external trial, not public qualification")
+        elif registration.get("publication_status") != "testing" or not registration.get("test_users"):
+            raise ValueError("Google Testing trial requires recorded Testing users; production needs explicit limited-trial mode")
+        if (row["authorization_url"] != "https://accounts.google.com/o/oauth2/v2/auth"
                 or row["token_url"] != "https://oauth2.googleapis.com/token"
                 or row.get("revocation_url") != "https://oauth2.googleapis.com/revoke"
                 or not services <= set(registration.get("enabled_apis", []))
                 or not set(scopes) <= set(registration.get("declared_scopes", []))):
-            raise ValueError("Google trial requires recorded Testing users, enabled API and declared scopes")
+            raise ValueError("Google trial requires the fixed Google endpoints, enabled API and declared scopes")
         if provider == "google_calendar":
             calendar = registration.get("calendar_preparation") or {}
             expected = {"https://www.googleapis.com/auth/calendar.calendarlist.readonly",
@@ -101,7 +119,7 @@ def reviewed_registration(row):
                 raise ValueError("Calendar API and scope preparation remains incomplete")
 
 
-def prepare(provider, baseline, output):
+def prepare(provider, baseline, output, google_production_unverified_trial=False):
     if provider not in TRIAL:
         raise ValueError("provider is outside this finite trial")
     reviewed = json.loads((BASE / "providers-reviewed.json").read_text())
@@ -120,7 +138,7 @@ def prepare(provider, baseline, output):
     selected = known.get(provider)
     if selected is None:
         raise ValueError("existing app registration and reviewed provider row are not available")
-    reviewed_registration(selected)
+    reviewed_registration(selected, google_production_unverified_trial)
     # No global QA flag, resource manifests, provider calls or app mutations.
     output = Path(output)
     output.mkdir(parents=True, exist_ok=False)
@@ -129,7 +147,11 @@ def prepare(provider, baseline, output):
         "status": "prepared-not-applied-or-provider-qualified", "added_provider": provider,
         "preserved_provider_ids": ids, "baseline_sha256": hashlib.sha256(raw).hexdigest(),
         "global_qa_enrollment_added": False, "new_grants": 0,
-        "google_trial_requires_recorded_testing_users": provider not in MICROSOFT,
+        "google_trial_requires_recorded_testing_users": provider not in MICROSOFT and not google_production_unverified_trial,
+        "google_enrollment_boundary": ("production-unverified-limited-trial" if google_production_unverified_trial
+                                       else "testing-recorded-users" if provider not in MICROSOFT else None),
+        "general_public_qualification_attested": False,
+        "receiving_host_defaults_changed": False,
         "required_secret_reference": json.loads(registration_path(provider).read_text())["secret_reference"],
         "secret_mount_attested": False,
         "broker_apply_authorized": False,
@@ -198,14 +220,18 @@ def main():
     mode = parser.add_mutually_exclusive_group(required=True)
     mode.add_argument("--provider", choices=TRIAL)
     mode.add_argument("--microsoft-family-switch", action="store_true")
+    parser.add_argument("--google-production-unverified-trial", action="store_true",
+                        help="explicit limited trial for an external published but unverified Google app; never general public approval")
     parser.add_argument("--baseline-providers", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
+    if args.google_production_unverified_trial and (args.microsoft_family_switch or args.provider in MICROSOFT):
+        parser.error("Google limited-trial mode requires a Google --provider")
     try:
         if args.microsoft_family_switch:
             prepare_microsoft_family_switch(args.baseline_providers, args.output)
         else:
-            prepare(args.provider, args.baseline_providers, args.output)
+            prepare(args.provider, args.baseline_providers, args.output, args.google_production_unverified_trial)
     except (ValueError, OSError, KeyError, TypeError):
         parser.error("trial preparation refused; review current baseline and verified registration metadata")
     print("Prepared provider file only; image compatibility, CAS rollout and actual consent remain separate.")

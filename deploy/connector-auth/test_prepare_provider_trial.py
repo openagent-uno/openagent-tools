@@ -28,6 +28,8 @@ class PrepareProviderTrialTests(unittest.TestCase):
 
     def write_metadata(self, ready=False):
         registration = copy.deepcopy(self.registration)
+        # Historical Testing fixture is independent of the real app's current publication state.
+        registration.update(publication_status="testing", test_users=["fixture@example.invalid"])
         if ready:
             calendar = next(row for row in self.rows if row["id"] == "google_calendar")
             registration["enabled_apis"].append("calendar-json.googleapis.com")
@@ -36,9 +38,9 @@ class PrepareProviderTrialTests(unittest.TestCase):
         (self.base / "providers-reviewed.json").write_text(json.dumps(self.rows))
         (self.base / "registrations/google.json").write_text(json.dumps(registration))
 
-    def prepare(self, provider="google_calendar"):
+    def prepare(self, provider="google_calendar", google_production_unverified_trial=False):
         with patch.object(module, "BASE", self.base):
-            module.prepare(provider, self.baseline, self.output)
+            module.prepare(provider, self.baseline, self.output, google_production_unverified_trial)
 
     def test_calendar_trial_appends_without_global_qa_or_public_row_changes(self):
         self.write_metadata(ready=True)
@@ -100,6 +102,88 @@ class PrepareProviderTrialTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.prepare()
         self.assertEqual({"keep"}, {p.name for p in self.output.iterdir()})
+
+
+    def write_production_unverified_metadata(self):
+        self.write_metadata(ready=True)
+        path = self.base / "registrations/google.json"
+        registration = json.loads(path.read_text())
+        registration.update(publication_status="in_production", verification_status="unverified",
+                            verification_complete=False, general_public_qualification=False,
+                            test_users=[], production_publication_checkpoint={
+                                "user_type": "external", "verification_complete": False,
+                                "general_public_qualification": False,
+                                "unverified_user_cap": 100, "observed_user_count": 1})
+        path.write_text(json.dumps(registration))
+        return path
+
+    def test_published_google_requires_explicit_limited_trial_mode_before_any_output(self):
+        self.write_production_unverified_metadata()
+        with self.assertRaises(ValueError):
+            self.prepare()
+        self.assertFalse(self.output.exists())
+
+    def test_all_four_published_google_trials_preserve_rows_and_claim_no_public_approval(self):
+        path = self.write_production_unverified_metadata()
+        before = path.read_bytes(), self.baseline.read_bytes()
+        for provider in ("gmail", "google_drive", "google_analytics", "google_calendar"):
+            with self.subTest(provider=provider):
+                self.output = self.root / provider
+                self.prepare(provider, google_production_unverified_trial=True)
+                result = json.loads((self.output / "providers.json").read_text())
+                self.assertEqual(self.current, result[:-1])
+                self.assertEqual(next(row for row in self.rows if row["id"] == provider), result[-1])
+                metadata = json.loads((self.output / "trial-metadata.json").read_text())
+                self.assertEqual("production-unverified-limited-trial", metadata["google_enrollment_boundary"])
+                self.assertFalse(metadata["google_trial_requires_recorded_testing_users"])
+                for key in ("general_public_qualification_attested", "receiving_host_defaults_changed",
+                            "provider_review_attested", "broker_apply_authorized", "global_qa_enrollment_added"):
+                    self.assertFalse(metadata[key])
+                self.assertEqual(0, metadata["new_grants"])
+        self.assertEqual(before, (path.read_bytes(), self.baseline.read_bytes()))
+
+    def test_production_mode_rejects_testing_unknown_or_unbounded_claims(self):
+        path = self.write_production_unverified_metadata()
+        original = json.loads(path.read_text())
+        for field, value in (("publication_status", "testing"), ("publication_status", "unknown"),
+                             ("verification_status", "verified"), ("verification_complete", True),
+                             ("general_public_qualification", True), ("production_publication_checkpoint", {}),
+                             ("production_publication_checkpoint", ["invalid"])):
+            path.write_text(json.dumps({**original, field: value}))
+            with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                self.prepare(google_production_unverified_trial=True)
+            self.assertFalse(self.output.exists())
+        for field, value in (("user_type", "internal"), ("verification_complete", True),
+                             ("general_public_qualification", True), ("unverified_user_cap", 101),
+                             ("observed_user_count", 100), ("observed_user_count", True)):
+            changed = {**original, "production_publication_checkpoint": {
+                **original["production_publication_checkpoint"], field: value}}
+            path.write_text(json.dumps(changed))
+            with self.subTest(field=field, value=value), self.assertRaises(ValueError):
+                self.prepare(google_production_unverified_trial=True)
+            self.assertFalse(self.output.exists())
+
+    def test_production_mode_keeps_scope_endpoint_and_calendar_preparation_guards(self):
+        path = self.write_production_unverified_metadata()
+        original = json.loads(path.read_text())
+        for field, value in (("declared_scopes", []), ("enabled_apis", []),
+                             ("calendar_preparation", {"api_enabled": False, "calendar_scopes_declared": False})):
+            path.write_text(json.dumps({**original, field: value}))
+            with self.subTest(field=field), self.assertRaises(ValueError):
+                self.prepare(google_production_unverified_trial=True)
+            self.assertFalse(self.output.exists())
+        path.write_text(json.dumps(original))
+        calendar = next(row for row in self.rows if row["id"] == "google_calendar")
+        calendar["authorization_url"] = "https://example.invalid/authorize"
+        (self.base / "providers-reviewed.json").write_text(json.dumps(self.rows))
+        with self.assertRaises(ValueError):
+            self.prepare(google_production_unverified_trial=True)
+        self.assertFalse(self.output.exists())
+
+    def test_google_production_flag_cannot_be_used_for_microsoft(self):
+        with self.assertRaisesRegex(ValueError, "cannot prepare a Microsoft"):
+            with patch.object(module, "BASE", self.base):
+                module.reviewed_registration({"id": "outlook_mail"}, google_production_unverified_trial=True)
 
 
 class MicrosoftFamilyTests(unittest.TestCase):

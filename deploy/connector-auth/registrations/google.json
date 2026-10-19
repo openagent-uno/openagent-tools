@@ -22,14 +22,14 @@
     "key": "google-client-secret",
     "mount_path": "/secrets/google-client-secret"
   },
-  "publication_status": "testing",
+  "publication_status": "in_production",
   "verification_complete": false,
   "broker_enabled": true,
   "qualification_pending": [
-    "real scope acceptance and full OAuth consent",
-    "domain ownership and Google verification where required",
-    "Google restricted-scope security assessment where required",
-    "receiving-product data-handling checks and real end-to-end acceptance"
+    "Google sensitive/restricted-scope data-access verification; brand verification is complete",
+    "Google restricted-scope security assessment where applicable; no assessment completion recorded",
+    "Receiving-host data-handling and untested operation coverage beyond the bounded 19 October lifecycle trial",
+    "General public qualification; published verified branding alone does not establish data-access verification"
   ],
   "test_users": [
     "geroale2000@gmail.com"
@@ -64,8 +64,8 @@
     "calendar_scopes_declared": true,
     "common_enrollment_enabled": false,
     "remaining": [
-      "Provider verification where required",
-      "Fresh receiving-installation consent and real lifecycle qualification"
+      "Google verification and applicable production data-handling requirements",
+      "Operation coverage beyond the recorded CalendarList lifecycle and separate private-event trial"
     ],
     "api_enablement_verified": "2026-10-18",
     "scope_declaration_saved": "2026-10-18",
@@ -73,7 +73,7 @@
   },
   "broker_enabled_for_trial": true,
   "general_public_qualification": false,
-  "real_provider_qualification": false,
+  "real_provider_qualification": true,
   "broker_activation_checkpoint": {
     "activated_at": "2026-10-19T08:14:17.207461+00:00",
     "qualification_reference": "../qualification-2026-10-19-activation.json",
@@ -83,5 +83,111 @@
     "provider_consent_qualified": false,
     "token_exchange_qualified": false,
     "enrollment_boundary": "Google Testing; configured test users only; provider verification incomplete"
+  },
+  "verification_status": "unverified",
+  "real_provider_qualification_boundary": "Bounded four-connector lifecycle on public server45/SDK18 with the approved test account on 19 October; not every operation, native App use, or general public verification",
+  "real_provider_qualification_checkpoint": {
+    "qualified_at": "2026-10-19",
+    "qualification_reference": "https://github.com/openagent-uno/openagent/blob/main/docs/qualification/google-four-product45-oauth-2026-10-19.json",
+    "receipt_sha256": "9f4a34cb9fb0fa347e4b71d54cc1a0ab2834b6f1219e99a2a926b7e617a2aa84",
+    "providers": [
+      "gmail",
+      "google_drive",
+      "google_analytics",
+      "google_calendar"
+    ],
+    "oauth_redemption_qualified": true,
+    "explicit_owner_refresh_qualified": true,
+    "same_identity_restart_and_post_read_qualified": true,
+    "local_disconnect_tombstone_source_removal_qualified": true,
+    "global_provider_revocation_qualified": false,
+    "all_operations_qualified": false,
+    "general_public_qualification": false
+  },
+  "production_publication_checkpoint": {
+    "observed_at": "2026-10-19",
+    "evidence": "operator-observed Google OAuth Audience console after explicitly authorized Publish App",
+    "evidence_filename": "google-production-published.jpg",
+    "evidence_sha256": "59fd6956fb06a814374f85237df5f3fc029c40c305b2719a5d3d2f62c406f549",
+    "user_type": "external",
+    "publishing_status_displayed": "In produzione",
+    "verification_complete": false,
+    "unverified_user_cap": 100,
+    "observed_user_count": 1,
+    "scope_or_client_changes": false,
+    "general_public_qualification": false
+  },
+  "test_users_boundary": "Historical Testing allowlist retained as registration history; publishing In production removes the Testing-only audience restriction but does not complete verification or remove the observed unverified user cap",
+  "branding_verification_checkpoint": {
+    "observed_at": "2026-10-19",
+    "status": "verified_and_published",
+    "homepage": "https://openagent.uno",
+    "homepage_url_prefix_ownership_verified": true,
+    "branding_verification_complete": true,
+    "branding_published": true,
+    "data_access_verification_submitted": false,
+    "data_access_verification_complete": false,
+    "evidence_filename": "google-branding-verified-published.jpg",
+    "evidence_sha256": "80b5976f73b64a7ab79b5cbb2ba0dd88c5f6be522987af96c60f8c7013cb02f3",
+    "first_failed_check_and_24_hour_warning_are_historical": true
+  },
+  "branding_verification_history": [
+    {
+      "observed_at": "2026-10-19",
+      "status": "automatic_check_failed_domain_ownership",
+      "homepage": "https://openagent.uno",
+      "provider_requirement": "Verify homepage domain ownership, then wait 24 hours before retrying the branding check",
+      "ownership_verification_complete": false,
+      "data_access_verification_submitted": false,
+      "evidence_filename": "google-branding-domain-blocker.jpg",
+      "evidence_sha256": "91ab7a076030a3a639190eb0998c9c578f049bc327c5fbdcec425de6add27724"
+    },
+    {
+      "observed_at": "2026-10-19",
+      "status": "automatic_check_in_progress_after_url_prefix_ownership",
+      "homepage": "https://openagent.uno",
+      "homepage_url_prefix_ownership_verified": true,
+      "data_access_verification_submitted": false,
+      "branding_verification_complete": false,
+      "prior_ownership_failure_preserved": true,
+      "provider_outcome_pending": true
+    }
+  ],
+  "homepage_ownership_checkpoint": {
+    "observed_at": "2026-10-19",
+    "verification_method": "search_console_url_prefix_html_file",
+    "url_prefix": "https://openagent.uno/",
+    "verified": true,
+    "vendor_file": "google56a89a1a96e97ca1.html",
+    "vendor_file_bytes": 53,
+    "vendor_file_sha256": "70eef78b47701c28885fa3e668197a860140b142c18e3516843bac554ca1031b",
+    "evidence_filename": "google-site-ownership-verified.jpg",
+    "evidence_sha256": "aea20195a69f5884488b52c22eaa83211564228462b17b57909feda692a0d6ae",
+    "dns_txt_verification_performed": false,
+    "dns_domain_property_verification_claimed": false
+  },
+  "data_access_verification_preparation": {
+    "observed_at": "2026-10-19",
+    "status": "form_open_not_submitted_required_video_missing",
+    "scope_justifications_prepared": true,
+    "scope_justification_max_characters": 1000,
+    "prepared_justification_character_counts": {
+      "sensitive_calendar_send_analytics": 861,
+      "drive_restricted": 769,
+      "gmail_modify_restricted": 821
+    },
+    "intended_use_selections_observed": {
+      "drive": "Produttività Drive",
+      "gmail.modify": "Produttività email"
+    },
+    "required_youtube_video_url_available": false,
+    "demo_video_recorded": false,
+    "form_save_enabled": false,
+    "verification_submitted": false,
+    "security_assessment_completion_recorded": false,
+    "scope_justifications_entered_in_form": true,
+    "intended_use_selections_entered_in_form": true,
+    "evidence_filename": "google-scope-review-awaiting-demo.jpg",
+    "evidence_sha256": "f2e4698926c2da00698836f651c8493f7138a79926aff86a46467971597d92d8"
   }
 }
