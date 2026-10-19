@@ -24,7 +24,7 @@
   },
   "publication_status": "testing",
   "verification_complete": false,
-  "broker_enabled": false,
+  "broker_enabled": true,
   "qualification_pending": [
     "real scope acceptance and full OAuth consent",
     "domain ownership and Google verification where required",
@@ -68,6 +68,20 @@
       "Fresh receiving-installation consent and real lifecycle qualification"
     ],
     "api_enablement_verified": "2026-10-18",
-    "scope_declaration_saved": "2026-10-18"
+    "scope_declaration_saved": "2026-10-18",
+    "trial_enrollment_enabled": true
+  },
+  "broker_enabled_for_trial": true,
+  "general_public_qualification": false,
+  "real_provider_qualification": false,
+  "broker_activation_checkpoint": {
+    "activated_at": "2026-10-19T08:14:17.207461+00:00",
+    "qualification_reference": "../qualification-2026-10-19-activation.json",
+    "configured_provider_count": 11,
+    "public_health_http": 200,
+    "public_readiness_http": 200,
+    "provider_consent_qualified": false,
+    "token_exchange_qualified": false,
+    "enrollment_boundary": "Google Testing; configured test users only; provider verification incomplete"
   }
 }

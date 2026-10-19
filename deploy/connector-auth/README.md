@@ -53,9 +53,12 @@ A provider outage leaves valid local tokens usable. New consents and renewals re
 
 ## Current image checkpoint
 
-The [19 October image checkpoint](qualification-2026-10-19.md) records the
-actual SDK18 broker rollout, normal raw scan and HTTPS smoke. ClickUp, GitHub
-and Notion remained the only active providers; the image change made no
+The [19 October image checkpoint](qualification-2026-10-19.md) preserves the
+initial SDK18 image-only rollout with three providers. The subsequent
+[eleven-provider activation checkpoint](qualification-2026-10-19-activation.md)
+records the startup fix, normal raw scan and atomic trial configuration/Secret
+mount rollout. Google remains in Testing; token exchange, consent and receiving
+product qualification are not claimed by readiness. These changes made no
 provider calls or new grants. The base still has zero configured providers
 and must not replace the live provider overlay.
 

@@ -1,0 +1,141 @@
+{
+  "format": 1,
+  "date": "2026-10-19",
+  "status": "passed-broker-startup-fix-and-eleven-provider-trial-activation",
+  "source_commit": "975d9426b1373b1db0c1b7f75d329451f3cf5d75",
+  "public_sdk_version": "0.1.8",
+  "public_sdk_release_unchanged": true,
+  "image_manifest_sha256": "1040f2873a8bdb35f128cb0cee6851e718b787a2328619173e1c8466bd20121a",
+  "image_config_sha256": "a587ecc7517f43aeb10057ebd59241fac661fdb0abfd77db398f47ee8b55788a",
+  "previous_ready_image_manifest_sha256": "fc7c3ceba9f9db10746d8a9653245d0aa572aa370f58f50055a12fcb59166b19",
+  "auth_binary_sha256": "fa619065c43f285f8673c0f47b86f8b469b5a750ff60cd6ddb56219497c12b04",
+  "auth_binary_bytes": 9253026,
+  "source_fix": "Validate the shop fixture only for Shopify during NewServer configuration checks; other providers receive no shop.",
+  "qualification": {
+    "go_version": "1.26.9",
+    "target": "linux/amd64",
+    "cgo_enabled": false,
+    "test_packages": [
+      "./auth",
+      "./oauth"
+    ],
+    "vet_packages": [
+      "./auth",
+      "./oauth",
+      "./cmd/connector-auth"
+    ],
+    "startup_regression": "New five Google Calendar/Microsoft surfaces, previous three providers and Shopify, combined configuration and negative binding guards; no provider HTTP",
+    "test_exit": 0,
+    "vet_exit": 0,
+    "build_exit": 0,
+    "cpu_limit": 1,
+    "memory_bytes": 2147483648,
+    "swap_bytes": 0
+  },
+  "assembly": {
+    "parent_layers_retained": 5,
+    "total_layers": 6,
+    "only_added_path": "connector-auth",
+    "all_layer_hashes_and_diff_ids_verified": true,
+    "inherited_attestation_claimed": false
+  },
+  "scan": {
+    "archive_sha256": "e1a4a7ec90042e56ccb5d57fd35ad01ddbeebe4d0e64cde9bdc3ad1688e76dc5",
+    "all_six_layer_hashes_and_diff_ids_verified": true,
+    "scanner_version": "0.72.0",
+    "scanner_sha256": "0e69edd134a3c338baa1a6806920773615d682b18cbc6a0cba2a3b658ef9b63e",
+    "scanners": [
+      "vuln",
+      "secret"
+    ],
+    "severity": [
+      "HIGH",
+      "CRITICAL"
+    ],
+    "ignore_unfixed": true,
+    "custom_exceptions_added": false,
+    "scan_exit": 0,
+    "vulnerabilities": 0,
+    "secrets": 0,
+    "raw_scan_sha256": "362c24034050f77560bab22d2cb5718cd899ff47f53fe7c17d2fc921fe193598",
+    "raw_scan_bytes": 76074,
+    "finished_at": "2026-10-19T08:07:56.685888+00:00"
+  },
+  "publication": {
+    "digest_only": true,
+    "tags_written": false,
+    "post_read_manifest_and_config_verified": true
+  },
+  "activation": {
+    "finished_at": "2026-10-19T08:14:17.207461+00:00",
+    "generation": 24,
+    "restarts": 0,
+    "one_ready_writer": true,
+    "provider_count": 11,
+    "providers": [
+      "clickup",
+      "github",
+      "notion",
+      "gmail",
+      "google_drive",
+      "google_analytics",
+      "google_calendar",
+      "outlook_mail",
+      "outlook_calendar",
+      "onedrive",
+      "sharepoint"
+    ],
+    "providers_sha256": "077d0363fbb10596bfa9a6558d7cc632c7467beae4aa677a2807e5e5e98d68e8",
+    "old_three_provider_rows_preserved": true,
+    "public_health_http": 200,
+    "public_readiness_http": 200,
+    "unsigned_protected_http": 401,
+    "secret_mount": "read-only projected sources; 0440; UID/fsGroup 65532",
+    "microsoft_secret_stored": true,
+    "microsoft_secret_mounted": true,
+    "microsoft_secret_configured": true,
+    "google_enrollment": "Testing/test users only"
+  },
+  "preserved": {
+    "metadata_volume": true,
+    "event_key_reference": true,
+    "installation_identities": true,
+    "persistent_data": true,
+    "metadata_restore": false
+  },
+  "retained_failures": [
+    {
+      "stage": "initial-secret-mount",
+      "result": "nested file subPath mount failed before startup; replaced with projected sources"
+    },
+    {
+      "stage": "eleven-provider-startup",
+      "result": "shop fixture was incorrectly supplied to non-Shopify providers; restored previous Ready three-provider spec before rebuilding"
+    },
+    {
+      "stage": "operator-preflight",
+      "result": "kubectl command/template invocation failed before mutation; corrected privilege invocation and metadata-only template formatting"
+    }
+  ],
+  "cleanup": {
+    "go_worker_uid_resource_version_guarded_delete": true,
+    "go_worker_not_found": true,
+    "scanner_container_absent": true,
+    "owned_append_archive_upload_units_absent": true
+  },
+  "acceptance_boundary": {
+    "provider_calls": 0,
+    "new_provider_grants": false,
+    "token_exchange_qualified": false,
+    "refresh_qualified": false,
+    "receiving_product_lifecycle_qualified": false,
+    "general_public_qualification": false,
+    "native_app_acceptance": false
+  },
+  "safe_evidence_sha256": {
+    "qualification-receipt.json": "80a52789c02ea92d973621ca9548134a80e16ed8aa006f9b192b32990e4414ec",
+    "raw-scan-result.json": "63fbc83f149469fe779ad4cec5bef0e272c524a3c41a6d3f5c4b61a96554aedf",
+    "activation-975d-actual-receipt.json": "c49d15ab28c3ffef847db4138f187da329c646ccbed9de656fe40cba2e1760a2",
+    "startup-worker-cleanup.json": "28ed74ce60c9f126d897d27025651f6880e79d4268c4b00bdb811adf22e5d096"
+  }
+}

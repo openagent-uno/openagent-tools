@@ -32,7 +32,8 @@ This step made **zero provider API calls** and obtained **no new grants**.
 Google and Microsoft configuration, Secret mounting, consent and receiving-host
 acceptance remain separate work; this checkpoint does not activate them.
 
-`kustomization.yaml` now pins this image. Its checked-in base still generates
+At this checkpoint, `kustomization.yaml` pinned this image. The later
+[activation checkpoint](qualification-2026-10-19-activation.md) records its successor. Its checked-in base still generates
 `providers.json=[]` and uses bootstrap health readiness: it is not a copy of the
 live three-provider overlay. Do not apply the base as a production configuration
 replacement. Preserve the current provider overlay independently.

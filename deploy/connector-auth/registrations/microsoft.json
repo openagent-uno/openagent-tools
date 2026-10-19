@@ -13,7 +13,7 @@
     "https://auth.openagent.uno/v1/oauth/sharepoint/callback"
   ],
   "registration_verified": "2026-10-18",
-  "broker_enabled": false,
+  "broker_enabled": true,
   "secret_reference": {
     "namespace": "openagent-connectors",
     "name": "connector-auth-microsoft-20261019",
@@ -23,7 +23,6 @@
   "publisher_verified": false,
   "qualification_pending": [
     "Qualify confidential-client token exchange and refresh through a fresh authorized receiving installation",
-    "Mount the stored isolated client secret read-only in the broker through a separately reviewed configuration change",
     "Verify publisher status and any consent requirements imposed by the receiving tenant or risk policy",
     "Fresh receiving-installation consent and real lifecycle qualification"
   ],
@@ -31,7 +30,7 @@
   "cloud": "global",
   "account_audience": "AzureADandPersonalMicrosoftAccount",
   "oauth_settings_verified": true,
-  "production_secret_configured": false,
+  "production_secret_configured": true,
   "public_console_checkpoint": {
     "date": "2026-10-18",
     "reference": "registration_verified and callbacks_saved in this registration record",
@@ -65,7 +64,7 @@
     "remaining_oauth_settings_verified": false
   },
   "production_secret_stored": true,
-  "production_secret_mounted": false,
+  "production_secret_mounted": true,
   "secret_custody_checkpoint": {
     "created_at": "2026-10-19T07:24:12Z",
     "metadata_verified_at": "2026-10-19T07:25:05Z",
@@ -91,5 +90,18 @@
     "live_sdk_default_enabled": true,
     "client_authentication_token_exchange_qualified": false,
     "provider_consent_granted": false
+  },
+  "broker_enabled_for_trial": true,
+  "general_public_qualification": false,
+  "real_provider_qualification": false,
+  "broker_activation_checkpoint": {
+    "activated_at": "2026-10-19T08:14:17.207461+00:00",
+    "qualification_reference": "../qualification-2026-10-19-activation.json",
+    "configured_provider_count": 11,
+    "public_health_http": 200,
+    "public_readiness_http": 200,
+    "provider_consent_qualified": false,
+    "token_exchange_qualified": false,
+    "secret_mount": "read-only projected Secret, mode 0440, broker UID/fsGroup 65532"
   }
 }
