@@ -1,0 +1,73 @@
+{
+  "format": 1,
+  "status": "passed-canonical-sdk0.1.12-published",
+  "version": "0.1.12",
+  "source_commit": "e5cbc0d933ea202ceb5bd41f3d01dd2098ccb10d",
+  "release_url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.12",
+  "release_id": 417449679,
+  "published_at": "2026-10-19T15:22:40Z",
+  "manifest_sha256": "4b864472df3cbfd01131b0c152d94da81ff6f3f161e976bbbe4c768c56fb87c9",
+  "catalog_sha256": "034b604f10918c3eaa60384e117cb7c1c21668b365d23774ec2c09af3f0c05e0",
+  "checks": {
+    "race_tests": true,
+    "vet": true,
+    "govulncheck_no_vulnerabilities": true,
+    "platform_bundles": 6,
+    "compiled_binaries": 12,
+    "python_privacy_and_provider_errors": true,
+    "native_mcp_and_public_host_acquisition": true,
+    "source_python_catalog_parity": true,
+    "all_11_public_asset_api_digests": true,
+    "all_11_anonymous_download_sha256": true,
+    "public_linux_x64_catalog_execution": true,
+    "go_proxy_origin_hash": "e5cbc0d933ea202ceb5bd41f3d01dd2098ccb10d",
+    "catalog_official": 114,
+    "custom_mcp": 1,
+    "read_operations": 315,
+    "action_operations": 82,
+    "operations": 397,
+    "public_go_module_sumdb_verified": true
+  },
+  "changes": [
+    "Authenticate fresh legacy relay delivery time and exact receiver audience while preserving original provider occurrence and body HMAC",
+    "Require explicit native Shopify receipt v2 capability; retain original occurrence plus authenticated authorization cutoff and unique prior-uninstall identity",
+    "Keep missing or ambiguous uninstall history durable and unacknowledgeable; never infer host v2 support from the installed SDK version",
+    "Allow operators to pause new Shopify consents during staged cutover while preserving callbacks, existing refresh and privacy delivery"
+  ],
+  "compatibility": {
+    "catalog_operations_schemas_scopes_unchanged": true,
+    "default_events_receipt_version": 1,
+    "explicit_v2_host_adoption_required": true,
+    "old_host_unsafe_redaction_is_blocked_without_ack": true,
+    "raw_provider_data_exported": false,
+    "automatic_product_adoption": false
+  },
+  "limits": {
+    "native_execution": [
+      "linux-x64"
+    ],
+    "other_targets": "cross-compilation and public byte/checksum verification only",
+    "real_provider_calls": 0,
+    "real_provider_grants": 0,
+    "native_app_or_new_gui_qualified": false,
+    "live_shopify_provider_acceptance": false
+  },
+  "evidence_sha256": {
+    "qualification_status": "70ccadb52558d3f47ce75b5cf9ec0623ece441bf36c6f34ef68c7e20c2e835af",
+    "public_download_receipt": "bbb902687539f0b70efd66be390eb17bcdaa032ba10dc44af098c5d81470731c",
+    "public_go_module_metadata": "2657d2fce47bc0ddfb6fecf9452b2e62e03e4b36773a06b50d9f52584d0d1ae0"
+  },
+  "public_go_module": {
+    "module": "github.com/openagent-uno/openagent-tools/packages/connectors",
+    "version": "v0.1.12",
+    "Origin": {
+      "VCS": "git",
+      "URL": "https://github.com/openagent-uno/openagent-tools",
+      "Subdir": "packages/connectors",
+      "Hash": "e5cbc0d933ea202ceb5bd41f3d01dd2098ccb10d",
+      "Ref": "refs/tags/packages/connectors/v0.1.12"
+    },
+    "Sum": "h1:8uPaVAhbku8bUkvfDur7pMw7KxflFpI7cwVlFU811H4=",
+    "GoModSum": "h1:OzygHO19bIYaVPoQDQqbl7FdGmjpMMJGuu9/D+OSP6A="
+  }
+}
