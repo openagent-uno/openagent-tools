@@ -1,0 +1,45 @@
+{
+  "format": 1,
+  "status": "passed-canonical-sdk0.1.9-published",
+  "version": "0.1.9",
+  "source_commit": "58b47a81467944e604b6643f722041880ead0d6d",
+  "release_url": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.9",
+  "release_id": 417162491,
+  "manifest_sha256": "00f0319e4dba6242eab8d085b4281da8019c53abee8ed8b9269186a6c59d4343",
+  "catalog_sha256": "034b604f10918c3eaa60384e117cb7c1c21668b365d23774ec2c09af3f0c05e0",
+  "checks": {
+    "race_tests": true,
+    "vet": true,
+    "govulncheck_no_vulnerabilities": true,
+    "platform_bundles": 6,
+    "compiled_binaries": 12,
+    "python_privacy_and_provider_errors": true,
+    "native_mcp_and_public_host_acquisition": true,
+    "source_python_catalog_parity": true,
+    "all_11_public_asset_api_digests": true,
+    "anonymous_manifest_and_catalog_digests": true,
+    "go_proxy_origin_hash": true,
+    "catalog_official": 114,
+    "custom_mcp": 1,
+    "operations": 397
+  },
+  "changes": [
+    "Optional boolean canShare in fixed Outlook Calendar list/get projection; no scope or operation changes",
+    "Broker startup uses Shopify shop context only for Shopify; prior sanitized Microsoft diagnostic source retained"
+  ],
+  "compatibility": {
+    "missing_or_false_canShare_not_promoted_to_ownership": true,
+    "malformed_canShare_rejected": true,
+    "old_calendar_continuations_restart_first_page": true,
+    "no_automatic_write_permission": true
+  },
+  "limits": {
+    "native_execution": [
+      "linux-x64"
+    ],
+    "other_targets": "cross-compilation only",
+    "real_provider_grants": 0,
+    "calendar_write_or_sharepoint_data_qualified": false,
+    "native_app_or_new_gui_qualified": false
+  }
+}
