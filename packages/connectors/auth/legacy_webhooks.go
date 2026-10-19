@@ -6,6 +6,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -47,6 +48,21 @@ func (s *Server) ConfigureLegacyShopifyWebhooks(routes map[string]string) error 
 	}
 	s.legacyShopifyWebhooks = reviewed
 	return nil
+}
+
+// legacyShopifyBody adapts only the legacy uninstall wire representation.
+// Native encrypted receipts retain their authenticated shop binding.
+func legacyShopifyBody(topic string, body []byte) ([]byte, error) {
+	if topic != "app/uninstalled" {
+		return body, nil
+	}
+	var payload struct {
+		ID uint64 `json:"id"`
+	}
+	if json.Unmarshal(body, &payload) != nil || payload.ID == 0 {
+		return nil, ErrDenied
+	}
+	return json.Marshal(payload)
 }
 
 func (s *Server) RunLegacyShopifyDeliveries(ctx context.Context) {
@@ -96,6 +112,9 @@ func (s *Server) DeliverLegacyShopifyWebhooks(ctx context.Context) {
 			continue
 		}
 		body, err := s.decryptEvent(event)
+		if err == nil {
+			body, err = legacyShopifyBody(event.Topic, body)
+		}
 		accepted := false
 		if err == nil {
 			secret, readErr := os.ReadFile(s.Providers["shopify"].SecretFile)
@@ -108,10 +127,18 @@ func (s *Server) DeliverLegacyShopifyWebhooks(ctx context.Context) {
 					req.Header.Set("Content-Type", "application/json")
 					req.Header.Set("X-Shopify-Hmac-Sha256", base64.StdEncoding.EncodeToString(mac.Sum(nil)))
 					req.Header.Set("X-Shopify-Topic", event.Topic)
+					req.Header.Set("X-Shopify-Api-Version", "2026-07")
 					req.Header.Set("X-Shopify-Shop-Domain", event.Legacy.Shop)
 					req.Header.Set("X-Shopify-Webhook-Id", event.Legacy.WebhookID)
 					req.Header.Set("X-Shopify-Triggered-At", event.OccurredAt.Format(time.RFC3339Nano))
-					res, sendErr := client.Do(req)
+					signErr := SignLegacyShopifyDelivery(req, body, []byte(strings.TrimSpace(string(secret))), s.now())
+					var res *http.Response
+					var sendErr error
+					if signErr == nil {
+						res, sendErr = client.Do(req)
+					} else {
+						sendErr = signErr
+					}
 					if sendErr == nil {
 						accepted = res.StatusCode >= 200 && res.StatusCode < 300
 						io.Copy(io.Discard, io.LimitReader(res.Body, 4096))

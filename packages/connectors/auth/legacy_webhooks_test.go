@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -19,7 +20,11 @@ import (
 func webhookRequest(t *testing.T, f *fixture, topic, shop, body string) int {
 	t.Helper()
 	req, _ := http.NewRequest("POST", f.http.URL+"/v1/webhooks/shopify", strings.NewReader(body))
-	mac := hmac.New(sha256.New, []byte("test-app-secret"))
+	secret, err := os.ReadFile(f.server.Providers["shopify"].SecretFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	mac := hmac.New(sha256.New, secret)
 	mac.Write([]byte(body))
 	req.Header.Set("X-Shopify-Hmac-Sha256", base64.StdEncoding.EncodeToString(mac.Sum(nil)))
 	req.Header.Set("X-Shopify-Shop-Domain", shop)
@@ -58,7 +63,7 @@ func TestSignedWebhookCannotRevokeAnotherShopByChangingHeaders(t *testing.T) {
 }
 
 func TestLegacyWebhookQueueSurvivesOfflineRecipientRestartAndDuplicates(t *testing.T) {
-	f := newFixture(t)
+	f := newLegacyRelayFixture(t)
 	var calls atomic.Int64
 	endpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		count := calls.Add(1)
@@ -143,7 +148,7 @@ func TestLegacyWebhookRoutesRejectPartialOrUnsafeReceiver(t *testing.T) {
 }
 
 func TestNativeAcknowledgmentKeepsPayloadForOfflineLegacyProcessor(t *testing.T) {
-	f := newFixture(t)
+	f := newLegacyRelayFixture(t)
 	endpoint := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(503) }))
 	defer endpoint.Close()
 	routes := map[string]string{}
@@ -177,4 +182,15 @@ func TestNativeAcknowledgmentKeepsPayloadForOfflineLegacyProcessor(t *testing.T)
 	if event.Ciphertext == "" || event.Legacy.Acknowledged {
 		t.Fatal("native acknowledgment erased legacy obligation")
 	}
+}
+
+// Relay authentication requires a production-sized key; other fixtures retain
+// their independent provider protocol sentinel.
+func newLegacyRelayFixture(t *testing.T) *fixture {
+	t.Helper()
+	f := newFixture(t)
+	if err := os.WriteFile(f.server.Providers["shopify"].SecretFile, []byte("legacy-relay-test-key-at-least-32-bytes"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	return f
 }
