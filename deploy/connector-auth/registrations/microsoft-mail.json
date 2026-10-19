@@ -1,0 +1,80 @@
+{
+  "provider_family": "microsoft",
+  "provider": "outlook_mail",
+  "application_name": "OpenAgent Mail",
+  "registration_status": "registered-callback-saved",
+  "client_id": "7251fa1b-5dd9-4c29-8669-95b81156c26b",
+  "object_id": "bfe3b549-80eb-4e16-9c85-6a7373025ad7",
+  "tenant_id": "260918f2-47f1-4958-bbc6-5df48b686766",
+  "client_type": "web",
+  "cloud": "global",
+  "sign_in_audience": "AzureADandPersonalMicrosoftAccount",
+  "account_audience": "AzureADandPersonalMicrosoftAccount",
+  "redirect_uris": [
+    "https://auth.openagent.uno/v1/oauth/outlook_mail/callback"
+  ],
+  "registration_verified": "2026-10-19",
+  "callbacks_saved": "2026-10-19",
+  "planned_delegated_scopes": [
+    "User.Read",
+    "offline_access",
+    "Mail.ReadWrite",
+    "Mail.Send"
+  ],
+  "configured_delegated_scopes": [
+    "User.Read",
+    "offline_access",
+    "Mail.ReadWrite",
+    "Mail.Send"
+  ],
+  "delegated_permissions_verified": true,
+  "oauth_settings_verified": true,
+  "secret_reference": {
+    "namespace": "openagent-connectors",
+    "name": "connector-auth-microsoft-mail-20261019",
+    "key": "microsoft-mail-client-secret",
+    "mount_path": "/secrets/microsoft-mail-client-secret"
+  },
+  "production_secret_stored": true,
+  "production_secret_mounted": false,
+  "production_secret_configured": false,
+  "broker_enabled": false,
+  "broker_enabled_for_trial": false,
+  "real_provider_qualification": false,
+  "general_public_qualification": false,
+  "qualification_pending": [
+    "Mount the stored Secret read-only only after reviewed configuration rollout",
+    "Prepare fresh configuration and exact old-issuer transition without rewriting credentials",
+    "Fresh receiving-installation consent and real lifecycle qualification"
+  ],
+  "secret_custody_checkpoint": {
+    "date": "2026-10-19",
+    "immutable": true,
+    "creation_acknowledged": true,
+    "transport": "anonymous stdin over authenticated SSH; no local credential file",
+    "deployment_modified": false,
+    "value_exported": false,
+    "created_at": "2026-10-19T09:12:41Z",
+    "metadata_verified_at": "2026-10-19T09:14:43.126748+00:00",
+    "key_names_exact": true
+  },
+  "delegated_permissions_checkpoint": {
+    "date": "2026-10-19",
+    "permission_type": "Delegated",
+    "admin_consent_granted": false,
+    "user_consent_granted": false,
+    "evidence_reference": "provider-activation-20261019/microsoft-mail-permissions.jpg",
+    "evidence_visibility": "private"
+  },
+  "oauth_settings_checkpoint": {
+    "date": "2026-10-19",
+    "web_callback_verified": true,
+    "implicit_access_token_enabled": false,
+    "implicit_id_token_enabled": false,
+    "public_client_flows_enabled": false,
+    "token_exchange_qualified": false,
+    "provider_consent_granted": false,
+    "evidence_reference": "provider-activation-20261019/microsoft-mail-registration.json",
+    "evidence_visibility": "private"
+  }
+}

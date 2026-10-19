@@ -83,113 +83,10 @@ class PrepareProviderTrialTests(unittest.TestCase):
                 self.prepare()
             self.assertFalse(self.output.exists())
 
-    def test_microsoft_cannot_be_invented_from_absent_registration_or_row(self):
-        self.write_metadata()
-        for provider in sorted(module.MICROSOFT):
-            with self.assertRaises(FileNotFoundError):
-                self.prepare(provider)
-            self.assertFalse(self.output.exists())
-        self.rows = [row for row in self.rows if row["id"] not in module.MICROSOFT]
-        self.write_metadata()
-        for provider in sorted(module.MICROSOFT):
-            with self.assertRaises(ValueError):
-                self.prepare(provider)
-            self.assertFalse(self.output.exists())
 
-    def test_microsoft_fixture_preserves_audience_and_requires_explicit_send_scope(self):
-        client = "00000000-0000-4000-8000-000000000001"
-        scopes = ["offline_access", module.GRAPH + "User.Read", module.GRAPH + "Mail.ReadWrite"]
-        row = {"id": "outlook_mail", "app_id": "microsoft:" + client, "client_id": client,
-               "secret_file": "/secrets/microsoft-client-secret",
-               "authorization_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
-               "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
-               "redirect_uri": "https://auth.openagent.uno/v1/oauth/outlook_mail/callback",
-               "scopes": scopes, "pkce": True}
-        self.rows = [item for item in self.rows if item["id"] != row["id"]] + [row]
-        self.write_metadata()
-        registration = {"client_id": client, "cloud": "global", "account_audience": "AzureADandPersonalMicrosoftAccount",
-                        "sign_in_audience": "AzureADandPersonalMicrosoftAccount",
-                        "oauth_settings_verified": True, "production_secret_stored": True,
-                        "production_secret_mounted": False, "production_secret_configured": False,
-                        "secret_custody_checkpoint": {"immutable": True},
-                        "redirect_uris": [row["redirect_uri"]], "configured_delegated_scopes": ["offline_access", "User.Read", "Mail.ReadWrite"],
-                        "secret_reference": {"namespace": "openagent-connectors", "name": "connector-auth-microsoft-20261019",
-                                             "key": "microsoft-client-secret", "mount_path": row["secret_file"]}}
-        p = self.base / "registrations/microsoft.json"
-        p.write_text(json.dumps(registration))
-        original = p.read_bytes()
-        self.prepare("outlook_mail")
-        self.assertEqual(original, p.read_bytes(), "audience is never rewritten")
-        selected = json.loads((self.output / "providers.json").read_text())[-1]
-        self.assertEqual(scopes, selected["scopes"])
-        self.assertNotIn(module.GRAPH + "Mail.Send", selected["scopes"])
-        for field, changed in (("cloud", "other-cloud"), ("oauth_settings_verified", False),
-                               ("production_secret_stored", False), ("account_audience", "")):
-            registration[field] = changed
-            p.write_text(json.dumps(registration))
-            with patch.object(module, "BASE", self.base), self.assertRaises(ValueError):
-                module.reviewed_registration(row)
-            registration = json.loads(original)
 
-    def test_all_eight_trial_rows_prepare_without_mount_or_qualification_claims(self):
-        self.write_metadata(ready=True)
-        registration = json.loads((module.BASE / "registrations/microsoft.json").read_text())
-        (self.base / "registrations/microsoft.json").write_text(json.dumps(registration))
-        for provider in module.TRIAL:
-            with self.subTest(provider=provider):
-                self.output = self.root / provider
-                self.prepare(provider)
-                result = json.loads((self.output / "providers.json").read_text())
-                self.assertEqual(self.current, result[:-1])
-                self.assertEqual(provider, result[-1]["id"])
-                metadata = json.loads((self.output / "trial-metadata.json").read_text())
-                self.assertFalse(metadata["secret_mount_attested"])
-                self.assertFalse(metadata["broker_apply_authorized"])
-                self.assertFalse(metadata["provider_review_attested"])
-                self.assertEqual(0, metadata["new_grants"])
-                if provider in module.MICROSOFT:
-                    self.assertEqual("connector-auth-microsoft-20261019", metadata["required_secret_reference"]["name"])
-                    if provider != "outlook_mail":
-                        self.assertNotIn("Mail.Send", [scope.removeprefix(module.GRAPH) for scope in result[-1]["scopes"]])
 
-    def test_microsoft_reference_and_cross_surface_or_broader_scopes_are_rejected(self):
-        registration = json.loads((module.BASE / "registrations/microsoft.json").read_text())
-        path = self.base / "registrations/microsoft.json"
-        path.write_text(json.dumps(registration))
-        for provider in sorted(module.MICROSOFT):
-            row = next(row for row in self.rows if row["id"] == provider)
-            with patch.object(module, "BASE", self.base):
-                module.reviewed_registration(row)
-                foreign = "Sites.Read.All" if provider != "sharepoint" else "Files.Read"
-                for scope in ("Files.ReadWrite.All", "Sites.ReadWrite.All", "Directory.Read.All", foreign):
-                    changed = {**row, "scopes": row["scopes"] + [module.GRAPH + scope]}
-                    with self.assertRaises(ValueError):
-                        module.reviewed_registration(changed)
-                for reference in ({**registration["secret_reference"], "name": "../different"},
-                                  {**registration["secret_reference"], "name": ""},
-                                  {**registration["secret_reference"], "other_name": "ambiguous"},
-                                  {**registration["secret_reference"], "key": "event-key"},
-                                  {**registration["secret_reference"], "namespace": "other"}):
-                    path.write_text(json.dumps({**registration, "secret_reference": reference}))
-                    with self.assertRaises(ValueError):
-                        module.reviewed_registration(row)
-                path.write_text(json.dumps(registration))
-                for invalid in ({**registration, "production_secret_stored": False},
-                                {**registration, "secret_custody_checkpoint": {"immutable": False}}):
-                    path.write_text(json.dumps(invalid))
-                    with self.assertRaises(ValueError):
-                        module.reviewed_registration(row)
-                path.write_text(json.dumps(registration))
 
-    def test_secret_name_is_taken_only_from_the_reviewed_registration(self):
-        self.write_metadata()
-        registration = json.loads((module.BASE / "registrations/microsoft.json").read_text())
-        registration["secret_reference"]["name"] = "fixture-owned-microsoft-secret"
-        (self.base / "registrations/microsoft.json").write_text(json.dumps(registration))
-        self.prepare("onedrive")
-        metadata = json.loads((self.output / "trial-metadata.json").read_text())
-        self.assertEqual(registration["secret_reference"], metadata["required_secret_reference"])
-        self.assertFalse(metadata["secret_mount_attested"])
 
     def test_existing_output_and_existing_provider_are_never_replaced(self):
         self.write_metadata(ready=True)
@@ -203,6 +100,155 @@ class PrepareProviderTrialTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.prepare()
         self.assertEqual({"keep"}, {p.name for p in self.output.iterdir()})
+
+
+class MicrosoftFamilyTests(unittest.TestCase):
+    setUp = PrepareProviderTrialTests.setUp
+    write_metadata = PrepareProviderTrialTests.write_metadata
+    prepare = PrepareProviderTrialTests.prepare
+
+    def write_families(self):
+        # Designed file-only fixtures, never evidence of live registration/consent.
+        self.write_metadata(ready=True)
+        for i, provider in enumerate(sorted(module.MICROSOFT), 1):
+            filename, key, audience = module.MICROSOFT_REGISTRATIONS[provider]
+            row = next(row for row in self.rows if row["id"] == provider)
+            client = ("c245634c-3535-44fd-a7ef-0fdd8040dc93" if provider == "outlook_calendar"
+                      else "00000000-0000-4000-8000-%012d" % i)
+            row.update(client_id=client, app_id="microsoft:" + client, secret_file="/secrets/" + key)
+            registration = {"provider_family": "microsoft", "provider": provider, "client_id": client,
+                            "cloud": "global", "account_audience": audience, "sign_in_audience": audience,
+                            "oauth_settings_verified": True, "production_secret_stored": True,
+                            "production_secret_mounted": False, "production_secret_configured": False,
+                            "secret_custody_checkpoint": {"immutable": True},
+                            "redirect_uris": [row["redirect_uri"]],
+                            "configured_delegated_scopes": [s.removeprefix(module.GRAPH) for s in row["scopes"]],
+                            "secret_reference": {"namespace": "openagent-connectors", "name": "fixture-" + provider.replace("_", "-"),
+                                                 "key": key, "mount_path": row["secret_file"]}}
+            (self.base / "registrations" / filename).write_text(json.dumps(registration))
+        (self.base / "providers-reviewed.json").write_text(json.dumps(self.rows))
+
+    def registration_file(self, provider):
+        return self.base / "registrations" / module.MICROSOFT_REGISTRATIONS[provider][0]
+
+    def validate(self, provider, row=None):
+        with patch.object(module, "BASE", self.base):
+            module.reviewed_registration(row or next(r for r in self.rows if r["id"] == provider))
+
+    def test_four_fixed_families_prepare_with_exact_reference_and_no_live_claim(self):
+        self.write_families()
+        before = {p.name: p.read_bytes() for p in (self.base / "registrations").iterdir()}
+        for provider in sorted(module.MICROSOFT):
+            with self.subTest(provider=provider):
+                self.output = self.root / provider
+                self.prepare(provider)
+                meta = json.loads((self.output / "trial-metadata.json").read_text())
+                self.assertEqual(json.loads(self.registration_file(provider).read_text())["secret_reference"], meta["required_secret_reference"])
+                self.assertFalse(meta["secret_mount_attested"])
+                self.assertFalse(meta["broker_apply_authorized"])
+                self.assertEqual(0, meta["new_grants"])
+        self.assertEqual(before, {p.name: p.read_bytes() for p in (self.base / "registrations").iterdir()})
+
+    def test_missing_family_never_falls_back_to_original_shared_registration(self):
+        self.write_families()
+        for provider in ("outlook_mail", "onedrive", "sharepoint"):
+            path = self.registration_file(provider);raw = path.read_bytes();path.unlink()
+            with self.assertRaises(FileNotFoundError): self.prepare(provider)
+            self.assertFalse(self.output.exists());path.write_bytes(raw)
+
+    def test_family_reference_issuer_and_custody_drift_are_rejected(self):
+        self.write_families()
+        for provider in sorted(module.MICROSOFT):
+            path = self.registration_file(provider);original = json.loads(path.read_text());row = next(r for r in self.rows if r["id"] == provider)
+            for field, value in (("client_id", "another-client"), ("cloud", "other-cloud"),
+                                 ("oauth_settings_verified", False), ("production_secret_stored", False),
+                                 ("secret_custody_checkpoint", {"immutable": False}), ("redirect_uris", [])):
+                path.write_text(json.dumps({**original, field: value}))
+                with self.subTest(provider=provider, field=field), self.assertRaises(ValueError): self.validate(provider)
+            for field, value in (("key", "event-key"), ("namespace", "other"), ("name", "../other"),
+                                 ("mount_path", "/secrets/other")):
+                path.write_text(json.dumps({**original, "secret_reference": {**original["secret_reference"], field: value}}))
+                with self.subTest(provider=provider, reference=field), self.assertRaises(ValueError): self.validate(provider)
+            if provider != "outlook_calendar":
+                path.write_text(json.dumps({**original, "provider": "outlook_calendar"}))
+                with self.assertRaises(ValueError): self.validate(provider)
+            path.write_text(json.dumps(original))
+            for changed in ({**row, "app_id": "microsoft:other"}, {**row, "secret_file": "/secrets/microsoft-client-secret-other"}):
+                with self.assertRaises(ValueError): self.validate(provider, changed)
+
+    def test_sharepoint_requires_organizations_and_other_families_personal_compatible_audience(self):
+        self.write_families()
+        for provider in sorted(module.MICROSOFT):
+            self.validate(provider)
+            path = self.registration_file(provider);d = json.loads(path.read_text())
+            wrong = "AzureADandPersonalMicrosoftAccount" if provider == "sharepoint" else "AzureADMultipleOrgs"
+            d.update(account_audience=wrong, sign_in_audience=wrong);path.write_text(json.dumps(d))
+            with self.assertRaises(ValueError): self.validate(provider)
+
+    def test_cross_surface_and_broader_permissions_still_reject_no_send_is_inferred(self):
+        self.write_families()
+        for provider in sorted(module.MICROSOFT):
+            row = next(r for r in self.rows if r["id"] == provider)
+            foreign = "Files.Read" if provider == "sharepoint" else "Sites.Read.All"
+            for scope in (foreign, "Directory.Read.All", "Files.ReadWrite.All"):
+                with self.assertRaises(ValueError): self.validate(provider, {**row, "scopes": row["scopes"] + [module.GRAPH + scope]})
+        row = next(r for r in self.rows if r["id"] == "outlook_mail")
+        row["scopes"].remove(module.GRAPH + "Mail.Send")
+        (self.base / "providers-reviewed.json").write_text(json.dumps(self.rows))
+        self.prepare("outlook_mail")
+        self.assertNotIn(module.GRAPH + "Mail.Send", json.loads((self.output / "providers.json").read_text())[-1]["scopes"])
+
+    def old_eleven_baseline(self):
+        calendar = next(r for r in self.rows if r["id"] == "outlook_calendar")
+        result = [copy.deepcopy(r) for r in self.rows if r["id"] in module.PUBLIC | set(module.TRIAL)]
+        for row in result:
+            if row["id"] in {"outlook_mail", "onedrive", "sharepoint"}:
+                row.update(client_id=calendar["client_id"], app_id=calendar["app_id"], secret_file=calendar["secret_file"])
+        self.baseline.write_text(json.dumps(result))
+        return result
+
+    def switch(self):
+        with patch.object(module, "BASE", self.base):
+            module.prepare_microsoft_family_switch(self.baseline, self.output)
+
+    def test_family_switch_preserves_calendar_and_seven_other_rows_and_never_rewrites_tokens(self):
+        self.write_families();before = self.old_eleven_baseline();raw = self.baseline.read_bytes()
+        calendar_before = self.registration_file("outlook_calendar").read_bytes()
+        self.switch();after = json.loads((self.output / "providers.json").read_text())
+        self.assertEqual(11, len(after));self.assertEqual([r["id"] for r in before], [r["id"] for r in after])
+        for old, new in zip(before, after):
+            if old["id"] not in {"outlook_mail", "onedrive", "sharepoint"}:self.assertEqual(old, new)
+            else:self.assertNotEqual(old["app_id"], new["app_id"])
+        self.assertEqual(raw, self.baseline.read_bytes());self.assertEqual(calendar_before, self.registration_file("outlook_calendar").read_bytes())
+        meta = json.loads((self.output / "trial-metadata.json").read_text())
+        self.assertFalse(meta["existing_credential_records_or_issuers_rewritten"])
+        self.assertFalse(meta["old_issuer_refresh_compatibility_claimed"])
+        self.assertFalse(meta["broker_apply_authorized"])
+        self.assertFalse(meta["secret_mount_attested"])
+
+    def test_pending_registration_secret_or_oauth_configuration_blocks_family_switch(self):
+        self.write_families();self.old_eleven_baseline();path = self.registration_file("onedrive");original = json.loads(path.read_text())
+        for field, value in (("client_id", None), ("production_secret_stored", False), ("oauth_settings_verified", False)):
+            path.write_text(json.dumps({**original, field: value}))
+            with self.assertRaises(ValueError):self.switch()
+            self.assertFalse(self.output.exists())
+        path.write_text(json.dumps(original))
+
+    def test_family_switch_rejects_reused_clients_and_any_unexpected_baseline_change(self):
+        self.write_families();original = self.old_eleven_baseline()
+        for changed in (original[:-1], original + [original[0]],
+                        [{**r, "client_id": "drift"} if r["id"] == "clickup" else r for r in original],
+                        [{**r, "app_id": "microsoft:another-issuer"} if r["id"] == "outlook_mail" else r for r in original]):
+            self.baseline.write_text(json.dumps(changed))
+            with self.assertRaises(ValueError):self.switch()
+            self.assertFalse(self.output.exists())
+        self.baseline.write_text(json.dumps(original))
+        mail = next(r for r in self.rows if r["id"] == "outlook_mail");drive = next(r for r in self.rows if r["id"] == "onedrive")
+        drive.update(client_id=mail["client_id"], app_id=mail["app_id"])
+        path = self.registration_file("onedrive");registration = json.loads(path.read_text());registration["client_id"] = mail["client_id"];path.write_text(json.dumps(registration))
+        (self.base / "providers-reviewed.json").write_text(json.dumps(self.rows))
+        with self.assertRaises(ValueError):self.switch()
+        self.assertFalse(self.output.exists())
 
 
 if __name__ == "__main__":

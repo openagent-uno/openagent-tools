@@ -11,6 +11,19 @@ PUBLIC = {"clickup", "github", "notion"}
 MICROSOFT = {"outlook_mail", "outlook_calendar", "onedrive", "sharepoint"}
 TRIAL = ("gmail", "google_drive", "google_analytics", "google_calendar", "outlook_mail", "outlook_calendar", "onedrive", "sharepoint")
 GRAPH = "https://graph.microsoft.com/"
+MICROSOFT_REGISTRATIONS = {
+    "outlook_calendar": ("microsoft.json", "microsoft-client-secret", "AzureADandPersonalMicrosoftAccount"),
+    "outlook_mail": ("microsoft-mail.json", "microsoft-mail-client-secret", "AzureADandPersonalMicrosoftAccount"),
+    "onedrive": ("microsoft-onedrive.json", "microsoft-onedrive-client-secret", "AzureADandPersonalMicrosoftAccount"),
+    "sharepoint": ("microsoft-sharepoint.json", "microsoft-sharepoint-client-secret", "AzureADMultipleOrgs"),
+}
+
+
+def registration_path(provider):
+    if provider not in TRIAL:
+        raise ValueError("provider is outside this finite trial")
+    filename = MICROSOFT_REGISTRATIONS[provider][0] if provider in MICROSOFT else "google.json"
+    return BASE / "registrations" / filename
 
 
 def reviewed_registration(row):
@@ -18,7 +31,10 @@ def reviewed_registration(row):
     if provider not in TRIAL:
         raise ValueError("provider is outside this finite trial")
     microsoft = provider in MICROSOFT
-    registration = json.loads((BASE / "registrations" / ("microsoft.json" if microsoft else "google.json")).read_text())
+    registration = json.loads(registration_path(provider).read_text())
+    expected_key = MICROSOFT_REGISTRATIONS[provider][1] if microsoft else "google-client-secret"
+    if microsoft and provider != "outlook_calendar" and registration.get("provider") != provider:
+        raise ValueError("Microsoft registration must belong to the exact provider family")
     reference = registration.get("secret_reference") or {}
     # The name comes only from the reviewed registration, never a CLI argument
     # or provider row. Namespace, key and destination remain family-bound.
@@ -34,7 +50,7 @@ def reviewed_registration(row):
             or row["redirect_uri"] not in registration.get("redirect_uris", [])
             or row["secret_file"] != reference.get("mount_path")
             or reference.get("namespace") != "openagent-connectors"
-            or reference.get("key") != ("microsoft-client-secret" if microsoft else "google-client-secret")
+            or reference.get("key") != expected_key
             or row["secret_file"] != "/secrets/" + str(reference.get("key", ""))
             or row["pkce"] is not True):
         raise ValueError("provider must match the existing reviewed registration and secret reference")
@@ -48,7 +64,7 @@ def reviewed_registration(row):
                    "onedrive": {"Files.Read"}, "sharepoint": {"Sites.Read.All"}}[provider]
         canonical = [scope[len(GRAPH):] if scope.startswith(GRAPH) else scope for scope in scopes]
         if (registration.get("cloud") != "global"
-                or registration.get("account_audience") != "AzureADandPersonalMicrosoftAccount"
+                or registration.get("account_audience") != MICROSOFT_REGISTRATIONS[provider][2]
                 or registration.get("sign_in_audience") != registration.get("account_audience")
                 or registration.get("oauth_settings_verified") is not True
                 or registration.get("production_secret_stored") is not True
@@ -114,21 +130,82 @@ def prepare(provider, baseline, output):
         "preserved_provider_ids": ids, "baseline_sha256": hashlib.sha256(raw).hexdigest(),
         "global_qa_enrollment_added": False, "new_grants": 0,
         "google_trial_requires_recorded_testing_users": provider not in MICROSOFT,
-        "required_secret_reference": json.loads((BASE / "registrations" / ("microsoft.json" if provider in MICROSOFT else "google.json")).read_text())["secret_reference"],
+        "required_secret_reference": json.loads(registration_path(provider).read_text())["secret_reference"],
         "secret_mount_attested": False,
         "broker_apply_authorized": False,
         "provider_review_attested": False,
     }, indent=2) + "\n")
 
 
+def prepare_microsoft_family_switch(baseline, output):
+    """Replace only three reviewed issuer rows; never migrate credentials."""
+    replaced = {"outlook_mail", "onedrive", "sharepoint"}
+    reviewed = json.loads((BASE / "providers-reviewed.json").read_text())
+    known = {row["id"]: row for row in reviewed}
+    if len(known) != len(reviewed):
+        raise ValueError("reviewed provider identifiers must be unique")
+    raw = Path(baseline).read_bytes()
+    current = json.loads(raw)
+    if not isinstance(current, list) or any(not isinstance(row, dict) for row in current):
+        raise ValueError("baseline must be the current eleven-provider array")
+    ids = [row.get("id") for row in current]
+    if len(ids) != len(set(ids)) or set(ids) != PUBLIC | set(TRIAL):
+        raise ValueError("the exact current eleven-provider cohort is required")
+    calendar_registration = json.loads(registration_path("outlook_calendar").read_text())
+    previous_client = calendar_registration["client_id"]
+    previous_app = "microsoft:" + previous_client
+    previous_secret = calendar_registration["secret_reference"]["mount_path"]
+    clients = {previous_client}
+    for provider in replaced:
+        selected = known[provider]
+        reviewed_registration(selected)
+        if selected["client_id"] in clients:
+            raise ValueError("each new Microsoft family requires a distinct registration")
+        clients.add(selected["client_id"])
+    result = []
+    for row in current:
+        provider = row["id"]
+        selected = known[provider]
+        if provider in replaced:
+            previous = {**selected, "client_id": previous_client,
+                        "app_id": previous_app, "secret_file": previous_secret}
+            if row != previous:
+                raise ValueError("the old issuer row changed; review the actual baseline")
+            result.append(selected)
+        else:
+            if row != selected:
+                raise ValueError("preserve every other reviewed row without replacement")
+            result.append(row)
+    output = Path(output)
+    output.mkdir(parents=True, exist_ok=False)
+    (output / "providers.json").write_text(json.dumps(result, indent=2) + "\n")
+    (output / "trial-metadata.json").write_text(json.dumps({
+        "status": "prepared-microsoft-family-switch-not-applied-or-provider-qualified",
+        "replaced_provider_ids": sorted(replaced), "preserved_provider_ids": [p for p in ids if p not in replaced],
+        "baseline_sha256": hashlib.sha256(raw).hexdigest(), "new_grants": 0,
+        "required_secret_references": {p: json.loads(registration_path(p).read_text())["secret_reference"]
+                                       for p in sorted(MICROSOFT)},
+        "original_calendar_issuer_preserved": True,
+        "existing_credential_records_or_issuers_rewritten": False,
+        "old_issuer_refresh_compatibility_claimed": False,
+        "secret_mount_attested": False, "broker_apply_authorized": False,
+        "provider_review_attested": False,
+    }, indent=2) + "\n")
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--provider", choices=TRIAL, required=True)
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--provider", choices=TRIAL)
+    mode.add_argument("--microsoft-family-switch", action="store_true")
     parser.add_argument("--baseline-providers", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     try:
-        prepare(args.provider, args.baseline_providers, args.output)
+        if args.microsoft_family_switch:
+            prepare_microsoft_family_switch(args.baseline_providers, args.output)
+        else:
+            prepare(args.provider, args.baseline_providers, args.output)
     except (ValueError, OSError, KeyError, TypeError):
         parser.error("trial preparation refused; review current baseline and verified registration metadata")
     print("Prepared provider file only; image compatibility, CAS rollout and actual consent remain separate.")

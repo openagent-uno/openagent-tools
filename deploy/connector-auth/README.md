@@ -51,6 +51,20 @@ The identity file must be durably host-owned and survive restart. Kubernetes hos
 
 A provider outage leaves valid local tokens usable. New consents and renewals requiring app secrets fail closed. Legacy own-app configuration remains supported; do not replace old app config while old credentials rely on it. Disable new official enrollment to roll back, preserving official credentials/identity for their renewals.
 
+## Separate Microsoft family preparation
+
+Microsoft Mail, OneDrive and SharePoint use separate reviewed registrations and
+Secret references. Calendar retains `registrations/microsoft.json` and its original
+issuer. `prepare-provider-trial.py --microsoft-family-switch --baseline-providers
+<current-providers.json> --output <new-owned-directory>` prepares a file-only
+replacement of exactly those three issuer rows. It requires the exact current
+eleven-provider cohort, distinct registered clients, verified family-specific
+scopes/settings and immutable Secret custody. It preserves Calendar and every
+non-Microsoft row and never edits existing credential records. This output is
+not an apply authorization or provider qualification. Old-issuer refresh remains
+fail closed; retain the original Secret and use an explicit owner-authorized
+revocation/disconnect/reconsent transition rather than relabeling old tokens.
+
 ## Current image checkpoint
 
 The [19 October image checkpoint](qualification-2026-10-19.md) preserves the
