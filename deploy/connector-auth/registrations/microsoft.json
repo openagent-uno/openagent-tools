@@ -17,9 +17,9 @@
   "secret_reference": null,
   "publisher_verified": false,
   "qualification_pending": [
-    "Configure delegated permissions",
+    "Verify the remaining OAuth settings and client authentication",
     "Provision client authentication in the production secret manager",
-    "Publisher verification required for external multitenant user consent",
+    "Verify publisher status and any consent requirements imposed by the receiving tenant or risk policy",
     "Fresh receiving-installation consent and real lifecycle qualification"
   ],
   "callbacks_saved": "2026-10-18",
@@ -37,5 +37,26 @@
       "four Web redirect callbacks saved"
     ],
     "client_authentication_and_permissions_attested": false
+  },
+  "configured_delegated_scopes": [
+    "User.Read",
+    "offline_access",
+    "Mail.ReadWrite",
+    "Mail.Send",
+    "Calendars.ReadWrite",
+    "Files.Read",
+    "Sites.Read.All"
+  ],
+  "delegated_permissions_saved": "2026-10-19",
+  "delegated_permissions_checkpoint": {
+    "recorded_at": "2026-10-19T07:18:29Z",
+    "evidence_reference": "provider-activation-20261019/microsoft-delegated-permissions-saved.jpg",
+    "evidence_visibility": "private",
+    "permission_type": "Delegated",
+    "configured_scopes_verified": true,
+    "admin_consent_granted": false,
+    "user_consent_granted": false,
+    "client_authentication_verified": false,
+    "remaining_oauth_settings_verified": false
   }
 }
