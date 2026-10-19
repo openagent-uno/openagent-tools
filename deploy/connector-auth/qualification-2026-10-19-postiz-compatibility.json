@@ -1,0 +1,150 @@
+{
+  "format": 1,
+  "date": "2026-10-19",
+  "status": "passed-postiz-compatibility-broker-image-rollout",
+  "source_commit": "60665d2f90fb2ae3cee6a0f159ca12999af54819",
+  "public_sdk_product_versions_unchanged": true,
+  "postiz_compatibility": {
+    "static_app_known_implicit_scope_bundle": [
+      "mcp:read",
+      "mcp:write"
+    ],
+    "legacy_absent_scope_accepted": true,
+    "effective_host_granular_token_scopes": [],
+    "unknown_partial_duplicate_or_oidc_scopes_rejected": true,
+    "app_wide_read_and_write_consent_disclosed": true,
+    "http_200_requirement_preserved": true,
+    "http_201_accepted": false,
+    "refresh_or_retry_added": false,
+    "original_provider_failure_payload_not_observed": true
+  },
+  "diagnostics": {
+    "provider": "postiz",
+    "fields": [
+      "stage",
+      "reason",
+      "provider_error",
+      "http_status"
+    ],
+    "closed_enum_labels": true,
+    "http_status_range": [
+      100,
+      599
+    ],
+    "body_code_token_secret_identity_url_logging": false,
+    "errors_is_authentication_preserved": true
+  },
+  "qualification": {
+    "packages": [
+      "oauth",
+      "auth"
+    ],
+    "tests_passed": 195,
+    "race_tests_passed": 195,
+    "packages_passed": 2,
+    "failures": 0,
+    "vet": "passed",
+    "go_version": "1.26.9",
+    "static_linux_amd64_build": "passed",
+    "all_179_committed_input_hashes_match_tested_candidate": true,
+    "source_overlay": false,
+    "real_provider_calls": 0,
+    "cpu_limit": 1,
+    "memory_limit_bytes": 2147483648,
+    "memory_swap_limit_bytes": 0
+  },
+  "image_manifest_sha256": "a303d481e9fd5462f77220c7e911247cb53f07e8764b27acd19522e08987aad4",
+  "image_config_sha256": "ee8244754737e52b38b626222f79d2c5e8e8f16603aa0b797ad366def4a8df49",
+  "previous_image_manifest_sha256": "04d942f6cc69a59af958911a21a3f4ca2e1901a456d43220b8ac3061a6e13c5d",
+  "auth_binary_sha256": "a062d9d5c9001a59989ed6cedf58fd3acaebc9193dad426b05587b8ecf11f9c8",
+  "auth_binary_bytes": 13291944,
+  "assembly": {
+    "parent_layers_retained": 7,
+    "all_eight_layer_hashes_and_diff_ids_verified": true,
+    "only_added_path": "connector-auth",
+    "inherited_attestations_claimed": false
+  },
+  "scan": {
+    "status": "passed-raw-standard-scan",
+    "source_commit": "60665d2f90fb2ae3cee6a0f159ca12999af54819",
+    "candidate_manifest_sha256": "a303d481e9fd5462f77220c7e911247cb53f07e8764b27acd19522e08987aad4",
+    "candidate_config_sha256": "ee8244754737e52b38b626222f79d2c5e8e8f16603aa0b797ad366def4a8df49",
+    "archive_sha256": "293582e81882ead8ed0d43776e3fe8850fbf83958e6ad2c01e201d201860bbb8",
+    "all_eight_layer_hashes_and_diff_ids_verified": true,
+    "scanner_version": "0.72.0",
+    "scanner_sha256": "0e69edd134a3c338baa1a6806920773615d682b18cbc6a0cba2a3b658ef9b63e",
+    "scanners": [
+      "vuln",
+      "secret"
+    ],
+    "severity": [
+      "HIGH",
+      "CRITICAL"
+    ],
+    "ignore_unfixed": true,
+    "custom_exceptions_added": false,
+    "production_changed": false,
+    "scan_exit": 0,
+    "vulnerabilities": 0,
+    "secrets": 0,
+    "owned_container_absent": true,
+    "raw_scan_sha256": "95af7a7fcc313549acb908a5bc00082f58ffcd03e2e9340ea1b4ba31c7593874",
+    "raw_scan_bytes": 77250,
+    "finished_at": "2026-10-19T12:12:12.675675+00:00"
+  },
+  "upload": {
+    "digest_only": true,
+    "tags_written": false,
+    "post_read_digest_checks_passed": true,
+    "new_manifest_sha256": "a303d481e9fd5462f77220c7e911247cb53f07e8764b27acd19522e08987aad4"
+  },
+  "rollout": {
+    "generation": 32,
+    "single_live_writer_observed": true,
+    "providers": [
+      "clickup",
+      "github",
+      "notion",
+      "gmail",
+      "google_drive",
+      "google_analytics",
+      "google_calendar",
+      "outlook_mail",
+      "outlook_calendar",
+      "onedrive",
+      "sharepoint",
+      "slack_import",
+      "postiz"
+    ],
+    "providers_sha256": "66e5d54ae6a308b92d836dd77987b1aac210297d183baab2efb38261a63b4075",
+    "health_http": 200,
+    "readiness_http": 200,
+    "unsigned_protected_http": 401,
+    "finished_at": "2026-10-19T12:13:26.299015+00:00"
+  },
+  "preserved": {
+    "provider_configuration": true,
+    "secret_mounts": true,
+    "event_key_reference": true,
+    "metadata_volume": true,
+    "metadata_restore": false
+  },
+  "cleanup": {
+    "append_archive_upload_owned_units_absent": true,
+    "scanner_container_absent": true,
+    "receiving_product_worker_retained_under_qa_owner": true
+  },
+  "acceptance_boundary": {
+    "new_provider_grants": false,
+    "new_providers_enabled": false,
+    "postiz_actual_receiving_product_qa": "pending_separate_fresh_trial",
+    "native_app_acceptance": false
+  },
+  "safe_evidence_sha256": {
+    "qualification-receipt.json": "438c4a997b3d834b6c117acb4e0051961195c73c993a3712835b04dd81a8158c",
+    "committed-source-freeze.json": "f54ebd032345a9d1629101a4eb3989f7f46eb2e144e4f2f77dff355d429685c4",
+    "scan-receipt.json": "9d0d5720336c8f9640e74f95a415c4c189a8b9c71bc40ab116f5906a70478b8f",
+    "upload-receipt.json": "1e68841f77cdfc3f45fcea21bf6b0cb1801621c1669c04e0d85bc505b9131236",
+    "rollout-receipt.json": "fcce5ed64d5a6667da6725c1e3f1c1efac646caffd0e930fb0278cc67be64862"
+  }
+}
