@@ -4,18 +4,29 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import re
 
 BASE = Path(__file__).resolve().parent
 PUBLIC = {"clickup", "github", "notion"}
-TRIAL = ("gmail", "google_drive", "google_analytics", "google_calendar", "outlook_mail", "outlook_calendar")
+MICROSOFT = {"outlook_mail", "outlook_calendar", "onedrive", "sharepoint"}
+TRIAL = ("gmail", "google_drive", "google_analytics", "google_calendar", "outlook_mail", "outlook_calendar", "onedrive", "sharepoint")
 GRAPH = "https://graph.microsoft.com/"
 
 
 def reviewed_registration(row):
     provider = row["id"]
-    microsoft = provider.startswith("outlook_")
+    if provider not in TRIAL:
+        raise ValueError("provider is outside this finite trial")
+    microsoft = provider in MICROSOFT
     registration = json.loads((BASE / "registrations" / ("microsoft.json" if microsoft else "google.json")).read_text())
     reference = registration.get("secret_reference") or {}
+    # The name comes only from the reviewed registration, never a CLI argument
+    # or provider row. Namespace, key and destination remain family-bound.
+    if (not isinstance(reference, dict)
+            or set(reference) != {"namespace", "name", "key", "mount_path"}
+            or not isinstance(reference.get("name"), str)
+            or not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", reference["name"])):
+        raise ValueError("an explicit reviewed namespace-local Secret reference is required")
     if (not row.get("client_id") or "registration-pending" in row.get("app_id", "")
             or row["client_id"] != registration.get("client_id")
             or row["app_id"] != ("microsoft:" if microsoft else "google:") + row["client_id"]
@@ -23,7 +34,7 @@ def reviewed_registration(row):
             or row["redirect_uri"] not in registration.get("redirect_uris", [])
             or row["secret_file"] != reference.get("mount_path")
             or reference.get("namespace") != "openagent-connectors"
-            or reference.get("name") != "connector-auth-secrets"
+            or reference.get("key") != ("microsoft-client-secret" if microsoft else "google-client-secret")
             or row["secret_file"] != "/secrets/" + str(reference.get("key", ""))
             or row["pkce"] is not True):
         raise ValueError("provider must match the existing reviewed registration and secret reference")
@@ -32,24 +43,27 @@ def reviewed_registration(row):
             or len(scopes) != len(set(scopes))):
         raise ValueError("distinct reviewed scopes are required")
     if microsoft:
-        family = "Mail." if provider == "outlook_mail" else "Calendars."
-        allowed = ({"Mail.ReadBasic", "Mail.Read", "Mail.ReadWrite", "Mail.Send"} if family == "Mail."
-                   else {"Calendars.ReadBasic", "Calendars.Read", "Calendars.ReadWrite"})
+        allowed = {"outlook_mail": {"Mail.ReadBasic", "Mail.Read", "Mail.ReadWrite", "Mail.Send"},
+                   "outlook_calendar": {"Calendars.ReadBasic", "Calendars.Read", "Calendars.ReadWrite"},
+                   "onedrive": {"Files.Read"}, "sharepoint": {"Sites.Read.All"}}[provider]
         canonical = [scope[len(GRAPH):] if scope.startswith(GRAPH) else scope for scope in scopes]
-        if (registration.get("cloud") != "global" or not registration.get("account_audience")
+        if (registration.get("cloud") != "global"
+                or registration.get("account_audience") != "AzureADandPersonalMicrosoftAccount"
+                or registration.get("sign_in_audience") != registration.get("account_audience")
                 or registration.get("oauth_settings_verified") is not True
-                or registration.get("production_secret_configured") is not True
+                or registration.get("production_secret_stored") is not True
+                or (registration.get("secret_custody_checkpoint") or {}).get("immutable") is not True
                 or row["authorization_url"] != "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
                 or row["token_url"] != "https://login.microsoftonline.com/common/oauth2/v2.0/token"
                 or row.get("revocation_url")
                 or len(canonical) != len(set(canonical))
                 or GRAPH + "offline_access" in scopes
                 or not {"offline_access", "User.Read"} <= set(canonical)
-                or not (set(canonical) - {"offline_access", "User.Read"})
+                or not (set(canonical) & (allowed - {"Mail.Send"}))
                 or not set(canonical) <= allowed | {"offline_access", "User.Read"}
                 or any(scope != "offline_access" and not scope.startswith(GRAPH) for scope in scopes)):
             raise ValueError("Microsoft trial requires verified global-cloud app metadata and exact Graph scopes")
-        if not set(scopes) <= set(registration.get("declared_scopes", [])):
+        if not set(canonical) <= set(registration.get("configured_delegated_scopes", [])):
             raise ValueError("Microsoft scopes are not recorded on the existing app")
     else:
         services = {"gmail": {"gmail.googleapis.com"}, "google_drive": {"drive.googleapis.com"},
@@ -99,7 +113,10 @@ def prepare(provider, baseline, output):
         "status": "prepared-not-applied-or-provider-qualified", "added_provider": provider,
         "preserved_provider_ids": ids, "baseline_sha256": hashlib.sha256(raw).hexdigest(),
         "global_qa_enrollment_added": False, "new_grants": 0,
-        "google_trial_requires_recorded_testing_users": not provider.startswith("outlook_"),
+        "google_trial_requires_recorded_testing_users": provider not in MICROSOFT,
+        "required_secret_reference": json.loads((BASE / "registrations" / ("microsoft.json" if provider in MICROSOFT else "google.json")).read_text())["secret_reference"],
+        "secret_mount_attested": False,
+        "broker_apply_authorized": False,
         "provider_review_attested": False,
     }, indent=2) + "\n")
 

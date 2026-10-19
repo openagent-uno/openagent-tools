@@ -143,5 +143,66 @@
       "offline_access"
     ],
     "pkce": false
+  },
+  {
+    "id": "outlook_mail",
+    "app_id": "microsoft:c245634c-3535-44fd-a7ef-0fdd8040dc93",
+    "client_id": "c245634c-3535-44fd-a7ef-0fdd8040dc93",
+    "secret_file": "/secrets/microsoft-client-secret",
+    "authorization_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/outlook_mail/callback",
+    "scopes": [
+      "offline_access",
+      "https://graph.microsoft.com/User.Read",
+      "https://graph.microsoft.com/Mail.ReadWrite",
+      "https://graph.microsoft.com/Mail.Send"
+    ],
+    "pkce": true
+  },
+  {
+    "id": "outlook_calendar",
+    "app_id": "microsoft:c245634c-3535-44fd-a7ef-0fdd8040dc93",
+    "client_id": "c245634c-3535-44fd-a7ef-0fdd8040dc93",
+    "secret_file": "/secrets/microsoft-client-secret",
+    "authorization_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/outlook_calendar/callback",
+    "scopes": [
+      "offline_access",
+      "https://graph.microsoft.com/User.Read",
+      "https://graph.microsoft.com/Calendars.ReadWrite"
+    ],
+    "pkce": true
+  },
+  {
+    "id": "onedrive",
+    "app_id": "microsoft:c245634c-3535-44fd-a7ef-0fdd8040dc93",
+    "client_id": "c245634c-3535-44fd-a7ef-0fdd8040dc93",
+    "secret_file": "/secrets/microsoft-client-secret",
+    "authorization_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/onedrive/callback",
+    "scopes": [
+      "offline_access",
+      "https://graph.microsoft.com/User.Read",
+      "https://graph.microsoft.com/Files.Read"
+    ],
+    "pkce": true
+  },
+  {
+    "id": "sharepoint",
+    "app_id": "microsoft:c245634c-3535-44fd-a7ef-0fdd8040dc93",
+    "client_id": "c245634c-3535-44fd-a7ef-0fdd8040dc93",
+    "secret_file": "/secrets/microsoft-client-secret",
+    "authorization_url": "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
+    "redirect_uri": "https://auth.openagent.uno/v1/oauth/sharepoint/callback",
+    "scopes": [
+      "offline_access",
+      "https://graph.microsoft.com/User.Read",
+      "https://graph.microsoft.com/Sites.Read.All"
+    ],
+    "pkce": true
   }
 ]

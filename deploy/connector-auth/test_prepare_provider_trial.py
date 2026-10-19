@@ -85,7 +85,13 @@ class PrepareProviderTrialTests(unittest.TestCase):
 
     def test_microsoft_cannot_be_invented_from_absent_registration_or_row(self):
         self.write_metadata()
-        for provider in ("outlook_mail", "outlook_calendar"):
+        for provider in sorted(module.MICROSOFT):
+            with self.assertRaises(FileNotFoundError):
+                self.prepare(provider)
+            self.assertFalse(self.output.exists())
+        self.rows = [row for row in self.rows if row["id"] not in module.MICROSOFT]
+        self.write_metadata()
+        for provider in sorted(module.MICROSOFT):
             with self.assertRaises(ValueError):
                 self.prepare(provider)
             self.assertFalse(self.output.exists())
@@ -99,12 +105,15 @@ class PrepareProviderTrialTests(unittest.TestCase):
                "token_url": "https://login.microsoftonline.com/common/oauth2/v2.0/token",
                "redirect_uri": "https://auth.openagent.uno/v1/oauth/outlook_mail/callback",
                "scopes": scopes, "pkce": True}
-        self.rows.append(row)
+        self.rows = [item for item in self.rows if item["id"] != row["id"]] + [row]
         self.write_metadata()
-        registration = {"client_id": client, "cloud": "global", "account_audience": "fixture-existing-audience",
-                        "oauth_settings_verified": True, "production_secret_configured": True,
-                        "redirect_uris": [row["redirect_uri"]], "declared_scopes": scopes,
-                        "secret_reference": {"namespace": "openagent-connectors", "name": "connector-auth-secrets",
+        registration = {"client_id": client, "cloud": "global", "account_audience": "AzureADandPersonalMicrosoftAccount",
+                        "sign_in_audience": "AzureADandPersonalMicrosoftAccount",
+                        "oauth_settings_verified": True, "production_secret_stored": True,
+                        "production_secret_mounted": False, "production_secret_configured": False,
+                        "secret_custody_checkpoint": {"immutable": True},
+                        "redirect_uris": [row["redirect_uri"]], "configured_delegated_scopes": ["offline_access", "User.Read", "Mail.ReadWrite"],
+                        "secret_reference": {"namespace": "openagent-connectors", "name": "connector-auth-microsoft-20261019",
                                              "key": "microsoft-client-secret", "mount_path": row["secret_file"]}}
         p = self.base / "registrations/microsoft.json"
         p.write_text(json.dumps(registration))
@@ -115,12 +124,72 @@ class PrepareProviderTrialTests(unittest.TestCase):
         self.assertEqual(scopes, selected["scopes"])
         self.assertNotIn(module.GRAPH + "Mail.Send", selected["scopes"])
         for field, changed in (("cloud", "other-cloud"), ("oauth_settings_verified", False),
-                               ("production_secret_configured", False), ("account_audience", "")):
+                               ("production_secret_stored", False), ("account_audience", "")):
             registration[field] = changed
             p.write_text(json.dumps(registration))
             with patch.object(module, "BASE", self.base), self.assertRaises(ValueError):
                 module.reviewed_registration(row)
             registration = json.loads(original)
+
+    def test_all_eight_trial_rows_prepare_without_mount_or_qualification_claims(self):
+        self.write_metadata(ready=True)
+        registration = json.loads((module.BASE / "registrations/microsoft.json").read_text())
+        (self.base / "registrations/microsoft.json").write_text(json.dumps(registration))
+        for provider in module.TRIAL:
+            with self.subTest(provider=provider):
+                self.output = self.root / provider
+                self.prepare(provider)
+                result = json.loads((self.output / "providers.json").read_text())
+                self.assertEqual(self.current, result[:-1])
+                self.assertEqual(provider, result[-1]["id"])
+                metadata = json.loads((self.output / "trial-metadata.json").read_text())
+                self.assertFalse(metadata["secret_mount_attested"])
+                self.assertFalse(metadata["broker_apply_authorized"])
+                self.assertFalse(metadata["provider_review_attested"])
+                self.assertEqual(0, metadata["new_grants"])
+                if provider in module.MICROSOFT:
+                    self.assertEqual("connector-auth-microsoft-20261019", metadata["required_secret_reference"]["name"])
+                    if provider != "outlook_mail":
+                        self.assertNotIn("Mail.Send", [scope.removeprefix(module.GRAPH) for scope in result[-1]["scopes"]])
+
+    def test_microsoft_reference_and_cross_surface_or_broader_scopes_are_rejected(self):
+        registration = json.loads((module.BASE / "registrations/microsoft.json").read_text())
+        path = self.base / "registrations/microsoft.json"
+        path.write_text(json.dumps(registration))
+        for provider in sorted(module.MICROSOFT):
+            row = next(row for row in self.rows if row["id"] == provider)
+            with patch.object(module, "BASE", self.base):
+                module.reviewed_registration(row)
+                foreign = "Sites.Read.All" if provider != "sharepoint" else "Files.Read"
+                for scope in ("Files.ReadWrite.All", "Sites.ReadWrite.All", "Directory.Read.All", foreign):
+                    changed = {**row, "scopes": row["scopes"] + [module.GRAPH + scope]}
+                    with self.assertRaises(ValueError):
+                        module.reviewed_registration(changed)
+                for reference in ({**registration["secret_reference"], "name": "../different"},
+                                  {**registration["secret_reference"], "name": ""},
+                                  {**registration["secret_reference"], "other_name": "ambiguous"},
+                                  {**registration["secret_reference"], "key": "event-key"},
+                                  {**registration["secret_reference"], "namespace": "other"}):
+                    path.write_text(json.dumps({**registration, "secret_reference": reference}))
+                    with self.assertRaises(ValueError):
+                        module.reviewed_registration(row)
+                path.write_text(json.dumps(registration))
+                for invalid in ({**registration, "production_secret_stored": False},
+                                {**registration, "secret_custody_checkpoint": {"immutable": False}}):
+                    path.write_text(json.dumps(invalid))
+                    with self.assertRaises(ValueError):
+                        module.reviewed_registration(row)
+                path.write_text(json.dumps(registration))
+
+    def test_secret_name_is_taken_only_from_the_reviewed_registration(self):
+        self.write_metadata()
+        registration = json.loads((module.BASE / "registrations/microsoft.json").read_text())
+        registration["secret_reference"]["name"] = "fixture-owned-microsoft-secret"
+        (self.base / "registrations/microsoft.json").write_text(json.dumps(registration))
+        self.prepare("onedrive")
+        metadata = json.loads((self.output / "trial-metadata.json").read_text())
+        self.assertEqual(registration["secret_reference"], metadata["required_secret_reference"])
+        self.assertFalse(metadata["secret_mount_attested"])
 
     def test_existing_output_and_existing_provider_are_never_replaced(self):
         self.write_metadata(ready=True)
