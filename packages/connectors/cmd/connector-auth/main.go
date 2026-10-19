@@ -27,6 +27,7 @@ func main() {
 	keyPath := flag.String("event-key", "", "File containing a 32-byte hex encryption key for webhook storage")
 	legacyPath := flag.String("legacy-shopify-webhooks", "", "Reviewed topic-to-HTTPS-product webhook routes for existing installations")
 	qaPath := flag.String("qa-enrollment", "", "Startup-only installation/store allowlist; public readiness remains disabled")
+	shopifyQAPath := flag.String("shopify-qa-enrollment", "", "Startup-only Shopify installation/store allowlist; other providers remain public")
 	flag.Parse()
 	if *statePath == "" || *providersPath == "" || *keyPath == "" {
 		fmt.Fprintln(os.Stderr, "state, providers and event-key are required")
@@ -69,6 +70,15 @@ func main() {
 		decoder := json.NewDecoder(bytes.NewReader(data))
 		decoder.DisallowUnknownFields()
 		if err != nil || decoder.Decode(&config) != nil || decoder.Decode(new(any)) != io.EOF || handler.ConfigureQAEnrollment(config) != nil {
+			fatal()
+		}
+	}
+	if *shopifyQAPath != "" {
+		data, err := os.ReadFile(*shopifyQAPath)
+		var config auth.QAEnrollment
+		decoder := json.NewDecoder(bytes.NewReader(data))
+		decoder.DisallowUnknownFields()
+		if err != nil || decoder.Decode(&config) != nil || decoder.Decode(new(any)) != io.EOF || handler.ConfigureShopifyQAEnrollment(config) != nil {
 			fatal()
 		}
 	}

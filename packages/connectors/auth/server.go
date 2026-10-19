@@ -59,6 +59,7 @@ type Server struct {
 	EventKey              []byte
 	legacyShopifyWebhooks map[string]string
 	qa                    *qaAdmission
+	shopifyQA             *qaAdmission
 	mu                    sync.Mutex
 	transactions          map[string]*Transaction
 	nonces                map[string]time.Time
@@ -164,7 +165,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else if len(s.Providers) == 0 {
 			enrollment = "disabled"
 		}
-		writeJSON(w, 200, map[string]any{"ok": true, "contract": "openagent-connectors/v1", "configured_providers": len(s.Providers), "enrollment": enrollment})
+		health := map[string]any{"ok": true, "contract": "openagent-connectors/v1", "configured_providers": len(s.Providers), "enrollment": enrollment}
+		if s.shopifyQA != nil {
+			health["shopify_enrollment"] = "qa"
+		}
+		writeJSON(w, 200, health)
 		return
 	}
 	if strings.HasPrefix(r.URL.Path, "/v1/oauth/") && strings.HasSuffix(r.URL.Path, "/callback") && r.Method == "GET" {
@@ -202,6 +207,12 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
+	// Groups, peer mail and privacy events belong exclusively to Shopify.
+	shopifyCoordination := strings.HasPrefix(r.URL.Path, "/v1/groups/") || r.URL.Path == "/v1/mail" || r.URL.Path == "/v1/events" || strings.HasPrefix(r.URL.Path, "/v1/events/")
+	if shopifyCoordination && !s.admittedProviderInstallation("shopify", installation.ID) {
+		fail(w, 403, "qa_installation_not_admitted")
+		return
+	}
 	if r.Method == "POST" && r.URL.Path == "/v1/transactions" {
 		s.start(w, installation, body)
 		return
@@ -305,7 +316,11 @@ func (s *Server) start(w http.ResponseWriter, installation Installation, body []
 		fail(w, 400, "invalid_provider_account")
 		return
 	}
-	if p.ID == "shopify" && s.qa != nil && !s.admittedShop(start.Shop) {
+	if !s.admittedProviderInstallation(p.ID, installation.ID) {
+		fail(w, 403, "qa_installation_not_admitted")
+		return
+	}
+	if p.ID == "shopify" && (s.qa != nil || s.shopifyQA != nil) && !s.admittedShop(start.Shop) {
 		fail(w, 403, "qa_shop_not_admitted")
 		return
 	}
@@ -357,10 +372,14 @@ func (s *Server) authorize(w http.ResponseWriter, r *http.Request) {
 	copy := *tx
 	s.mu.Unlock()
 	installation := s.Store.snapshot().Installations[copy.Installation]
+	if !s.admittedProviderInstallation(copy.Provider, copy.Installation) || copy.Provider == "shopify" && copy.Shop != "" && !s.admittedShop(copy.Shop) {
+		fail(w, 403, "authorization_unavailable")
+		return
+	}
 	if r.Method == "GET" {
 		if copy.approved {
 			p, exists := s.Providers[copy.Provider]
-			if !exists || p.ID != copy.Provider || p.AppID != copy.AppID || installation.ID != copy.Installation || !s.admittedInstallation(copy.Installation) || copy.Provider == "shopify" && !s.admittedShop(copy.Shop) {
+			if !exists || p.ID != copy.Provider || p.AppID != copy.AppID || installation.ID != copy.Installation || !s.admittedProviderInstallation(copy.Provider, copy.Installation) || copy.Provider == "shopify" && !s.admittedShop(copy.Shop) {
 				fail(w, 403, "authorization_unavailable")
 				return
 			}
@@ -459,6 +478,10 @@ func (s *Server) callback(w http.ResponseWriter, r *http.Request) {
 		fail(w, 400, "invalid_oauth_state")
 		return
 	}
+	if !s.admittedProviderInstallation(provider, tx.Installation) || provider == "shopify" && !s.admittedShop(tx.Shop) {
+		fail(w, 403, "authorization_unavailable")
+		return
+	}
 	if provider == "shopify" && (q.Get("shop") != tx.Shop || oauth.VerifyShopifyCallback(s.Providers[provider], q, s.now()) != nil) {
 		fail(w, 401, "invalid_provider_signature")
 		return
@@ -480,7 +503,7 @@ func (s *Server) transaction(w http.ResponseWriter, installation Installation, i
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	tx := s.transactions[id]
-	if tx == nil || tx.Installation != installation.ID {
+	if tx == nil || tx.Installation != installation.ID || !s.admittedProviderInstallation(tx.Provider, installation.ID) || tx.Provider == "shopify" && !s.admittedShop(tx.Shop) {
 		fail(w, 404, "not_found")
 		return
 	}
@@ -603,7 +626,7 @@ func (s *Server) failedRotation(id, operation string) {
 func (s *Server) redeem(w http.ResponseWriter, r *http.Request, installation Installation, id string) {
 	s.mu.Lock()
 	tx := s.transactions[id]
-	if tx == nil || tx.Installation != installation.ID || tx.Status != "ready" || tx.busy || !s.now().Before(tx.ExpiresAt) {
+	if tx == nil || tx.Installation != installation.ID || tx.Status != "ready" || tx.busy || !s.now().Before(tx.ExpiresAt) || !s.admittedProviderInstallation(tx.Provider, installation.ID) || tx.Provider == "shopify" && !s.admittedShop(tx.Shop) {
 		s.mu.Unlock()
 		fail(w, 409, "authorization_not_ready")
 		return
@@ -680,6 +703,10 @@ func (s *Server) refresh(w http.ResponseWriter, r *http.Request, installation In
 	p, ok := s.Providers[input.Provider]
 	if !ok || input.AppID != p.AppID {
 		fail(w, 409, "oauth_app_mismatch")
+		return
+	}
+	if !s.admittedProviderInstallation(p.ID, installation.ID) || p.ID == "shopify" && !s.admittedShop(input.Shop) {
+		fail(w, 403, "qa_provider_not_admitted")
 		return
 	}
 	id, operation := "", randomID()
@@ -759,6 +786,10 @@ func (s *Server) revoke(w http.ResponseWriter, r *http.Request, installation Ins
 	p, ok := s.Providers[input.Provider]
 	if !ok || p.AppID != input.AppID {
 		fail(w, 409, "oauth_app_mismatch")
+		return
+	}
+	if !s.admittedProviderInstallation(p.ID, installation.ID) {
+		fail(w, 403, "qa_installation_not_admitted")
 		return
 	}
 	binding, ok := s.Store.snapshot().TokenBindings[s.tokenHash(p.AppID, p.ID, input.Token)]

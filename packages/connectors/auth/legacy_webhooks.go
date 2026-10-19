@@ -33,7 +33,7 @@ func (s *Server) ConfigureLegacyShopifyWebhooks(routes map[string]string) error 
 	if len(routes) == 0 {
 		return nil
 	}
-	if s.QAEnrollmentEnabled() || len(routes) != 4 || s.Providers["shopify"].ID == "" {
+	if s.QAEnrollmentEnabled() || s.shopifyQA != nil || len(routes) != 4 || s.Providers["shopify"].ID == "" {
 		return ErrDenied
 	}
 	reviewed := map[string]string{}
