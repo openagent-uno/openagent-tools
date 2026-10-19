@@ -180,6 +180,29 @@ class PrepareProviderTrialTests(unittest.TestCase):
             self.prepare(google_production_unverified_trial=True)
         self.assertFalse(self.output.exists())
 
+    def test_google_trial_preserves_reviewed_slack_postiz_without_admitting_them(self):
+        self.write_production_unverified_metadata()
+        preserved = self.current + [copy.deepcopy(row) for row in self.rows if row["id"] in module.PRESERVE_ONLY]
+        self.assertEqual(5, len(preserved))
+        self.baseline.write_text(json.dumps(preserved))
+        self.prepare(google_production_unverified_trial=True)
+        after = json.loads((self.output / "providers.json").read_text())
+        self.assertEqual(preserved, after[:-1])
+        for provider in module.PRESERVE_ONLY:
+            with self.subTest(provider=provider), self.assertRaises(ValueError):
+                self.prepare(provider, google_production_unverified_trial=True)
+        self.assertEqual(after, json.loads((self.output / "providers.json").read_text()))
+
+    def test_preserve_only_rows_still_require_exact_reviewed_source_and_cannot_include_atlassian(self):
+        self.write_production_unverified_metadata()
+        slack = next(row for row in self.rows if row["id"] == "slack_import")
+        atlassian = next(row for row in self.rows if row["id"] == "atlassian")
+        for extra in ({**slack, "client_id": "drift"}, {**slack, "scopes": []}, atlassian):
+            self.baseline.write_text(json.dumps(self.current + [extra]))
+            with self.assertRaises(ValueError):
+                self.prepare(google_production_unverified_trial=True)
+            self.assertFalse(self.output.exists())
+
     def test_google_production_flag_cannot_be_used_for_microsoft(self):
         with self.assertRaisesRegex(ValueError, "cannot prepare a Microsoft"):
             with patch.object(module, "BASE", self.base):

@@ -8,6 +8,8 @@ import re
 
 BASE = Path(__file__).resolve().parent
 PUBLIC = {"clickup", "github", "notion"}
+# Existing reviewed additions may be retained, never selected by this preparer.
+PRESERVE_ONLY = {"slack_import", "postiz"}
 MICROSOFT = {"outlook_mail", "outlook_calendar", "onedrive", "sharepoint"}
 TRIAL = ("gmail", "google_drive", "google_analytics", "google_calendar", "outlook_mail", "outlook_calendar", "onedrive", "sharepoint")
 GRAPH = "https://graph.microsoft.com/"
@@ -132,7 +134,7 @@ def prepare(provider, baseline, output, google_production_unverified_trial=False
         raise ValueError("baseline must be the current provider array")
     ids = [row.get("id") for row in current]
     if (len(ids) != len(set(ids)) or not PUBLIC <= set(ids) or provider in ids
-            or not set(ids) <= PUBLIC | set(TRIAL)
+            or not set(ids) <= PUBLIC | set(TRIAL) | PRESERVE_ONLY
             or any(row != known.get(row.get("id")) for row in current)):
         raise ValueError("preserve the reviewed public providers and every existing row without replacement")
     selected = known.get(provider)
