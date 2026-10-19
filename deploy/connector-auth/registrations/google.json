@@ -218,5 +218,19 @@
     "evidence_sha256": "818a1e3f4ebcae937affb73514899afd12c470bd6cf6a9e3fa33a51aecbfc3c0",
     "provider_settings_changed": false,
     "private_video_url_published": false
+  },
+  "is_agentic": true,
+  "agentic_console_checkpoint": {
+    "observed_at": "2026-10-19T17:10:00Z",
+    "source": "Google Auth Platform client detail; owner-authenticated console",
+    "client_name": "OpenAgent Shared Connectors",
+    "checkbox": "Use this client for an AI-powered agent",
+    "checked": true,
+    "configuration_changed": false,
+    "credential_or_scope_changed": false,
+    "setting_location": "OAuth client registration, not an authorization request parameter",
+    "documentation": "https://support.google.com/cloud/answer/15549257?hl=en",
+    "screenshot_sha256": "d30a3249f4fc4e0d5270bf999c8f6a7d5b6fd3338a0602fa47843a3866036e95",
+    "observed_at_precision": "minute"
   }
 }
