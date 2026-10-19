@@ -32,7 +32,7 @@
     "client_id_key": "slack-client-id",
     "client_secret_key": "slack-client-secret"
   },
-  "broker_enabled": true,
+  "broker_enabled": false,
   "installation_authorized": true,
   "real_oauth_grant": true,
   "common_enrollment_enabled": false,
@@ -41,8 +41,21 @@
     "The confidential client secret remains in encrypted production secret storage; no secret bytes or private workspace identifiers are recorded here.",
     "A restricted QA installation completed consent, scoped reads, approved message create/read/delete with cleanup, owner refresh, post-restart read and local disconnect; its owned runtime was stopped.",
     "An initial refresh returned 503. The reviewed broker compatibility fix and explicit reconsent preceded the successful refresh; the earlier failure is retained in the lifecycle evidence.",
-    "The limited real-provider qualification does not enable common enrollment, publish candidate artifacts, qualify remaining tools or grant access to Slack's separate MCP service."
+    "The limited real-provider qualification does not enable common enrollment, publish candidate artifacts, qualify remaining tools or grant access to Slack's separate MCP service.",
+    "The current eleven-provider broker configuration excludes Slack. Earlier restricted QA enrollment remains historical evidence; public distribution/common enrollment remain off."
   ],
   "qa_only": true,
-  "qualification_scope": "One authorized receiving installation and explicitly approved QA resources; not full tool or native App acceptance"
+  "qualification_scope": "One authorized receiving installation and explicitly approved QA resources; not full tool or native App acceptance",
+  "historical_activation_metadata": [
+    {
+      "recorded_before": "2026-10-19T10:16:55Z",
+      "scope": "Prior registration/limited-QA snapshot, not current broker configuration",
+      "values": {
+        "broker_enabled": true,
+        "common_enrollment_enabled": false
+      }
+    }
+  ],
+  "broker_configuration_checked_at": "2026-10-19T10:16:55.262401+00:00",
+  "broker_configuration_checkpoint": "../qualification-2026-10-19-microsoft-sharepoint-rotation.json"
 }

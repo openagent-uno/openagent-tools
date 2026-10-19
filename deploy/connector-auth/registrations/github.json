@@ -43,7 +43,7 @@
     "provider_fingerprint_verified": true
   },
   "qa_only_enabled": true,
-  "common_enrollment_enabled": false,
+  "common_enrollment_enabled": true,
   "real_qa_lifecycle": {
     "date": "2026-10-16",
     "explicit_repository_selection": true,
@@ -55,5 +55,17 @@
     "local_disconnect": true,
     "qa_runtime_removed": true,
     "public_release": false
-  }
+  },
+  "historical_activation_metadata": [
+    {
+      "recorded_before": "2026-10-19T10:16:55Z",
+      "scope": "Prior registration/limited-QA snapshot, not current broker configuration",
+      "values": {
+        "broker_enabled": true,
+        "common_enrollment_enabled": false
+      }
+    }
+  ],
+  "broker_configuration_checked_at": "2026-10-19T10:16:55.262401+00:00",
+  "broker_configuration_checkpoint": "../qualification-2026-10-19-microsoft-sharepoint-rotation.json"
 }

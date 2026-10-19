@@ -18,7 +18,7 @@
     "mount_path": "/secrets/clickup-client-secret"
   },
   "source_credentials_rotated": false,
-  "broker_enabled": false,
+  "broker_enabled": true,
   "qualification_pending": [
     "public identity review",
     "native App and other receiving-host acceptance",
@@ -42,5 +42,17 @@
     "restart_read": "passed",
     "local_disconnect": "passed",
     "checkpoint": "../qualification-2026-10-14.md"
-  }
+  },
+  "historical_activation_metadata": [
+    {
+      "recorded_before": "2026-10-19T10:16:55Z",
+      "scope": "Prior registration/limited-QA snapshot, not current broker configuration",
+      "values": {
+        "broker_enabled": false
+      }
+    }
+  ],
+  "common_enrollment_enabled": true,
+  "broker_configuration_checked_at": "2026-10-19T10:16:55.262401+00:00",
+  "broker_configuration_checkpoint": "../qualification-2026-10-19-microsoft-sharepoint-rotation.json"
 }
