@@ -1,0 +1,123 @@
+{
+  "format": 1,
+  "date": "2026-10-19",
+  "status": "passed-broker-microsoft-safe-diagnostics-image-only-rollout",
+  "source_commit": "645e0484c3ec40d4965de038be8d3a258ec44aac",
+  "public_sdk_version": "0.1.8",
+  "public_sdk_release_unchanged": true,
+  "diagnostic_boundary": {
+    "initial_microsoft_exchange_only": true,
+    "logged_fields": [
+      "provider",
+      "stage",
+      "reason",
+      "provider_error"
+    ],
+    "values": "compiled closed enums only",
+    "raw_token_scope_body_account_or_provider_message_logged": false,
+    "scope_admission_unchanged": true,
+    "permission_validation_relaxed": false
+  },
+  "image_manifest_sha256": "04d942f6cc69a59af958911a21a3f4ca2e1901a456d43220b8ac3061a6e13c5d",
+  "image_config_sha256": "37b1f3bfd29fdfde2a8931b6d6b6649764b246056511dd5bb5894039f81fc986",
+  "previous_image_manifest_sha256": "1040f2873a8bdb35f128cb0cee6851e718b787a2328619173e1c8466bd20121a",
+  "auth_binary_sha256": "8084da2d1ad661df2d67c09e4231664b8b11e1803085e2f2c6f3092000f96f09",
+  "auth_binary_bytes": 9265314,
+  "qualification": {
+    "go_version": "1.26.9",
+    "target": "linux/amd64",
+    "cgo_enabled": false,
+    "source_files_verified": 176,
+    "source_unchanged": true,
+    "tests": [
+      "go test -p 1 -count=1 -timeout 180s -json ./auth ./oauth"
+    ],
+    "vet": [
+      "go vet -p 1 ./auth ./oauth ./cmd/connector-auth"
+    ],
+    "test_exit": 0,
+    "vet_exit": 0,
+    "build_exit": 0,
+    "cpu_limit": 1,
+    "memory_bytes": 2147483648,
+    "swap_bytes": 0
+  },
+  "assembly": {
+    "parent_layers_retained": 6,
+    "total_layers": 7,
+    "only_added_path": "connector-auth",
+    "all_layer_hashes_and_diff_ids_verified": true,
+    "inherited_attestation_claimed": false
+  },
+  "scan": {
+    "archive_sha256": "8b825260a90becda47766b88b23cb12287243be6312d90f5193b0e00a768b3b8",
+    "all_seven_layer_hashes_and_diff_ids_verified": true,
+    "scanner_version": "0.72.0",
+    "scanner_sha256": "0e69edd134a3c338baa1a6806920773615d682b18cbc6a0cba2a3b658ef9b63e",
+    "scanners": [
+      "vuln",
+      "secret"
+    ],
+    "severity": [
+      "HIGH",
+      "CRITICAL"
+    ],
+    "ignore_unfixed": true,
+    "custom_exceptions_added": false,
+    "scan_exit": 0,
+    "vulnerabilities": 0,
+    "secrets": 0,
+    "raw_scan_sha256": "b0db672ec88a5a8373a1519eb00dc0efe305ec4f3e8c5b3d5146917b92041e8f",
+    "raw_scan_bytes": 76660,
+    "finished_at": "2026-10-19T08:42:36.973594+00:00"
+  },
+  "publication": {
+    "digest_only": true,
+    "tags_written": false,
+    "manifest_and_config_post_read_verified": true
+  },
+  "rollout": {
+    "finished_at": "2026-10-19T08:43:13.512184+00:00",
+    "generation": 25,
+    "restarts": 0,
+    "one_ready_writer": true,
+    "image_only": true,
+    "configured_providers": 11,
+    "providers_sha256": "077d0363fbb10596bfa9a6558d7cc632c7467beae4aa677a2807e5e5e98d68e8",
+    "public_health_http": 200,
+    "public_readiness_http": 200,
+    "unsigned_protected_http": 401
+  },
+  "preserved": {
+    "provider_configuration": true,
+    "projected_secret_references_and_mounts": true,
+    "metadata_volume": true,
+    "event_key_reference": true,
+    "installation_identities": true,
+    "persistent_data": true,
+    "metadata_restore": false
+  },
+  "cleanup": {
+    "go_worker_uid_resource_version_guarded_delete": true,
+    "go_worker_not_found": true,
+    "scanner_container_absent": true,
+    "append_archive_upload_units_absent": true,
+    "receiving_qa_pod_preserved": true
+  },
+  "acceptance_boundary": {
+    "provider_calls": 0,
+    "new_consents_or_grants": false,
+    "token_exchange_qualified": false,
+    "provider_lifecycle_qualified": false,
+    "general_public_qualification": false
+  },
+  "safe_evidence_sha256": {
+    "qualification-receipt.json": "3e0535e608b5dbff76cc86d388dd475f4ad9aa5920005b4f3e5a64bab38466c0",
+    "raw-scan-result.json": "884264a758e43edf947349dd5c0cfd3f95b9c90467da54ca0838c95e6676d012",
+    "go-worker-cleanup.json": "09c5727d76f4ad1679f5b575927823e3353a529916173aa79f31ce4a6e625992",
+    "activation-645e-actual-receipt.json": "e4dca55e537bda3d7d24b3d2d2ede3170263d1e458a0e558da266a6dd36e6d51",
+    "phase-upload-receipt.json": "4731540c9357022185e906ca522ad400f0e7c02b7ed0a16a508bd1d9810ed537",
+    "phase-append-receipt.json": "e5debb31c7e0555b580417e56d2403fbd4a4b8b2c4252fffc363d789f9e2966b",
+    "phase-archive-receipt.json": "4e60b1af9a0e383927bf44509873e01196385bb37e1859d7f7a0a0ad6e0e0a8f"
+  }
+}

@@ -57,8 +57,10 @@ The [19 October image checkpoint](qualification-2026-10-19.md) preserves the
 initial SDK18 image-only rollout with three providers. The subsequent
 [eleven-provider activation checkpoint](qualification-2026-10-19-activation.md)
 records the startup fix, normal raw scan and atomic trial configuration/Secret
-mount rollout. Google remains in Testing; token exchange, consent and receiving
-product qualification are not claimed by readiness. These changes made no
+mount rollout. The subsequent [Microsoft diagnostic image checkpoint](qualification-2026-10-19-diagnostics.md)
+records a safe closed-enum error diagnostic and an image-only rollout with the
+same eleven-provider configuration. Google remains in Testing; token exchange,
+consent and receiving product qualification are not claimed by readiness. These changes made no
 provider calls or new grants. The base still has zero configured providers
 and must not replace the live provider overlay.
 
