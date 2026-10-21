@@ -1,4 +1,5 @@
 import { chromium, firefox, webkit, Browser } from 'playwright';
+import { resolveChromiumExecutable } from './browser-executable.js';
 
 export class BrowserPool {
   private browsers: Map<string, Browser> = new Map();
@@ -14,7 +15,7 @@ export class BrowserPool {
     this.headless = process.env.BROWSER_HEADLESS !== 'false'; // Default to true
     
     // Configure browser types based on environment
-    const browserTypesEnv = process.env.BROWSER_TYPES || 'chromium,firefox';
+    const browserTypesEnv = process.env.BROWSER_TYPES || 'chromium';
     this.browserTypes = browserTypesEnv.split(',').map(type => type.trim());
     
     console.log(`[BrowserPool] Configuration: maxBrowsers=${this.maxBrowsers}, headless=${this.headless}, types=${this.browserTypes.join(',')}`);
@@ -78,7 +79,13 @@ export class BrowserPool {
     try {
       switch (browserType) {
         case 'chromium':
-          browser = await chromium.launch(launchOptions);
+          {
+            const executablePath = resolveChromiumExecutable();
+            browser = await chromium.launch({
+              ...launchOptions,
+              ...(executablePath ? { executablePath } : {}),
+            });
+          }
           break;
         case 'firefox':
           browser = await firefox.launch(launchOptions);
@@ -87,7 +94,13 @@ export class BrowserPool {
           browser = await webkit.launch(launchOptions);
           break;
         default:
-          browser = await chromium.launch(launchOptions);
+          {
+            const executablePath = resolveChromiumExecutable();
+            browser = await chromium.launch({
+              ...launchOptions,
+              ...(executablePath ? { executablePath } : {}),
+            });
+          }
       }
 
       this.browsers.set(browserType, browser);

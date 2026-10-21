@@ -1,6 +1,6 @@
 {
   "name": "openagent-web-search-mcp",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "description": "Web search MCP server with multi-engine search and content extraction (no API key needed)",
   "license": "MIT",
   "type": "module",
