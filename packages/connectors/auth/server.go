@@ -40,6 +40,7 @@ type Transaction struct {
 	csrf             string
 	busy             bool
 	approved         bool
+	recipient        string
 }
 type Start struct {
 	ReceiptVersion int      `json:"receipt_version,omitempty"`
@@ -323,34 +324,52 @@ func (s *Server) start(w http.ResponseWriter, installation Installation, body []
 		fail(w, 400, "invalid_start")
 		return
 	}
+	tx, err := s.beginTransaction(installation, start, "", "")
+	if err != nil {
+		var rejected *transactionStartError
+		if errors.As(err, &rejected) {
+			fail(w, rejected.status, rejected.code)
+		} else {
+			fail(w, 403, "authorization_unavailable")
+		}
+		return
+	}
+	writeJSON(w, 201, tx)
+}
+
+type transactionStartError struct {
+	status int
+	code   string
+}
+
+func (e *transactionStartError) Error() string { return e.code }
+func (e *transactionStartError) Unwrap() error { return ErrDenied }
+
+func (s *Server) beginTransaction(installation Installation, start Start, mode, recipient string) (Transaction, error) {
+	if mode == CentralMode && s.limited("start:"+installation.ID, 10, time.Minute) {
+		return Transaction{}, &transactionStartError{429, "rate_limited"}
+	}
 	p, ok := s.Providers[start.Provider]
 	if !ok {
-		fail(w, 503, "provider_not_configured")
-		return
+		return Transaction{}, &transactionStartError{503, "provider_not_configured"}
 	}
 	if p.ID == "shopify" && s.shopifyNewConsentsDisabled {
-		fail(w, 503, "authorization_not_ready")
-		return
+		return Transaction{}, &transactionStartError{503, "authorization_not_ready"}
 	}
 	if p.ID == "shopify" && start.ReceiptVersion != 2 {
-		fail(w, 426, "unsupported_receipt_version")
-		return
+		return Transaction{}, &transactionStartError{426, "unsupported_receipt_version"}
 	}
 	if p.ID != "shopify" && start.ReceiptVersion != 0 {
-		fail(w, 400, "invalid_start")
-		return
+		return Transaction{}, &transactionStartError{400, "invalid_start"}
 	}
 	if p.ID == "shopify" && start.Shop != "" && !oauth.ValidShop(start.Shop) || p.ID != "shopify" && start.Shop != "" {
-		fail(w, 400, "invalid_provider_account")
-		return
+		return Transaction{}, &transactionStartError{400, "invalid_provider_account"}
 	}
 	if !s.admittedProviderInstallation(p.ID, installation.ID) {
-		fail(w, 403, "qa_installation_not_admitted")
-		return
+		return Transaction{}, &transactionStartError{403, "qa_installation_not_admitted"}
 	}
 	if p.ID == "shopify" && (s.qa != nil || s.shopifyQA != nil) && !s.admittedShop(start.Shop) {
-		fail(w, 403, "qa_shop_not_admitted")
-		return
+		return Transaction{}, &transactionStartError{403, "qa_shop_not_admitted"}
 	}
 	if start.Scopes == nil {
 		start.Scopes = append([]string{}, p.Scopes...)
@@ -362,10 +381,9 @@ func (s *Server) start(w http.ResponseWriter, installation Installation, body []
 		validationShop = "onboarding.myshopify.com"
 	}
 	if _, err := s.Engine.Authorize(p, state, encoding.EncodeToString(sum[:]), validationShop, start.Scopes); err != nil {
-		fail(w, 400, "invalid_scopes")
-		return
+		return Transaction{}, &transactionStartError{400, "invalid_scopes"}
 	}
-	tx := &Transaction{ID: id, Installation: installation.ID, Provider: p.ID, AppID: p.AppID, Shop: start.Shop, Scopes: start.Scopes, Status: "pending", ExpiresAt: s.now().Add(10 * time.Minute), AuthorizationURL: s.Origin + "/authorize/" + id, state: state, verifier: verifier}
+	tx := &Transaction{Mode: mode, recipient: recipient, ID: id, Installation: installation.ID, Provider: p.ID, AppID: p.AppID, Shop: start.Shop, Scopes: append([]string{}, start.Scopes...), Status: "pending", ExpiresAt: s.now().Add(10 * time.Minute), AuthorizationURL: s.Origin + "/authorize/" + id, state: state, verifier: verifier}
 	s.mu.Lock()
 	for key, old := range s.transactions {
 		if !s.now().Before(old.ExpiresAt) && !old.busy {
@@ -374,12 +392,13 @@ func (s *Server) start(w http.ResponseWriter, installation Installation, body []
 	}
 	if len(s.transactions) >= 10000 {
 		s.mu.Unlock()
-		fail(w, 503, "busy")
-		return
+		return Transaction{}, &transactionStartError{503, "busy"}
 	}
 	s.transactions[id] = tx
+	result := *tx
+	result.Scopes = append([]string{}, tx.Scopes...)
 	s.mu.Unlock()
-	writeJSON(w, 201, tx)
+	return result, nil
 }
 
 var consentPage = template.Must(template.New("consent").Parse(`<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Connect with OpenAgent</title><style>body{font:17px system-ui;max-width:560px;margin:12vh auto;padding:24px;color:#18212b}button,input{padding:12px 22px;border-radius:10px;font:inherit}button{border:0;background:#18212b;color:white}small{color:#566}</style><h1>Connect {{.Provider}}</h1><p>You are authorizing <strong>{{.Name}}</strong> ({{.Product}}) to use the OpenAgent connector.</p><p>Credentials and API data are stored on that server. OpenAgent handles authorization and token renewal.</p>{{if eq .Provider "shopify"}}<p>This server will join your store's connector credential synchronization group.</p>{{end}}<p>Installation: <code>{{.Installation}}</code></p><p>Permissions: {{if eq .Provider "postiz"}}Postiz app-wide read and write access (mcp:read and mcp:write). This app does not offer granular permission selection.{{else}}{{.Scopes}}{{end}}</p><p><small>This installation name is supplied by its operator. It is not an endorsement by OpenAgent.</small></p><form method="post"><input type="hidden" name="csrf" value="{{.CSRF}}">{{if eq .Provider "shopify"}}<p><label>Shopify store <input name="shop" type="text" value="{{.Shop}}" placeholder="your-store.myshopify.com" pattern="[a-z0-9-]+\.myshopify\.com" required></label></p>{{end}}<button>Continue to {{.Provider}}</button></form><p>You can close this window to cancel.</p></html>`))
@@ -429,7 +448,11 @@ func (s *Server) authorize(w http.ResponseWriter, r *http.Request) {
 		// same-origin POST fence without exposing the consent URL to providers.
 		w.Header().Set("Referrer-Policy", "same-origin")
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		_ = consentPage.Execute(w, map[string]string{"Name": installation.Name, "Product": installation.Product, "Provider": copy.Provider, "Shop": copy.Shop, "CSRF": csrf, "Installation": installation.ID, "Scopes": strings.Join(copy.Scopes, ", ")})
+		page := consentPage
+		if copy.Mode == CentralMode {
+			page = centralConsentPage
+		}
+		_ = page.Execute(w, map[string]string{"Name": installation.Name, "Product": installation.Product, "Provider": copy.Provider, "Shop": copy.Shop, "CSRF": csrf, "Installation": installation.ID, "Scopes": strings.Join(copy.Scopes, ", "), "Recipient": copy.recipient})
 		return
 	}
 	if r.Method != "POST" {
@@ -668,7 +691,7 @@ func (s *Server) failedRotation(id, operation string) {
 func (s *Server) redeem(w http.ResponseWriter, r *http.Request, installation Installation, id string) {
 	s.mu.Lock()
 	tx := s.transactions[id]
-	if tx == nil || tx.Installation != installation.ID || tx.Status != "ready" || tx.busy || !s.now().Before(tx.ExpiresAt) || !s.admittedProviderInstallation(tx.Provider, installation.ID) || tx.Provider == "shopify" && !s.admittedShop(tx.Shop) {
+	if tx == nil || tx.Mode == CentralMode || tx.Installation != installation.ID || tx.Status != "ready" || tx.busy || !s.now().Before(tx.ExpiresAt) || !s.admittedProviderInstallation(tx.Provider, installation.ID) || tx.Provider == "shopify" && !s.admittedShop(tx.Shop) {
 		s.mu.Unlock()
 		fail(w, 409, "authorization_not_ready")
 		return

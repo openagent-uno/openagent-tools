@@ -15,7 +15,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/openagent-uno/openagent-tools/packages/connectors"
 	"github.com/openagent-uno/openagent-tools/packages/connectors/auth"
+	"github.com/openagent-uno/openagent-tools/packages/connectors/central"
 	"github.com/openagent-uno/openagent-tools/packages/connectors/oauth"
 )
 
@@ -29,7 +31,16 @@ func main() {
 	qaPath := flag.String("qa-enrollment", "", "Startup-only installation/store allowlist; public readiness remains disabled")
 	shopifyQAPath := flag.String("shopify-qa-enrollment", "", "Startup-only Shopify installation/store allowlist; other providers remain public")
 	shopifyClosed := flag.Bool("shopify-new-consents-disabled", false, "Pause new Shopify starts during webhook cutover; existing grants and other providers remain available")
+	centralConfig := flag.String("central-config", "", "Opt-in reviewed central catalog, signing and encrypted credential-vault configuration")
+	prepareKeysFrom := flag.String("prepare-central-keys-from", "", "Init-only projected secret source directory")
+	prepareKeysTo := flag.String("prepare-central-keys-to", "", "Init-only private in-memory key destination directory")
 	flag.Parse()
+	if *prepareKeysFrom != "" || *prepareKeysTo != "" {
+		if central.PrepareKeyFiles(*prepareKeysFrom, *prepareKeysTo) != nil {
+			fatal()
+		}
+		return
+	}
 	if *statePath == "" || *providersPath == "" || *keyPath == "" {
 		fmt.Fprintln(os.Stderr, "state, providers and event-key are required")
 		os.Exit(1)
@@ -87,6 +98,19 @@ func main() {
 		fatal()
 	}
 	mux := http.NewServeMux()
+	if *centralConfig != "" {
+		runtime, err := connectors.NewRuntime(nil)
+		if err != nil {
+			fatal()
+		}
+		service, closeVault, err := central.LoadService(*centralConfig, handler, runtime)
+		if err != nil {
+			fatal()
+		}
+		defer closeVault()
+		mux.Handle("/v1/registry/", service)
+		mux.Handle("/v1/execution/", service)
+	}
 	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Cache-Control", "no-store")
 		if len(handler.Providers) == 0 || handler.QAEnrollmentEnabled() {

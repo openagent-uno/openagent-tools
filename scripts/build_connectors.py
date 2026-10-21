@@ -98,6 +98,7 @@ def main():
                             archive.addfile(entry, io.BytesIO(data))
 
         subprocess.run(["uv", "build", "--wheel", "--out-dir", str(destination), str(snapshot / "packages/connectors-python")], check=True)
+    shutil.copyfile(MODULE / "central/protocol-v1.schema.json", destination / "central-v1.schema.json")
     files = {file.name: {"sha256": hashlib.sha256(file.read_bytes()).hexdigest(), "bytes": file.stat().st_size}
              for file in sorted(destination.iterdir()) if file.is_file() and not file.name.startswith(".")}
     (destination / "manifest.json").write_text(json.dumps({"format": 1, "version": version, "source_commit": commit, "source_sha256": source_digest,

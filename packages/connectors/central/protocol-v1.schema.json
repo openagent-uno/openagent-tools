@@ -1,0 +1,620 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OpenAgent shared connector central protocol v1",
+  "description": "Transport shapes. Additional signature, scope, schema-hash, recipient, host-policy and credential-admission checks are enforced by the shared client/service; JSON Schema is not authorization. Catalog signatures cover exact compact payload bytes. See the package README for routes and limits.",
+  "$defs": {
+    "Recipient": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "workspace_id": {
+          "type": "string",
+          "maxLength": 128,
+          "minLength": 1
+        },
+        "subject_id": {
+          "type": "string",
+          "maxLength": 256,
+          "minLength": 1
+        }
+      },
+      "required": [
+        "workspace_id",
+        "subject_id"
+      ]
+    },
+    "RecipientRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recipient": {
+          "$ref": "#/$defs/Recipient"
+        }
+      },
+      "required": [
+        "recipient"
+      ]
+    },
+    "Setup": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "none",
+            "oauth",
+            "token",
+            "credentials",
+            "custom_mcp"
+          ]
+        },
+        "credential_custody": {
+          "const": "service"
+        },
+        "execution": {
+          "const": "service"
+        },
+        "interaction": {
+          "enum": [
+            "none",
+            "hosted"
+          ],
+          "description": "Use the connection authorization_url in a browser, then poll connection status. Secret setup is always on the service; unavailable modes cannot be enrolled."
+        }
+      },
+      "required": [
+        "mode",
+        "credential_custody",
+        "execution"
+      ]
+    },
+    "Item": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "category": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "auth": {
+          "enum": [
+            "none",
+            "oauth",
+            "token",
+            "credentials",
+            "custom_mcp"
+          ]
+        },
+        "icon": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "logoSvg": {
+          "type": "string",
+          "maxLength": 65536
+        },
+        "setupUrl": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "setupInstructions": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "capability": {
+          "enum": [
+            "commerce",
+            "files",
+            "social",
+            "ads",
+            "outreach",
+            "media",
+            "insights"
+          ]
+        },
+        "provider": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "readTools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "maxItems": 256,
+          "uniqueItems": true
+        },
+        "agentTools": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "maxItems": 256,
+          "uniqueItems": true
+        },
+        "available": {
+          "type": "boolean"
+        },
+        "unavailableReason": {
+          "type": "string",
+          "maxLength": 2048
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "description",
+        "category",
+        "auth",
+        "icon",
+        "capability",
+        "provider",
+        "readTools",
+        "agentTools",
+        "available"
+      ]
+    },
+    "Retry": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "max_attempts": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5
+        },
+        "base_delay_ms": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 30000
+        },
+        "supports_idempotency": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "max_attempts",
+        "base_delay_ms",
+        "supports_idempotency"
+      ]
+    },
+    "Preview": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "method": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "path": {
+          "type": "string",
+          "maxLength": 2048
+        },
+        "summary": {
+          "type": "string",
+          "maxLength": 8192
+        }
+      },
+      "required": [
+        "method",
+        "path",
+        "summary"
+      ]
+    },
+    "Operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "description": {
+          "type": "string",
+          "maxLength": 8192
+        },
+        "capability": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "provider": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "risk": {
+          "enum": [
+            "read",
+            "draft",
+            "write",
+            "publish",
+            "spend",
+            "destructive"
+          ]
+        },
+        "mode": {
+          "const": "typed"
+        },
+        "inputSchema": {
+          "type": "object"
+        },
+        "required_scopes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "maxItems": 256,
+          "uniqueItems": true
+        },
+        "retry": {
+          "$ref": "#/$defs/Retry"
+        },
+        "preview": {
+          "$ref": "#/$defs/Preview"
+        }
+      },
+      "required": [
+        "name",
+        "description",
+        "capability",
+        "provider",
+        "risk",
+        "mode",
+        "inputSchema",
+        "retry",
+        "preview"
+      ]
+    },
+    "Descriptor": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "item": {
+          "$ref": "#/$defs/Item"
+        },
+        "contract_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Operation"
+          },
+          "maxItems": 2048,
+          "uniqueItems": true
+        },
+        "setup": {
+          "$ref": "#/$defs/Setup"
+        }
+      },
+      "required": [
+        "item",
+        "contract_sha256",
+        "operations",
+        "setup"
+      ]
+    },
+    "Catalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "protocol": {
+          "const": "openagent-connectors-central/v1"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "issued_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "connectors": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Descriptor"
+          },
+          "maxItems": 1024,
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "protocol",
+        "revision",
+        "issued_at",
+        "expires_at",
+        "connectors"
+      ]
+    },
+    "SignedCatalog": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "key_id": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "payload": {
+          "$ref": "#/$defs/Catalog"
+        },
+        "signature": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{86}$"
+        }
+      },
+      "required": [
+        "key_id",
+        "payload",
+        "signature"
+      ]
+    },
+    "CreateRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "catalog_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "contract_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "recipient": {
+          "$ref": "#/$defs/Recipient"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "maxItems": 256,
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "config": {
+          "type": "object",
+          "description": "Non-secret provider configuration, at most256KiB encoded. Credential keys are rejected."
+        }
+      },
+      "required": [
+        "catalog_id",
+        "contract_sha256",
+        "recipient",
+        "operations"
+      ]
+    },
+    "Connection": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "protocol": {
+          "const": "openagent-connectors-central/v1"
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "catalog_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "contract_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "recipient": {
+          "$ref": "#/$defs/Recipient"
+        },
+        "operations": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 256
+          },
+          "maxItems": 256,
+          "uniqueItems": true,
+          "minItems": 1
+        },
+        "grant_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "connected",
+            "disconnected",
+            "failed",
+            "revoked"
+          ]
+        },
+        "authorization_url": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "protocol",
+        "id",
+        "catalog_id",
+        "contract_sha256",
+        "recipient",
+        "operations",
+        "grant_revision",
+        "status"
+      ]
+    },
+    "InvokeRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "recipient": {
+          "$ref": "#/$defs/Recipient"
+        },
+        "contract_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "grant_revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "invocation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "operation": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "arguments": {
+          "type": "object",
+          "description": "At most256KiB encoded; validated by the concrete provider adapter."
+        },
+        "approval_id": {
+          "type": "string",
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "recipient",
+        "contract_sha256",
+        "grant_revision",
+        "invocation_id",
+        "operation",
+        "arguments"
+      ]
+    },
+    "ProviderResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "data": {},
+        "provider_request_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "provider_status": {
+          "type": "integer"
+        },
+        "attempts": {
+          "type": "integer"
+        },
+        "request_bytes": {
+          "type": "integer"
+        },
+        "response_bytes": {
+          "type": "integer"
+        },
+        "metadata": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "attempts"
+      ]
+    },
+    "InvocationResult": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "invocation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "running",
+            "succeeded",
+            "failed",
+            "outcome_unknown"
+          ]
+        },
+        "result": {
+          "$ref": "#/$defs/ProviderResult"
+        },
+        "result_available": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "invocation_id",
+        "status",
+        "result_available"
+      ]
+    },
+    "Error": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "error": {
+          "type": "string",
+          "maxLength": 256
+        }
+      },
+      "required": [
+        "error"
+      ]
+    }
+  },
+  "oneOf": [
+    {
+      "$ref": "#/$defs/SignedCatalog"
+    },
+    {
+      "$ref": "#/$defs/CreateRequest"
+    },
+    {
+      "$ref": "#/$defs/Connection"
+    },
+    {
+      "$ref": "#/$defs/InvokeRequest"
+    },
+    {
+      "$ref": "#/$defs/InvocationResult"
+    },
+    {
+      "$ref": "#/$defs/RecipientRequest"
+    },
+    {
+      "$ref": "#/$defs/Error"
+    }
+  ]
+}

@@ -11,25 +11,76 @@ import (
 )
 
 // Runtime receives already authorized host bindings. Tool arguments never select a credential.
-type Runtime struct{ adapters map[string]domain.Adapter }
+type Runtime struct {
+	adapters map[string]domain.Adapter
+	entries  map[string]CatalogEntry
+}
+
+// NewRuntimeWithCatalog installs trusted server-side adapters and descriptors.
+// Remote callers cannot register code or supply a replacement catalog. Existing
+// NewRuntime callers retain the compiled catalog and operation contracts.
+func NewRuntimeWithCatalog(entries []CatalogEntry, adapters []domain.Adapter) (*Runtime, error) {
+	r := &Runtime{adapters: map[string]domain.Adapter{}, entries: map[string]CatalogEntry{}}
+	for _, a := range adapters {
+		if a == nil || a.Provider() == "" || r.adapters[a.Provider()] != nil {
+			return nil, errors.New("invalid adapter registry")
+		}
+		for _, op := range a.Operations() {
+			if op.Validate() != nil || op.Provider != a.Provider() || op.Capability != a.Capability() {
+				return nil, errors.New("invalid adapter operation")
+			}
+		}
+		r.adapters[a.Provider()] = a
+	}
+	for _, entry := range entries {
+		if entry.ID == "" || r.entries[entry.ID].ID != "" {
+			return nil, errors.New("invalid connector registry")
+		}
+		// Clone slices and raw schemas so the installed registry cannot drift when
+		// a caller later edits its construction input.
+		data, err := json.Marshal(entry)
+		if err != nil {
+			return nil, errors.New("invalid connector registry")
+		}
+		var copy CatalogEntry
+		if json.Unmarshal(data, &copy) != nil {
+			return nil, errors.New("invalid connector registry")
+		}
+		r.entries[copy.ID] = copy
+	}
+	return r, nil
+}
+
+// Operations returns secret-free descriptions from the actual executing
+// adapters, never caller-supplied tool definitions.
+func (r *Runtime) Operations(provider string) []domain.Operation {
+	a := r.adapters[provider]
+	if a == nil {
+		return nil
+	}
+	var out []domain.Operation
+	for _, op := range a.Operations() {
+		if op.InternalOnly {
+			continue
+		}
+		data, _ := json.Marshal(op)
+		var copy domain.Operation
+		if json.Unmarshal(data, &copy) == nil {
+			out = append(out, copy)
+		}
+	}
+	return out
+}
 
 func NewRuntime(client providers.HTTPDoer) (*Runtime, error) {
 	if client == nil {
-		runtime := &Runtime{adapters: map[string]domain.Adapter{}}
-		for _, adapter := range providers.Catalog() {
-			runtime.adapters[adapter.Provider()] = adapter
-		}
-		return runtime, nil
+		return NewRuntimeWithCatalog(Catalog(), providers.Catalog())
 	}
 	adapters, err := providers.CatalogWithDoer(client)
 	if err != nil {
 		return nil, err
 	}
-	runtime := &Runtime{adapters: map[string]domain.Adapter{}}
-	for _, adapter := range adapters {
-		runtime.adapters[adapter.Provider()] = adapter
-	}
-	return runtime, nil
+	return NewRuntimeWithCatalog(Catalog(), adapters)
 }
 
 type Binding struct {
@@ -48,7 +99,7 @@ type Call struct {
 }
 
 func (r *Runtime) Tools(binding Binding) ([]domain.Operation, error) {
-	item, ok := Lookup(binding.CatalogID)
+	item, ok := r.entries[binding.CatalogID]
 	if !ok || !item.Available || item.NativeKind != "" || item.Provider != binding.Connection.Provider || item.Capability != string(binding.Connection.Capability) {
 		return nil, domain.ErrDenied
 	}
@@ -96,7 +147,7 @@ func (r *Runtime) Invoke(ctx context.Context, call Call) (domain.Result, error) 
 	if selected == nil {
 		return domain.Result{}, domain.ErrDenied
 	}
-	item, _ := Lookup(call.Binding.CatalogID)
+	item := r.entries[call.Binding.CatalogID]
 	_, credentialFree := r.adapters[item.Provider].(domain.CredentialFreeAdapter)
 	if item.Auth == "none" {
 		if !credentialFree || !call.Credential.IsNone() {
