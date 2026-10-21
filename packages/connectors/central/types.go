@@ -107,4 +107,5 @@ type InvocationRecord struct {
 type VaultState struct {
 	Connections map[string]CredentialRecord `json:"connections"`
 	Invocations map[string]InvocationRecord `json:"invocations"`
+	Extensions  map[string]json.RawMessage  `json:"extensions,omitempty"`
 }

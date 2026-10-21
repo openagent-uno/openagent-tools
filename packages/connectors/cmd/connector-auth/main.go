@@ -18,6 +18,7 @@ import (
 	"github.com/openagent-uno/openagent-tools/packages/connectors"
 	"github.com/openagent-uno/openagent-tools/packages/connectors/auth"
 	"github.com/openagent-uno/openagent-tools/packages/connectors/central"
+	slackchannel "github.com/openagent-uno/openagent-tools/packages/connectors/channels/slack"
 	"github.com/openagent-uno/openagent-tools/packages/connectors/oauth"
 )
 
@@ -32,6 +33,7 @@ func main() {
 	shopifyQAPath := flag.String("shopify-qa-enrollment", "", "Startup-only Shopify installation/store allowlist; other providers remain public")
 	shopifyClosed := flag.Bool("shopify-new-consents-disabled", false, "Pause new Shopify starts during webhook cutover; existing grants and other providers remain available")
 	centralConfig := flag.String("central-config", "", "Opt-in reviewed central catalog, signing and encrypted credential-vault configuration")
+	slackChannelConfig := flag.String("slack-channel-config", "", "Separate opt-in official Slack bot channel configuration; never imports MCP/user tokens")
 	prepareKeysFrom := flag.String("prepare-central-keys-from", "", "Init-only projected secret source directory")
 	prepareKeysTo := flag.String("prepare-central-keys-to", "", "Init-only private in-memory key destination directory")
 	flag.Parse()
@@ -119,6 +121,25 @@ func main() {
 		}
 		w.WriteHeader(200)
 	})
+	if *slackChannelConfig != "" {
+		forbidden := []string{*statePath}
+		if *centralConfig != "" {
+			raw, e := os.ReadFile(*centralConfig)
+			var centralPaths struct {
+				VaultPath string `json:"vault_path"`
+			}
+			if e != nil || json.Unmarshal(raw, &centralPaths) != nil || centralPaths.VaultPath == "" {
+				fatal()
+			}
+			forbidden = append(forbidden, centralPaths.VaultPath)
+		}
+		channels, closeChannels, e := slackchannel.LoadService(*slackChannelConfig, handler, forbidden...)
+		if e != nil {
+			fatal()
+		}
+		defer closeChannels()
+		mux.Handle(slackchannel.Prefix+"/", channels)
+	}
 	mux.Handle("/", handler)
 	server := &http.Server{Addr: *listen, Handler: mux, ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 30 * time.Second, WriteTimeout: 35 * time.Second, IdleTimeout: 60 * time.Second, MaxHeaderBytes: 16384}
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
