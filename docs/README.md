@@ -1,6 +1,6 @@
 # Independent OpenAgent tools
 
-- [Native X11 typing: keyboard-map reset regression and source qualification](native-x11-typing.md)
+- [Native X11 typing: published Linux x64 component0.1.3 and native regression](native-x11-typing.md)
 
 The [ChatGPT app inventory and connector coverage](chatgpt-app-coverage.md)
 records all publicly observed category cards, the editorial Popular order and
