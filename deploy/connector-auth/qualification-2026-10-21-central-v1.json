@@ -1,0 +1,67 @@
+{
+  "status": "released-and-production-qualified",
+  "module": "github.com/openagent-uno/openagent-tools/packages/connectors",
+  "version": "v0.1.13",
+  "sdk_release": "https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.13",
+  "source_commit": "f6a73a32b52ec3252445a45557846dbd37760199",
+  "protocol": "openagent-connectors-central/v1",
+  "origin": "https://auth.openagent.uno",
+  "catalog_path": "/v1/registry/catalog",
+  "schema_path": "/v1/registry/schema",
+  "key_id": "central-registry-20261021-1",
+  "public_key": "35N3Qb16evtD9iJGSZ-OqkCpUv092HEySnz9e4Z1pR0",
+  "algorithm": "Ed25519",
+  "catalog_revision": 2,
+  "catalog_total": 115,
+  "central_available_ids": [
+    "coingecko"
+  ],
+  "image": "localhost:5000/openagent-connector-auth@sha256:11e15e5af57a972ded5fdcc1d607bbf7b6e786836c84a17fd6c96205e776a28e",
+  "legacy_configured_providers": 15,
+  "legacy_shopify_enrollment": "paused",
+  "go_tests_including_subcases": {
+    "pass": 1404
+  },
+  "race": "pass",
+  "python_installed_tests": 18,
+  "real_production_test": {
+    "format": 1,
+    "status": "passed",
+    "stage": "complete",
+    "at": "2026-10-21T11:37:51Z",
+    "catalog_total": 115,
+    "catalog_available": 1,
+    "catalog_revision": 2,
+    "operation": "files.coingecko.price",
+    "target": "official",
+    "first_status": "succeeded",
+    "replay_status": "succeeded",
+    "data_validated": true,
+    "wrong_recipient_denied": true,
+    "disconnected": true,
+    "after_disconnect_denied": true
+  },
+  "public_client_uses_replace": false,
+  "host_setup": "central.OfficialClient(identity), client.Register(ctx), client.Catalog(ctx); derive recipients from trusted authenticated context; pin contract/grant/operation set",
+  "future_provider_behavior": "New compatible descriptors require no provider-specific consumer code; never expand existing grants automatically.",
+  "remaining": [
+    "Other central OAuth providers require separate real-account and privacy qualification before operator activation.",
+    "Hosted API-key/manual credential setup unavailable.",
+    "Central Shopify enrollment unavailable pending privacy/rotation/two-server qualification.",
+    "Cross-built binaries are not runtime-qualified on every target OS.",
+    "Windows central vault server fails closed; remote clients are supported."
+  ],
+  "anonymous_release_assets_verified": 11,
+  "manifest_sha256": "a33aecc37076de4de45aaa8fb1bf79feef5149e2efb483103cd2b34a69a4bd19",
+  "runner_python_adapter_real_subprocess": {
+    "python_adapter": "0.1.13",
+    "native_runner": "0.1.13",
+    "installed_wheel": true,
+    "catalog_count": 115,
+    "real_subprocess": "pass"
+  },
+  "docs_source_commit": "fcc1ad5f",
+  "docs_url": "https://openagent.uno/guide/central-connectors",
+  "data_backup": "post-rollout encrypted vault and metadata copied privately on the production node",
+  "legacy_spec_preserved": true
+}
