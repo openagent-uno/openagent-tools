@@ -1,0 +1,90 @@
+{
+  "status": "published-and-anonymously-verified",
+  "package": "openagent-web-search-mcp",
+  "version": "1.0.0-beta.2",
+  "release": "https://github.com/openagent-uno/openagent-tools/releases/tag/web-search-v1.0.0-beta.2",
+  "source_commit": "d0b67d50d091517266d470def79540b11083b34a",
+  "artifact": {
+    "name": "openagent-web-search-mcp-1.0.0-beta.2.tgz",
+    "url": "https://github.com/openagent-uno/openagent-tools/releases/download/web-search-v1.0.0-beta.2/openagent-web-search-mcp-1.0.0-beta.2.tgz",
+    "sha256": "b65ae574e2fceb17cd4ded6e1dc6f1826b9b2737f0b946902c1c96b87c9a2338",
+    "integrity": "sha512-N0xrwKsAAlz0U90ugCIaNVXcJLysyOiGiBLA2fi0V9glJnxNxwLa0QtpJ3jA9HoYWX5BWqI7StYQQ+2YYPDQPA=="
+  },
+  "manifest": {
+    "url": "https://github.com/openagent-uno/openagent-tools/releases/download/web-search-v1.0.0-beta.2/manifest.json",
+    "sha256": "9abbe4cbf55c71fb392d44c32f8c395a7f61f47d3f063bc608173c597a2a075f"
+  },
+  "qualification_url": "https://github.com/openagent-uno/openagent-tools/releases/download/web-search-v1.0.0-beta.2/qualification.json",
+  "anonymous_assets_verified": 4,
+  "entrypoint": "node_modules/openagent-web-search-mcp/dist/index.js",
+  "modules": [
+    "dist/browser-pool.js",
+    "dist/browser-executable.js",
+    "dist/search-engine.js",
+    "dist/enhanced-content-extractor.js"
+  ],
+  "required_environment": {
+    "OPENAGENT_CHROME_BINARY": "absolute host-pinned Chrome/Chromium executable path",
+    "BROWSER_TYPES": "chromium",
+    "BROWSER_HEADLESS": "true"
+  },
+  "installation": {
+    "npm_tarball_normal_install_qualified": true,
+    "browser_download_required_if_host_binary_present": false,
+    "browsers_embedded": false,
+    "npmjs_publication_claimed": false
+  },
+  "qualification": {
+    "format": 1,
+    "status": "passed-installed-real-chrome",
+    "package": "openagent-web-search-mcp",
+    "version": "1.0.0-beta.2",
+    "source_commit": "d0b67d50d091517266d470def79540b11083b34a",
+    "artifact_sha256": "b65ae574e2fceb17cd4ded6e1dc6f1826b9b2737f0b946902c1c96b87c9a2338",
+    "source_unit_tests": {
+      "passed": 5,
+      "failed": 0
+    },
+    "live_installed": {
+      "version": "1.0.0-beta.2",
+      "installed_package": true,
+      "browser_cache_present": false,
+      "provider_mocks": false,
+      "search": true,
+      "real_external_page_browser_extraction": true,
+      "public_extractor_js_fallback": true,
+      "search_engine": "Browser Bing",
+      "search_results": 3,
+      "external_extracted_characters": 10848,
+      "browser_launches": 2,
+      "chrome_versions": [
+        "155.0.8059.85"
+      ],
+      "extractor_reused_browser": true,
+      "status": "passed"
+    },
+    "mcp_stdio": {
+      "status": "passed",
+      "transport": "stdio",
+      "tool_names": [
+        "full-web-search",
+        "get-web-search-summaries",
+        "get-single-web-page-content"
+      ],
+      "server_info": {
+        "name": "web-search-mcp",
+        "version": "0.3.1"
+      },
+      "packaged_entrypoint": true,
+      "extra_provider_calls": 0
+    },
+    "mac_jobs": "sequential under shared ics-local-build.lock; max pressure 2",
+    "runtime_platform_qualified": "darwin-arm64",
+    "other_platforms": "JavaScript artifact; native browser execution not qualified on other operating systems in this release",
+    "connector_catalog_changed": false,
+    "oauth_configuration_changed": false,
+    "paid_actions_used": false
+  },
+  "shared_mac_worker": "all owned jobs completed and lock released",
+  "consumer_acceptance": "Consumer dependency pin and its packaging/E2E remain the consuming host responsibility; no product-specific patch is needed in BrowserPool."
+}
