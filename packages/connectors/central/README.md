@@ -96,3 +96,7 @@ if err != nil { return err }
 The client enforces HTTPS, with explicit HTTP allowance only for `localhost`/`127.0.0.1` fixtures. It disables redirects even on a supplied HTTP client, bounds responses to 4 MiB, uses bounded requests, rejects ambiguous/unknown typed response fields, verifies catalog signatures/freshness and rejects revision rollback or same-revision content drift. Its revision high-water mark is in memory per client, not a durable offline cache. Trust keys and origin are explicit configuration; no network key discovery or automatic key rollover is implemented. Configure the client before concurrent use and do not copy it afterward.
 
 New service adapters can be discovered without adding provider-specific client code, provided they fit the supported protocol, schemas, custody and host policy. A deployment or consumer adopting this package still needs its normal compatibility/security/provider qualification. This package does not install adapters from arbitrary feed URLs, migrate legacy credentials, supply cross-host delegations, activate provider apps or prove privacy-sink coverage.
+
+## OAuth activation audit
+
+See the [21 October per-provider activation gates](../../../docs/central-oauth-activation-2026-10-21.md) before enabling an OAuth descriptor. Existing broker configuration and legacy lifecycle receipts do not qualify the new central custody and execution path.
