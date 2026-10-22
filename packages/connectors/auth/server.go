@@ -41,6 +41,7 @@ type Transaction struct {
 	busy             bool
 	approved         bool
 	recipient        string
+	centralAdmission func() bool
 }
 type Start struct {
 	ReceiptVersion int      `json:"receipt_version,omitempty"`
@@ -346,6 +347,13 @@ func (e *transactionStartError) Error() string { return e.code }
 func (e *transactionStartError) Unwrap() error { return ErrDenied }
 
 func (s *Server) beginTransaction(installation Installation, start Start, mode, recipient string) (Transaction, error) {
+	return s.beginTransactionWithAdmission(installation, start, mode, recipient, nil)
+}
+
+func (s *Server) beginTransactionWithAdmission(installation Installation, start Start, mode, recipient string, admit func() bool) (Transaction, error) {
+	if !centralAdmissionAllowed(admit) || admit != nil && mode != CentralMode {
+		return Transaction{}, ErrDenied
+	}
 	if mode == CentralMode && s.limited("start:"+installation.ID, 10, time.Minute) {
 		return Transaction{}, &transactionStartError{429, "rate_limited"}
 	}
@@ -383,8 +391,12 @@ func (s *Server) beginTransaction(installation Installation, start Start, mode, 
 	if _, err := s.Engine.Authorize(p, state, encoding.EncodeToString(sum[:]), validationShop, start.Scopes); err != nil {
 		return Transaction{}, &transactionStartError{400, "invalid_scopes"}
 	}
-	tx := &Transaction{Mode: mode, recipient: recipient, ID: id, Installation: installation.ID, Provider: p.ID, AppID: p.AppID, Shop: start.Shop, Scopes: append([]string{}, start.Scopes...), Status: "pending", ExpiresAt: s.now().Add(10 * time.Minute), AuthorizationURL: s.Origin + "/authorize/" + id, state: state, verifier: verifier}
+	tx := &Transaction{Mode: mode, recipient: recipient, centralAdmission: admit, ID: id, Installation: installation.ID, Provider: p.ID, AppID: p.AppID, Shop: start.Shop, Scopes: append([]string{}, start.Scopes...), Status: "pending", ExpiresAt: s.now().Add(10 * time.Minute), AuthorizationURL: s.Origin + "/authorize/" + id, state: state, verifier: verifier}
 	s.mu.Lock()
+	if !centralAdmissionAllowed(admit) {
+		s.mu.Unlock()
+		return Transaction{}, ErrDenied
+	}
 	for key, old := range s.transactions {
 		if !s.now().Before(old.ExpiresAt) && !old.busy {
 			delete(s.transactions, key)
@@ -411,7 +423,7 @@ func (s *Server) authorize(w http.ResponseWriter, r *http.Request) {
 	id := strings.TrimPrefix(r.URL.Path, "/authorize/")
 	s.mu.Lock()
 	tx := s.transactions[id]
-	if tx == nil || !s.now().Before(tx.ExpiresAt) || tx.Status != "pending" {
+	if tx == nil || !s.now().Before(tx.ExpiresAt) || tx.Status != "pending" || !centralAdmissionAllowed(tx.centralAdmission) {
 		s.mu.Unlock()
 		fail(w, 410, "authorization_expired")
 		return
@@ -436,11 +448,20 @@ func (s *Server) authorize(w http.ResponseWriter, r *http.Request) {
 				fail(w, 400, "invalid_authorization")
 				return
 			}
+			if !centralAdmissionAllowed(copy.centralAdmission) {
+				fail(w, 403, "authorization_unavailable")
+				return
+			}
 			renderProviderAuthorization(w, copy.Provider, target)
 			return
 		}
 		csrf := randomID()
 		s.mu.Lock()
+		if s.transactions[id] != tx || tx.Status != "pending" || !s.now().Before(tx.ExpiresAt) || !centralAdmissionAllowed(tx.centralAdmission) {
+			s.mu.Unlock()
+			fail(w, 403, "authorization_unavailable")
+			return
+		}
 		tx.csrf = csrf
 		s.mu.Unlock()
 		http.SetCookie(w, &http.Cookie{Name: "oa_connector_consent", Value: csrf, Path: "/authorize/" + id, HttpOnly: true, Secure: !s.Engine.AllowLoopback, SameSite: http.SameSiteLaxMode, MaxAge: 600})
@@ -470,6 +491,11 @@ func (s *Server) authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.mu.Lock()
+	if s.transactions[id] != tx || tx.Status != "pending" || !s.now().Before(tx.ExpiresAt) || !centralAdmissionAllowed(tx.centralAdmission) {
+		s.mu.Unlock()
+		fail(w, 403, "authorization_unavailable")
+		return
+	}
 	csrf := tx.csrf
 	tx.csrf = ""
 	s.mu.Unlock()
@@ -500,6 +526,11 @@ func (s *Server) authorize(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.mu.Lock()
+	if s.transactions[id] != tx || tx.Status != "pending" || !s.now().Before(tx.ExpiresAt) || !centralAdmissionAllowed(tx.centralAdmission) {
+		s.mu.Unlock()
+		fail(w, 403, "authorization_unavailable")
+		return
+	}
 	tx.approved = true
 	s.mu.Unlock()
 	renderProviderAuthorization(w, copy.Provider, target)
@@ -525,7 +556,7 @@ func (s *Server) callback(w http.ResponseWriter, r *http.Request) {
 			break
 		}
 	}
-	if tx == nil || tx.Provider != provider || !tx.approved || !s.now().Before(tx.ExpiresAt) || tx.Status != "pending" {
+	if tx == nil || tx.Provider != provider || !tx.approved || !s.now().Before(tx.ExpiresAt) || tx.Status != "pending" || !centralAdmissionAllowed(tx.centralAdmission) {
 		fail(w, 400, "invalid_oauth_state")
 		return
 	}
@@ -554,7 +585,7 @@ func (s *Server) transaction(w http.ResponseWriter, installation Installation, i
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	tx := s.transactions[id]
-	if tx == nil || tx.Installation != installation.ID || !s.admittedProviderInstallation(tx.Provider, installation.ID) || tx.Provider == "shopify" && !s.admittedShop(tx.Shop) {
+	if tx == nil || tx.Installation != installation.ID || !centralAdmissionAllowed(tx.centralAdmission) || !s.admittedProviderInstallation(tx.Provider, installation.ID) || tx.Provider == "shopify" && !s.admittedShop(tx.Shop) {
 		fail(w, 404, "not_found")
 		return
 	}

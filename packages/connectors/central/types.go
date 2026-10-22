@@ -34,11 +34,12 @@ type Setup struct {
 }
 
 type Catalog struct {
-	Protocol   string       `json:"protocol"`
-	Revision   uint64       `json:"revision"`
-	IssuedAt   time.Time    `json:"issued_at"`
-	ExpiresAt  time.Time    `json:"expires_at"`
-	Connectors []Descriptor `json:"connectors"`
+	Protocol      string                  `json:"protocol"`
+	Revision      uint64                  `json:"revision"`
+	IssuedAt      time.Time               `json:"issued_at"`
+	ExpiresAt     time.Time               `json:"expires_at"`
+	Connectors    []Descriptor            `json:"connectors"`
+	Qualification *QualificationAdmission `json:"qualification,omitempty"`
 }
 
 // The signature covers exactly Payload, not a re-encoding of parsed JSON.
@@ -49,14 +50,16 @@ type SignedCatalog struct {
 }
 
 type CreateRequest struct {
-	CatalogID      string          `json:"catalog_id"`
-	ContractSHA256 string          `json:"contract_sha256"`
-	Recipient      Recipient       `json:"recipient"`
-	Operations     []string        `json:"operations"`
-	Config         json.RawMessage `json:"config,omitempty"`
+	QualificationID string          `json:"qualification_id,omitempty"`
+	CatalogID       string          `json:"catalog_id"`
+	ContractSHA256  string          `json:"contract_sha256"`
+	Recipient       Recipient       `json:"recipient"`
+	Operations      []string        `json:"operations"`
+	Config          json.RawMessage `json:"config,omitempty"`
 }
 
 type Connection struct {
+	QualificationID  string    `json:"qualification_id,omitempty"`
 	Protocol         string    `json:"protocol"`
 	ID               string    `json:"id"`
 	CatalogID        string    `json:"catalog_id"`
@@ -88,11 +91,14 @@ type InvocationResult struct {
 
 // These records are serialized only inside the encrypted vault, never HTTP.
 type CredentialRecord struct {
-	Installation  string            `json:"installation"`
-	Public        Connection        `json:"public"`
-	Binding       domain.Connection `json:"binding"`
-	Token         oauth.Token       `json:"token"`
-	TransactionID string            `json:"transaction_id,omitempty"`
+	// Binds the complete private admission, including its recipient and expiry.
+	// A contract hash alone deliberately does not encode availability.
+	QualificationSHA256 string            `json:"qualification_sha256,omitempty"`
+	Installation        string            `json:"installation"`
+	Public              Connection        `json:"public"`
+	Binding             domain.Connection `json:"binding"`
+	Token               oauth.Token       `json:"token"`
+	TransactionID       string            `json:"transaction_id,omitempty"`
 }
 
 type InvocationRecord struct {

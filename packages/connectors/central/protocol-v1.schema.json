@@ -337,6 +337,9 @@
           },
           "maxItems": 1024,
           "uniqueItems": true
+        },
+        "qualification": {
+          "$ref": "#/$defs/QualificationAdmission"
         }
       },
       "required": [
@@ -399,6 +402,13 @@
         "config": {
           "type": "object",
           "description": "Non-secret provider configuration, at most256KiB encoded. Credential keys are rejected."
+        },
+        "qualification_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "description": "Optional private admission ID. Only the exact configured installation/recipient can use it; never enables the public catalog."
         }
       },
       "required": [
@@ -460,6 +470,13 @@
         "authorization_url": {
           "type": "string",
           "format": "uri"
+        },
+        "qualification_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$",
+          "description": "Optional private admission ID. Only the exact configured installation/recipient can use it; never enables the public catalog."
         }
       },
       "required": [
@@ -591,6 +608,45 @@
       },
       "required": [
         "error"
+      ]
+    },
+    "QualificationAdmission": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Signed operator-only Gmail trial for one existing installation and exact recipient. Expiry is at most 24 hours from service startup; expired retained rules do not enable admission.",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "catalog_id": {
+          "const": "gmail"
+        },
+        "installation_id": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "recipient": {
+          "$ref": "#/$defs/Recipient"
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": [
+        "id",
+        "revision",
+        "catalog_id",
+        "installation_id",
+        "recipient",
+        "expires_at"
       ]
     }
   },

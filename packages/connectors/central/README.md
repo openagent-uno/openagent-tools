@@ -99,4 +99,67 @@ New service adapters can be discovered without adding provider-specific client c
 
 ## OAuth activation audit
 
+### Private Gmail qualification
+
+An optional `gmail_qualification` object in `ServiceConfig` admits a temporary
+trial for **one already registered installation and one exact host recipient**:
+
+```json
+{
+  "id": "gmail-qa-1",
+  "revision": 1,
+  "catalog_id": "gmail",
+  "installation_id": "<existing 64-character lowercase key fingerprint>",
+  "recipient": {"workspace_id": "<trusted workspace>", "subject_id": "<trusted subject>"},
+  "expires_at": "<absolute UTC deadline no more than 24 hours ahead>"
+}
+```
+
+These placeholders are deliberately not an executable enrollment. An absent
+object closes the trial. Unknown fields, wildcards, other connectors, malformed
+identities, zero revisions, missing expiry and deadlines more than 24 hours
+ahead reject startup. A retained expired row remains disabled without blocking
+the public service's restart. The configured Gmail provider must reuse its
+existing app, callback and secret reference, enable PKCE, and declare exactly
+`gmail.modify` and `gmail.send`. No new app, legacy token import, provider-wide
+QA gate, account creation or provider consent is implied by this configuration.
+
+The authenticated host calls `client.QualificationCatalog(ctx, recipient)`;
+`POST /v1/registry/qualification` uses the ordinary installation signature,
+nonce and timestamp with the same recipient wrapper as connection status.
+Only the exact admitted host/principal receives the signed private catalog.
+Its payload contains `qualification` with the complete rule, a lifetime no
+longer than five minutes or the remaining rule deadline, and the existing seven
+typed Gmail operations. Its cache/revision is separate from `Catalog`.
+The public catalog is unchanged: private qualification does not mark Gmail
+available for other consumers. Never merge private availability into a public
+catalog or into another principal's discovery cache.
+
+Pass the private catalog's `qualification.id` as `CreateRequest.QualificationID`
+alongside its exact contract hash, recipient and selected operations. The normal
+OAuth, status, refresh and invocation routes apply; `Connection.QualificationID`
+identifies the temporary grant. Host ACLs and per-action approval remain
+mandatory. Selecting read tools does not make the Google token read-only:
+`gmail.modify` also permits sending at Google.
+
+Each grant stores a hash of the entire immutable admission in the encrypted
+vault. Removing/changing the row or passing its deadline denies discovery,
+creation, pending consent/completion, refresh, execution and outcome reads;
+the same old grant cannot fall back to a later public Gmail descriptor.
+Checks also fence token acceptance and result publication after provider IO.
+An expired/removed trial can still disconnect its own handle through the normal
+authenticated cleanup route. To revoke a pending transaction immediately on a
+configuration change, restart the broker with the service: transactions are
+in memory, and configuration is startup-only. Do not replace only an HTTP
+handler while retaining an older broker's pending consent sessions.
+
+Before a live trial, deploy accurate central-custody/privacy disclosures,
+independently verify the intended installation and principal, record the exact
+temporary operator rule, obtain the provider consent and any write approvals
+required by the QA plan, and complete the provider/tool/lifecycle/isolation
+checks. Disable the rule and disconnect test handles afterward. Source tests
+are synthetic; they neither qualify live Gmail nor complete Google's review
+or any required security assessment. Public activation remains a separate,
+reviewed decision after those gates.
+
 See the [21 October per-provider activation gates](../../../docs/central-oauth-activation-2026-10-21.md) before enabling an OAuth descriptor. Existing broker configuration and legacy lifecycle receipts do not qualify the new central custody and execution path.

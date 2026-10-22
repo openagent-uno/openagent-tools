@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/openagent-uno/openagent-tools/packages/connectors"
 	"github.com/openagent-uno/openagent-tools/packages/connectors/auth"
@@ -16,13 +17,14 @@ import (
 // ServiceConfig contains secret-file references, never credentials. Activation
 // is startup-only and requires an explicit reviewed qualification list.
 type ServiceConfig struct {
-	Revision            uint64            `json:"revision"`
-	SigningKeyID        string            `json:"signing_key_id"`
-	SigningKeyFile      string            `json:"signing_key_file"`
-	VaultPath           string            `json:"vault_path"`
-	VaultKeyID          string            `json:"vault_key_id"`
-	VaultKeyFiles       map[string]string `json:"vault_key_files"`
-	QualifiedCatalogIDs []string          `json:"qualified_catalog_ids"`
+	Revision            uint64                  `json:"revision"`
+	SigningKeyID        string                  `json:"signing_key_id"`
+	SigningKeyFile      string                  `json:"signing_key_file"`
+	VaultPath           string                  `json:"vault_path"`
+	VaultKeyID          string                  `json:"vault_key_id"`
+	VaultKeyFiles       map[string]string       `json:"vault_key_files"`
+	QualifiedCatalogIDs []string                `json:"qualified_catalog_ids"`
+	GmailQualification  *QualificationAdmission `json:"gmail_qualification,omitempty"`
 }
 
 func configSecret(path string, size int) ([]byte, error) {
@@ -122,11 +124,14 @@ func LoadService(path string, broker *auth.Server, runtime *connectors.Runtime) 
 	if err != nil {
 		return fail()
 	}
+	if _, _, err := prepareQualification(config.GmailQualification, registry, broker.Providers, time.Now()); err != nil {
+		return fail()
+	}
 	vault, err := OpenVault(config.VaultPath, config.VaultKeyID, keys)
 	if err != nil {
 		return fail()
 	}
-	server, err := NewServer(Config{Auth: broker, Vault: vault, Registry: registry, Executor: runtime})
+	server, err := NewServer(Config{Auth: broker, Vault: vault, Registry: registry, Executor: runtime, GmailQualification: config.GmailQualification})
 	if err != nil {
 		_ = vault.Close()
 		return fail()

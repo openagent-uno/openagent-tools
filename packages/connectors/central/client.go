@@ -21,14 +21,20 @@ import (
 
 // Configure before concurrent use; a Client must not be copied after first use.
 type Client struct {
-	Origin        string
-	Identity      auth.Identity
-	HTTP          *http.Client
-	AllowLoopback bool
-	TrustKeys     map[string]ed25519.PublicKey
-	mu            sync.Mutex
-	revision      uint64
-	catalogHash   [32]byte
+	Origin         string
+	Identity       auth.Identity
+	HTTP           *http.Client
+	AllowLoopback  bool
+	TrustKeys      map[string]ed25519.PublicKey
+	mu             sync.Mutex
+	revision       uint64
+	catalogHash    [32]byte
+	qualifications map[string]qualificationVersion
+}
+
+type qualificationVersion struct {
+	revision uint64
+	digest   [32]byte
 }
 
 // RemoteError deliberately excludes server messages and response bodies.
@@ -114,15 +120,8 @@ func (c *Client) Catalog(ctx context.Context) (Catalog, error) {
 	if err := c.call(ctx, http.MethodGet, "/v1/registry/catalog", nil, &envelope, false); err != nil {
 		return Catalog{}, err
 	}
-	key := c.TrustKeys[envelope.KeyID]
-	signature, err := base64.RawURLEncoding.DecodeString(envelope.Signature)
-	if err != nil || !domain.ValidResourceID(envelope.KeyID) || len(key) != ed25519.PublicKeySize || len(signature) != ed25519.SignatureSize || !ed25519.Verify(key, envelope.Payload, signature) {
-		return Catalog{}, ErrInvalidCatalog
-	}
-	var catalog Catalog
-	if strictJSON(envelope.Payload, &catalog) != nil || catalog.Protocol != Protocol || catalog.Revision == 0 ||
-		catalog.IssuedAt.IsZero() || catalog.IssuedAt.After(time.Now().Add(time.Minute)) || !catalog.ExpiresAt.After(time.Now()) ||
-		!catalog.ExpiresAt.After(catalog.IssuedAt) || catalog.ExpiresAt.Sub(catalog.IssuedAt) > 24*time.Hour || validateDescriptors(catalog.Connectors) != nil {
+	catalog, err := c.verifyCatalog(envelope)
+	if err != nil || catalog.Qualification != nil {
 		return Catalog{}, ErrInvalidCatalog
 	}
 	// Freshly signed timestamps can change without a registry revision. Every
@@ -142,6 +141,69 @@ func (c *Client) Catalog(ctx context.Context) (Catalog, error) {
 	return catalog, nil
 }
 
+func (c *Client) verifyCatalog(envelope SignedCatalog) (Catalog, error) {
+	key := c.TrustKeys[envelope.KeyID]
+	signature, err := base64.RawURLEncoding.DecodeString(envelope.Signature)
+	if err != nil || !domain.ValidResourceID(envelope.KeyID) || len(key) != ed25519.PublicKeySize || len(signature) != ed25519.SignatureSize || !ed25519.Verify(key, envelope.Payload, signature) {
+		return Catalog{}, ErrInvalidCatalog
+	}
+	var catalog Catalog
+	if strictJSON(envelope.Payload, &catalog) != nil || catalog.Protocol != Protocol || catalog.Revision == 0 ||
+		catalog.IssuedAt.IsZero() || catalog.IssuedAt.After(time.Now().Add(time.Minute)) || !catalog.ExpiresAt.After(time.Now()) ||
+		!catalog.ExpiresAt.After(catalog.IssuedAt) || catalog.ExpiresAt.Sub(catalog.IssuedAt) > 24*time.Hour || validateDescriptors(catalog.Connectors) != nil {
+		return Catalog{}, ErrInvalidCatalog
+	}
+	return catalog, nil
+}
+
+// QualificationCatalog is a separate signed, principal-bound trial catalog.
+// Its revision/cache cannot enable entries in the public Catalog.
+func (c *Client) QualificationCatalog(ctx context.Context, recipient Recipient) (Catalog, error) {
+	if !validRecipient(recipient) || len(c.Identity.PrivateKey) != ed25519.PrivateKeySize {
+		return Catalog{}, auth.ErrDenied
+	}
+	var envelope SignedCatalog
+	input := struct {
+		Recipient Recipient `json:"recipient"`
+	}{recipient}
+	if err := c.call(ctx, http.MethodPost, "/v1/registry/qualification", input, &envelope, true); err != nil {
+		return Catalog{}, err
+	}
+	catalog, err := c.verifyCatalog(envelope)
+	if err != nil {
+		return Catalog{}, err
+	}
+	q := catalog.Qualification
+	if q == nil || !validQualification(*q) || q.InstallationID != c.Identity.ID() || q.Recipient != recipient ||
+		q.Revision != catalog.Revision || !q.ExpiresAt.After(time.Now()) || q.ExpiresAt.After(catalog.IssuedAt.Add(24*time.Hour)) ||
+		catalog.ExpiresAt.After(q.ExpiresAt) || catalog.ExpiresAt.Sub(catalog.IssuedAt) > catalogLifetime ||
+		len(catalog.Connectors) != 1 || !qualificationDescriptor(catalog.Connectors[0]) || !catalog.Connectors[0].Item.Available {
+		return Catalog{}, ErrInvalidCatalog
+	}
+	content, _ := json.Marshal(struct {
+		Qualification QualificationAdmission
+		Connectors    []Descriptor
+	}{*q, catalog.Connectors})
+	digest := sha256.Sum256(content)
+	// The key excludes mutable rule revision/expiry, so same-revision policy
+	// drift is rejected rather than creating a fresh cache slot.
+	cacheKey := q.InstallationID + ":" + q.ID + ":" + recipientKey(recipient)
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	old, exists := c.qualifications[cacheKey]
+	if exists && (q.Revision < old.revision || q.Revision == old.revision && digest != old.digest) {
+		return Catalog{}, ErrCatalogRollback
+	}
+	if c.qualifications == nil {
+		c.qualifications = map[string]qualificationVersion{}
+	}
+	if !exists && len(c.qualifications) >= 128 {
+		return Catalog{}, ErrInvalidCatalog
+	}
+	c.qualifications[cacheKey] = qualificationVersion{q.Revision, digest}
+	return catalog, nil
+}
+
 func validRecipient(r Recipient) bool {
 	return r.WorkspaceID != "" && r.SubjectID != "" && strings.TrimSpace(r.WorkspaceID) == r.WorkspaceID &&
 		strings.TrimSpace(r.SubjectID) == r.SubjectID && validText(r.WorkspaceID, 128) && validText(r.SubjectID, 256)
@@ -149,6 +211,7 @@ func validRecipient(r Recipient) bool {
 
 func validateConnection(value Connection, recipient Recipient, id string, loopback ...bool) error {
 	if value.Protocol != Protocol || !domain.ValidResourceID(value.ID) || id != "" && value.ID != id ||
+		(value.QualificationID != "" && (!domain.ValidResourceID(value.QualificationID) || value.CatalogID != "gmail")) ||
 		value.Recipient != recipient || !domain.ValidResourceID(value.CatalogID) || !validHash(value.ContractSHA256) ||
 		!validNames(value.Operations) {
 		return ErrInvalidResponse
@@ -187,6 +250,9 @@ func (c *Client) Create(ctx context.Context, request CreateRequest) (Connection,
 	if !domain.ValidResourceID(request.CatalogID) || !validHash(request.ContractSHA256) || !validRecipient(request.Recipient) || !validNames(request.Operations) {
 		return Connection{}, auth.ErrDenied
 	}
+	if request.QualificationID != "" && (!domain.ValidResourceID(request.QualificationID) || request.CatalogID != "gmail") {
+		return Connection{}, auth.ErrDenied
+	}
 	if len(request.Config) > 256<<10 {
 		return Connection{}, auth.ErrDenied
 	}
@@ -200,7 +266,7 @@ func (c *Client) Create(ctx context.Context, request CreateRequest) (Connection,
 	if err := c.call(ctx, http.MethodPost, "/v1/execution/connections", request, &connection, true); err != nil {
 		return Connection{}, err
 	}
-	if validateConnection(connection, request.Recipient, "", c.AllowLoopback) != nil || connection.CatalogID != request.CatalogID || connection.ContractSHA256 != request.ContractSHA256 {
+	if validateConnection(connection, request.Recipient, "", c.AllowLoopback) != nil || connection.CatalogID != request.CatalogID || connection.ContractSHA256 != request.ContractSHA256 || connection.QualificationID != request.QualificationID {
 		return Connection{}, ErrInvalidResponse
 	}
 	// The service may narrow the request, never silently expand the local grant.

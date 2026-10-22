@@ -28,15 +28,19 @@ type Executor interface {
 }
 
 type Config struct {
-	Auth     *auth.Server
-	Vault    *Vault
-	Registry *Registry
-	Executor Executor
+	Auth               *auth.Server
+	Vault              *Vault
+	Registry           *Registry
+	Executor           Executor
+	GmailQualification *QualificationAdmission
 }
 
 type Server struct {
-	config Config
-	gate   chan struct{}
+	config          Config
+	gate            chan struct{}
+	qualification   *QualificationAdmission
+	privateRegistry *Registry
+	now             func() time.Time
 }
 
 func NewServer(config Config) (*Server, error) {
@@ -46,7 +50,13 @@ func NewServer(config Config) (*Server, error) {
 	if _, err := config.Vault.View(); err != nil {
 		return nil, err
 	}
-	return &Server{config: config, gate: make(chan struct{}, 1)}, nil
+	qualification, private, err := prepareQualification(config.GmailQualification, config.Registry, config.Auth.Providers, time.Now())
+	if err != nil {
+		return nil, errors.New("central qualification configuration invalid")
+	}
+	// Do not retain a caller-owned, mutable policy pointer.
+	config.GmailQualification = nil
+	return &Server{config: config, gate: make(chan struct{}, 1), qualification: qualification, privateRegistry: private, now: time.Now}, nil
 }
 
 // BuildDescriptors describes all compiled entries, but enables only explicit
@@ -169,7 +179,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	// All state and execution routes have installation signatures. Registration
 	// and browser consent remain on the unchanged broker routes.
-	if r.Method != http.MethodPost || !strings.HasPrefix(r.URL.Path, "/v1/execution/connections") {
+	if r.Method != http.MethodPost || !(strings.HasPrefix(r.URL.Path, "/v1/execution/connections") || r.URL.Path == "/v1/registry/qualification") {
 		centralFail(w, 404, "not_found")
 		return
 	}
@@ -181,6 +191,22 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	installation, err := s.config.Auth.AuthenticateInstallation(r, body)
 	if err != nil {
 		centralFail(w, 401, "invalid_installation_signature")
+		return
+	}
+	if r.URL.Path == "/v1/registry/qualification" {
+		var input struct {
+			Recipient Recipient `json:"recipient"`
+		}
+		if !strict(body, &input) || !recipientValid(input.Recipient) {
+			centralFail(w, 400, "invalid_recipient")
+			return
+		}
+		catalog, err := s.qualificationCatalog(installation, input.Recipient)
+		if err != nil {
+			centralFail(w, 409, "connection_not_admitted")
+			return
+		}
+		centralJSON(w, 200, catalog)
 		return
 	}
 	parts := strings.Split(strings.Trim(r.URL.Path, "/"), "/")
@@ -245,6 +271,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			centralFail(w, 404, "connection_not_found")
 			return
 		}
+		if _, err := s.current(record); err != nil {
+			centralFail(w, 409, "connection_not_ready")
+			return
+		}
 		state, err := s.config.Vault.View()
 		if err != nil {
 			centralFail(w, 503, "vault_unavailable")
@@ -253,6 +283,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		inv, ok := state.Invocations[record.Public.ID+":"+parts[5]]
 		if !ok {
 			centralFail(w, 404, "invocation_not_found")
+			return
+		}
+		if _, err := s.current(record); err != nil {
+			centralFail(w, 409, "connection_not_ready")
 			return
 		}
 		centralJSON(w, 200, InvocationResult{InvocationID: parts[5], Status: inv.Status})
@@ -266,6 +300,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		record, err := s.record(installation, id, input)
 		if err != nil {
 			centralFail(w, 404, "connection_not_found")
+			return
+		}
+		if _, err := s.current(record); err != nil {
+			centralFail(w, 409, "connection_not_ready")
 			return
 		}
 		if record.Public.Status == "pending" && record.TransactionID != "" {
@@ -286,6 +324,10 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				centralFail(w, 409, "connection_not_ready")
 				return
 			}
+		}
+		if _, err := s.current(record); err != nil {
+			centralFail(w, 409, "connection_not_ready")
+			return
 		}
 		centralJSON(w, 200, record.Public)
 		return
@@ -401,6 +443,12 @@ func safeConfig(raw json.RawMessage) bool {
 }
 func (s *Server) create(i auth.Installation, input CreateRequest) (Connection, error) {
 	d, ok := s.config.Registry.Lookup(input.CatalogID)
+	if input.QualificationID != "" {
+		if input.CatalogID != "gmail" || !s.qualificationActive(i.ID, input.Recipient, input.QualificationID) {
+			return Connection{}, auth.ErrDenied
+		}
+		d, ok = s.privateRegistry.Lookup(input.CatalogID)
+	}
 	if !ok || !d.Item.Available || d.Item.Provider == "shopify" || input.ContractSHA256 != d.ContractSHA256 || !recipientValid(input.Recipient) || len(input.Operations) == 0 || len(input.Operations) > 256 || !safeConfig(input.Config) {
 		return Connection{}, auth.ErrDenied
 	}
@@ -428,13 +476,25 @@ func (s *Server) create(i auth.Installation, input CreateRequest) (Connection, e
 	}
 	sort.Strings(scopeList)
 	record := CredentialRecord{Installation: i.ID, Public: Connection{Protocol: Protocol, ID: id, CatalogID: d.Item.ID, ContractSHA256: d.ContractSHA256, Recipient: input.Recipient, Operations: allowed, GrantRevision: 1, Status: "connected"}, Binding: domain.Connection{ID: id, WorkspaceID: input.Recipient.WorkspaceID, Capability: domain.Capability(d.Item.Capability), Provider: d.Item.Provider, DisplayName: d.Item.Name, Scopes: scopeList, Config: input.Config, Enabled: true}}
+	if input.QualificationID != "" {
+		record.Public.QualificationID = input.QualificationID
+		record.QualificationSHA256 = qualificationHash(*s.qualification)
+	}
 	if d.Item.Auth == "oauth" {
 		// Workspace protocols with app-defined capabilities still need the existing
 		// broker's configured scope contract when operations declare none.
 		if len(scopeList) == 0 {
 			scopeList = append([]string{}, s.config.Auth.Providers[d.Item.Provider].Scopes...)
 		}
-		tx, err := s.config.Auth.BeginCentral(i, auth.Start{Provider: d.Item.Provider, Scopes: scopeList}, recipientKey(input.Recipient))
+		start := auth.Start{Provider: d.Item.Provider, Scopes: scopeList}
+		var tx auth.Transaction
+		var err error
+		if record.Public.QualificationID != "" {
+			admissionRecord := record
+			tx, err = s.config.Auth.BeginCentralWithAdmission(i, start, recipientKey(input.Recipient), func() bool { _, err := s.current(admissionRecord); return err == nil })
+		} else {
+			tx, err = s.config.Auth.BeginCentral(i, start, recipientKey(input.Recipient))
+		}
 		if err != nil {
 			return Connection{}, err
 		}
@@ -449,6 +509,9 @@ func (s *Server) create(i auth.Installation, input CreateRequest) (Connection, e
 	}
 	err := s.config.Auth.WithCentralInstallation(i, func() error {
 		return s.config.Vault.Update(func(state *VaultState) error {
+			if _, err := s.current(record); err != nil {
+				return err
+			}
 			if len(state.Connections) >= 10000 {
 				return errors.New("connection limit")
 			}
@@ -460,6 +523,13 @@ func (s *Server) create(i auth.Installation, input CreateRequest) (Connection, e
 }
 func (s *Server) current(record CredentialRecord) (Descriptor, error) {
 	d, ok := s.config.Registry.Lookup(record.Public.CatalogID)
+	if record.Public.QualificationID != "" || record.QualificationSHA256 != "" {
+		if !s.qualificationActive(record.Installation, record.Public.Recipient, record.Public.QualificationID) ||
+			record.Public.CatalogID != "gmail" || record.QualificationSHA256 != qualificationHash(*s.qualification) {
+			return Descriptor{}, auth.ErrDenied
+		}
+		d, ok = s.privateRegistry.Lookup(record.Public.CatalogID)
+	}
 	if !ok || !d.Item.Available || d.ContractSHA256 != record.Public.ContractSHA256 || d.Item.Provider != record.Binding.Provider {
 		return Descriptor{}, auth.ErrDenied
 	}
@@ -478,6 +548,9 @@ func (s *Server) complete(ctx context.Context, i auth.Installation, record Crede
 	err := s.config.Auth.CompleteCentral(ctx, i, record.TransactionID, recipientKey(record.Public.Recipient), func(token oauth.Token) error {
 		return s.config.Vault.Update(func(state *VaultState) error {
 			current := state.Connections[record.Public.ID]
+			if _, err := s.current(current); err != nil {
+				return err
+			}
 			if current.Public.Status != "pending" || current.Installation != i.ID || current.Public.Recipient != record.Public.Recipient {
 				return auth.ErrDenied
 			}
@@ -508,11 +581,17 @@ func (s *Server) complete(ctx context.Context, i auth.Installation, record Crede
 			current.Public.Status = "connected"
 			current.Public.AuthorizationURL = ""
 			current.TransactionID = ""
+			if _, err := s.current(current); err != nil {
+				return err
+			}
 			state.Connections[current.Public.ID] = current
 			record = current
 			return nil
 		})
 	})
+	if err == nil {
+		_, err = s.current(record)
+	}
 	return record, err
 }
 func (s *Server) refresh(ctx context.Context, i auth.Installation, record CredentialRecord) (CredentialRecord, error) {
@@ -530,6 +609,9 @@ func (s *Server) refresh(ctx context.Context, i auth.Installation, record Creden
 	err = s.config.Auth.WithCentralToken(i, d.Item.Provider, token, func() error {
 		return s.config.Vault.Update(func(state *VaultState) error {
 			current := state.Connections[record.Public.ID]
+			if _, err := s.current(current); err != nil {
+				return err
+			}
 			if current.Public.Status != "connected" || current.Public.GrantRevision != record.Public.GrantRevision {
 				return auth.ErrDenied
 			}
@@ -540,6 +622,9 @@ func (s *Server) refresh(ctx context.Context, i auth.Installation, record Creden
 			return nil
 		})
 	})
+	if err == nil {
+		_, err = s.current(record)
+	}
 	return record, err
 }
 func (s *Server) invoke(ctx context.Context, i auth.Installation, id string, input InvokeRequest) (InvocationResult, error) {
@@ -583,6 +668,9 @@ func (s *Server) invoke(ctx context.Context, i auth.Installation, id string, inp
 		if old.BodySHA256 != hash {
 			return InvocationResult{}, auth.ErrConflict
 		}
+		if _, err := s.current(record); err != nil {
+			return InvocationResult{}, err
+		}
 		return InvocationResult{InvocationID: input.InvocationID, Status: old.Status}, nil
 	}
 	if record.Token.ExpiresAt != nil && !time.Now().Add(time.Minute).Before(*record.Token.ExpiresAt) {
@@ -617,6 +705,9 @@ func (s *Server) invoke(ctx context.Context, i auth.Installation, id string, inp
 	}
 	admission := func() error {
 		return s.config.Vault.Update(func(next *VaultState) error {
+			if _, err := s.current(next.Connections[id]); err != nil {
+				return err
+			}
 			if len(next.Invocations) >= 100000 {
 				return errors.New("invocation limit")
 			}
@@ -647,6 +738,9 @@ func (s *Server) invoke(ctx context.Context, i auth.Installation, id string, inp
 	// in idempotency/audit records. A repeated invocation never executes again.
 	finish := func() error {
 		return s.config.Vault.Update(func(next *VaultState) error {
+			if _, err := s.current(next.Connections[id]); err != nil {
+				return err
+			}
 			v := next.Invocations[key]
 			v.Status = status
 			next.Invocations[key] = v
@@ -678,6 +772,9 @@ func (s *Server) invoke(ctx context.Context, i auth.Installation, id string, inp
 				result.ResultAvailable = true
 			}
 		}
+	}
+	if _, err := s.current(record); err != nil {
+		return InvocationResult{}, err
 	}
 	return result, nil
 }

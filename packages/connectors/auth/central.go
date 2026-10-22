@@ -68,10 +68,38 @@ func validCentralRecipient(recipient string) bool {
 // recipient. The returned transaction is a copy: changing it cannot change the
 // mode, recipient or approved scopes held by the broker.
 func (s *Server) BeginCentral(installation Installation, start Start, recipient string) (Transaction, error) {
-	if start.Provider == "shopify" || !validCentralRecipient(recipient) || !s.centralInstallation(s.Store.snapshot(), installation) {
+	return s.beginCentral(installation, start, recipient, nil)
+}
+
+// BeginCentralWithAdmission adds a private, server-owned admission predicate to
+// the normal central consent. It is never serialized or accepted from HTTP.
+// admit must be synchronous, thread-safe, side-effect free, and perform no IO or
+// auth Store/transaction lock reentry: it can run while either lock is held.
+// The accepting vault must also enforce its own current rule before commit.
+func (s *Server) BeginCentralWithAdmission(installation Installation, start Start, recipient string, admit func() bool) (Transaction, error) {
+	if admit == nil {
 		return Transaction{}, ErrDenied
 	}
-	return s.beginTransaction(installation, start, CentralMode, recipient)
+	return s.beginCentral(installation, start, recipient, admit)
+}
+
+func centralAdmissionAllowed(admit func() bool) (allowed bool) {
+	if admit == nil {
+		return true
+	}
+	defer func() {
+		if recover() != nil {
+			allowed = false
+		}
+	}()
+	return admit()
+}
+
+func (s *Server) beginCentral(installation Installation, start Start, recipient string, admit func() bool) (Transaction, error) {
+	if start.Provider == "shopify" || !validCentralRecipient(recipient) || !centralAdmissionAllowed(admit) || !s.centralInstallation(s.Store.snapshot(), installation) {
+		return Transaction{}, ErrDenied
+	}
+	return s.beginTransactionWithAdmission(installation, start, CentralMode, recipient, admit)
 }
 
 // CentralTransaction returns only public metadata for one central consent. It
@@ -85,16 +113,17 @@ func (s *Server) CentralTransaction(installation Installation, id, recipient str
 	s.mu.Lock()
 	tx := s.transactions[id]
 	if tx == nil || tx.Mode != CentralMode || tx.Installation != installation.ID || tx.recipient != recipient ||
-		tx.Provider == "shopify" || !s.now().Before(tx.ExpiresAt) {
+		tx.Provider == "shopify" || !s.now().Before(tx.ExpiresAt) || !centralAdmissionAllowed(tx.centralAdmission) {
 		s.mu.Unlock()
 		return Transaction{}, ErrDenied
 	}
 	metadata := Transaction{Mode: tx.Mode, ID: tx.ID, Installation: tx.Installation, Provider: tx.Provider,
 		AppID: tx.AppID, Shop: tx.Shop, Scopes: append([]string{}, tx.Scopes...), Status: tx.Status,
 		ExpiresAt: tx.ExpiresAt, AuthorizationURL: tx.AuthorizationURL}
+	admit := tx.centralAdmission
 	s.mu.Unlock()
 	p, err := s.centralProvider(installation, metadata.Provider)
-	if err != nil || p.AppID != metadata.AppID || !scopeSubset(metadata.Scopes, p.Scopes) {
+	if err != nil || p.AppID != metadata.AppID || !scopeSubset(metadata.Scopes, p.Scopes) || !centralAdmissionAllowed(admit) {
 		return Transaction{}, ErrDenied
 	}
 	return metadata, nil
@@ -130,7 +159,7 @@ func (s *Server) CompleteCentral(ctx context.Context, installation Installation,
 	s.mu.Lock()
 	tx := s.transactions[id]
 	if tx == nil || tx.Mode != CentralMode || tx.recipient != recipient || tx.Installation != installation.ID ||
-		tx.Provider == "shopify" || tx.Status != "ready" || tx.busy || !s.now().Before(tx.ExpiresAt) {
+		tx.Provider == "shopify" || tx.Status != "ready" || tx.busy || !s.now().Before(tx.ExpiresAt) || !centralAdmissionAllowed(tx.centralAdmission) {
 		s.mu.Unlock()
 		return ErrDenied
 	}
@@ -146,19 +175,22 @@ func (s *Server) CompleteCentral(ctx context.Context, installation Installation,
 	defer func() { s.mu.Lock(); tx.busy = false; tx.verifier = ""; s.mu.Unlock() }()
 	ctx, cancel := bounded(ctx)
 	defer cancel()
+	if !centralAdmissionAllowed(copy.centralAdmission) {
+		return ErrDenied
+	}
 	token, err := s.Engine.Exchange(ctx, p, copy.code, copy.verifier, copy.Shop, copy.Scopes)
 	if err != nil {
 		return err
 	}
 	current, err := s.centralProvider(installation, copy.Provider)
 	if err != nil || !sameCentralProvider(p, current) || token.AppID != p.AppID ||
-		token.AccessToken == "" || !scopeSubset(token.Scopes, copy.Scopes) || ctx.Err() != nil {
+		token.AccessToken == "" || !scopeSubset(token.Scopes, copy.Scopes) || ctx.Err() != nil || !centralAdmissionAllowed(copy.centralAdmission) {
 		return ErrDenied
 	}
 	s.mu.Lock()
 	stillBound := s.transactions[id] == tx && tx.Mode == CentralMode && tx.recipient == recipient &&
 		tx.Installation == installation.ID && tx.Provider == copy.Provider && tx.AppID == p.AppID &&
-		tx.Status == "consumed" && tx.busy && sameScopes(tx.Scopes, copy.Scopes) && s.now().Before(tx.ExpiresAt)
+		tx.Status == "consumed" && tx.busy && sameScopes(tx.Scopes, copy.Scopes) && s.now().Before(tx.ExpiresAt) && centralAdmissionAllowed(tx.centralAdmission)
 	s.mu.Unlock()
 	if !stillBound {
 		return ErrDenied
@@ -166,7 +198,7 @@ func (s *Server) CompleteCentral(ctx context.Context, installation Installation,
 	// Persist only the established HMAC metadata. State never receives a raw
 	// access/refresh token or the authorization code.
 	if err = s.Store.update(func(state *State) error {
-		if !s.centralInstallation(*state, installation) || !s.admittedProviderInstallation(p.ID, installation.ID) {
+		if !s.centralInstallation(*state, installation) || !s.admittedProviderInstallation(p.ID, installation.ID) || !centralAdmissionAllowed(copy.centralAdmission) {
 			return ErrDenied
 		}
 		binding := TokenBinding{Installation: installation.ID, Provider: p.ID, AppID: token.AppID,
@@ -178,6 +210,9 @@ func (s *Server) CompleteCentral(ctx context.Context, installation Installation,
 	return s.WithCentralToken(installation, p.ID, token, func() error {
 		if err := ctx.Err(); err != nil {
 			return err
+		}
+		if !centralAdmissionAllowed(copy.centralAdmission) {
+			return ErrDenied
 		}
 		return accept(token)
 	})
