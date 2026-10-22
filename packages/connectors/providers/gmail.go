@@ -12,15 +12,26 @@ import (
 	"github.com/openagent-uno/openagent-tools/packages/connectors/domain"
 )
 
-const maxGmailDecodedMessageBytes = 8 << 20
+const (
+	maxGmailDecodedMessageBytes = 8 << 20
+	// Gmail attachment IDs can exceed message/thread IDs. This local bound
+	// applies only to attachment IDs, not other IDs or generic path segments.
+	maxGmailAttachmentIDBytes      = 4096
+	gmailAttachmentIDSchemaPattern = `^[A-Za-z0-9_-]+$`
+)
 
 var (
-	gmailOpaqueIDPattern  = regexp.MustCompile(`^[A-Za-z0-9_-]{1,256}$`)
-	gmailHistoryIDPattern = regexp.MustCompile(`^[0-9]{1,32}$`)
-	gmailTopicPattern     = regexp.MustCompile(
+	gmailOpaqueIDPattern     = regexp.MustCompile(`^[A-Za-z0-9_-]{1,256}$`)
+	gmailAttachmentIDPattern = regexp.MustCompile(gmailAttachmentIDSchemaPattern)
+	gmailHistoryIDPattern    = regexp.MustCompile(`^[0-9]{1,32}$`)
+	gmailTopicPattern        = regexp.MustCompile(
 		`^projects/[a-z][a-z0-9-]{4,61}[a-z0-9]/topics/[A-Za-z][A-Za-z0-9._~+%-]{2,254}$`,
 	)
 )
+
+func validGmailAttachmentID(value string) bool {
+	return len(value) <= maxGmailAttachmentIDBytes && gmailAttachmentIDPattern.MatchString(value)
+}
 
 func gmailHistorySchema() json.RawMessage {
 	return gmailSchema(
@@ -78,7 +89,7 @@ func gmailAttachmentGetSchema() json.RawMessage {
 	return gmailSchema(
 		map[string]any{
 			"message_id":    stringProperty(`^[A-Za-z0-9_-]{1,256}$`),
-			"attachment_id": stringProperty(`^[A-Za-z0-9_-]{1,256}$`),
+			"attachment_id": map[string]any{"type": "string", "pattern": gmailAttachmentIDSchemaPattern, "minLength": 1, "maxLength": maxGmailAttachmentIDBytes},
 		},
 		[]string{"message_id", "attachment_id"},
 	)
@@ -224,8 +235,9 @@ func validateGmailArguments(
 		}
 	case "outreach.gmail.attachments.get":
 		addAllowed(allowed, "message_id", "attachment_id")
+		attachmentID := jsonString(arguments["attachment_id"])
 		if !gmailOpaqueIDPattern.MatchString(jsonString(arguments["message_id"])) ||
-			!gmailOpaqueIDPattern.MatchString(jsonString(arguments["attachment_id"])) {
+			!validGmailAttachmentID(attachmentID) {
 			return domain.ErrInvalidArguments
 		}
 	case "outreach.gmail.watch":

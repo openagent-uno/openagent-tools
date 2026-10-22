@@ -361,7 +361,11 @@ func (a *HTTPAdapter) buildPlan(invocation domain.Invocation) (requestPlan, erro
 		}
 	} else {
 		consumed := map[string]bool{"connection_id": true, "provider": true, "expected_external_id": true}
-		path, err = expandPath(path, arguments, consumed)
+		if a.manifest.Provider == "gmail" && operation.Name == "outreach.gmail.attachments.get" {
+			path, err = expandPathWithValidators(path, arguments, consumed, map[string]func(string) bool{"attachment_id": validGmailAttachmentID})
+		} else {
+			path, err = expandPath(path, arguments, consumed)
+		}
 		if err != nil {
 			return requestPlan{}, err
 		}
@@ -648,6 +652,10 @@ func decodeArguments(raw json.RawMessage, maximum int64) (map[string]json.RawMes
 }
 
 func expandPath(template string, arguments map[string]json.RawMessage, consumed map[string]bool) (string, error) {
+	return expandPathWithValidators(template, arguments, consumed, nil)
+}
+
+func expandPathWithValidators(template string, arguments map[string]json.RawMessage, consumed map[string]bool, validators map[string]func(string) bool) (string, error) {
 	var expansionErr error
 	path := pathTemplatePattern.ReplaceAllStringFunc(template, func(match string) string {
 		name := match[1 : len(match)-1]
@@ -657,7 +665,11 @@ func expandPath(template string, arguments map[string]json.RawMessage, consumed 
 			return match
 		}
 		stringValue, err := scalarString(value)
-		if err != nil || !pathValuePattern.MatchString(stringValue) || stringValue == "." || stringValue == ".." {
+		valid := pathValuePattern.MatchString
+		if override := validators[name]; override != nil {
+			valid = override
+		}
+		if err != nil || !valid(stringValue) || stringValue == "." || stringValue == ".." {
 			expansionErr = domain.ErrInvalidArguments
 			return match
 		}
