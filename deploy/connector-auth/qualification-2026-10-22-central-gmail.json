@@ -1,0 +1,209 @@
+{
+  "schema_version": 1,
+  "qualified_at": "2026-10-22",
+  "provider": "gmail",
+  "protocol": "openagent-connectors-central/v1",
+  "disposition": {
+    "technical_qualification": "passed_composite_seven_operation_evidence",
+    "general_availability": false,
+    "external_gate": "Google restricted-scope/data-access review pending; no verification or security-assessment completion claimed",
+    "limited_prerelease_activated": false
+  },
+  "source": {
+    "original_live_commit": "3432f2587ce607474af1586851764aad2d05213a",
+    "fixed_service_commit": "20487d4ca1e2701a1f0bb1008dbd6bafcb4e5bd3",
+    "fixed_service_vcs_modified": false,
+    "fixed_service_binary_sha256": "2e2bea7c3de6ad2ee13f3e8df7bc26914f98aa27e7f2f7f3ac2ae3154409e91f",
+    "fixed_runtime_image_digest": "sha256:2d2cb5b2ef57c16bf8ae8500bd8c04388defdb6ca33c8ad86c8818a6b8983111"
+  },
+  "contracts": {
+    "original_gmail": "4ef6114ebf6599ef24081947b69d904b59b38dc0b6080812932183c59a733f4b",
+    "fixed_gmail": "58320ce4f86dfe28dd45e7d78cfcbd30b81a187e1db47e6501d45b5ba6d0a407",
+    "public_catalog_revision_before": 2,
+    "public_catalog_revision_after": 3,
+    "private_admission_revision_before": 1,
+    "private_admission_revision_after": 2,
+    "other_descriptors_identical": 114,
+    "six_unchanged_operations": [
+      {
+        "operation": "outreach.gmail.drafts.create",
+        "old_operation_sha256": "1c4a70d82ade79caa3cf98fc9861dd5e5282b2da62e72e39352c8c9565eae410",
+        "new_operation_sha256": "1c4a70d82ade79caa3cf98fc9861dd5e5282b2da62e72e39352c8c9565eae410",
+        "exact_operation_data_equal": true
+      },
+      {
+        "operation": "outreach.gmail.drafts.send",
+        "old_operation_sha256": "84558c4699276819f35ebbe53dc0d262bbe750572c5af585ace157bfb8fcbb9e",
+        "new_operation_sha256": "84558c4699276819f35ebbe53dc0d262bbe750572c5af585ace157bfb8fcbb9e",
+        "exact_operation_data_equal": true
+      },
+      {
+        "operation": "outreach.gmail.messages.get",
+        "old_operation_sha256": "c82abd8cd0e7d601d3241ff319801b296bb969437437fa1def18297c302327a2",
+        "new_operation_sha256": "c82abd8cd0e7d601d3241ff319801b296bb969437437fa1def18297c302327a2",
+        "exact_operation_data_equal": true
+      },
+      {
+        "operation": "outreach.gmail.messages.list",
+        "old_operation_sha256": "8243c3b816bf1b9dba0fb6e427421d4f3170fefa15f7e052268df011e70c2c44",
+        "new_operation_sha256": "8243c3b816bf1b9dba0fb6e427421d4f3170fefa15f7e052268df011e70c2c44",
+        "exact_operation_data_equal": true
+      },
+      {
+        "operation": "outreach.gmail.messages.send",
+        "old_operation_sha256": "86d981abbbc55d1edbc4e1907e735025ea4052b2aa927d2f2225088214a40807",
+        "new_operation_sha256": "86d981abbbc55d1edbc4e1907e735025ea4052b2aa927d2f2225088214a40807",
+        "exact_operation_data_equal": true
+      },
+      {
+        "operation": "outreach.gmail.threads.get",
+        "old_operation_sha256": "78c3b36ead7e7473c857481da0eb17f1f4153e1bd6a0e32bcdadc411b5760a16",
+        "new_operation_sha256": "78c3b36ead7e7473c857481da0eb17f1f4153e1bd6a0e32bcdadc411b5760a16",
+        "exact_operation_data_equal": true
+      }
+    ],
+    "unchanged_source_objects": {
+      "packages/connectors/central": {
+        "old_git_object": "cbf0d76cfa1c6eced624ebd2e689276787cf20da",
+        "new_git_object": "cbf0d76cfa1c6eced624ebd2e689276787cf20da",
+        "exact_equal": true
+      },
+      "packages/connectors/auth": {
+        "old_git_object": "2498644bf25b4f1f94fb932022e2e62b27fe2a5e",
+        "new_git_object": "2498644bf25b4f1f94fb932022e2e62b27fe2a5e",
+        "exact_equal": true
+      },
+      "packages/connectors/oauth": {
+        "old_git_object": "8b139bc674636f5093732666107636c5fdc0495a",
+        "new_git_object": "8b139bc674636f5093732666107636c5fdc0495a",
+        "exact_equal": true
+      },
+      "packages/connectors/providers/manifests.go": {
+        "old_git_object": "215dfd7dc488f0cceca406907034c0de52a474e3",
+        "new_git_object": "215dfd7dc488f0cceca406907034c0de52a474e3",
+        "exact_equal": true
+      }
+    }
+  },
+  "real_provider_coverage": {
+    "original_commit_operations": [
+      "outreach.gmail.drafts.create",
+      "outreach.gmail.drafts.send",
+      "outreach.gmail.messages.send",
+      "outreach.gmail.messages.get",
+      "outreach.gmail.messages.list",
+      "outreach.gmail.threads.get"
+    ],
+    "fixed_commit_operations": [
+      "outreach.gmail.messages.get",
+      "outreach.gmail.attachments.get"
+    ],
+    "all_seven_reexecuted_under_fixed_commit": false,
+    "fixture": "new synthetic data only; no message, attachment or account identifiers published",
+    "self_addressed_messages_sent_total": 2,
+    "additional_sends_after_fix": 0,
+    "attachment_id_length_observed": 404,
+    "attachment_size_bytes_verified": 100352,
+    "attachment_kib_verified": 98,
+    "download_matches_original_sha256": true,
+    "messages_reread_after_fix": 2,
+    "pagination": "max_results=1; two non-empty pages followed by an empty terminal page",
+    "central_lifecycle": [
+      "fresh consent and central encrypted save",
+      "explicit refresh",
+      "actual service/vault restart and same-message reread",
+      "metadata-only invocation replay without durable result contents",
+      "changed request with same invocation ID rejected",
+      "wrong recipient rejected",
+      "owned disconnect after contract change; later invocation rejected"
+    ],
+    "lifecycle_source": "3432f2587ce607474af1586851764aad2d05213a",
+    "new_grant_cleanup": "owned disconnect returned HTTP200 disconnected",
+    "transport": "ordinary signed public API; independent operator, not an installed-client/UI acceptance claim"
+  },
+  "fix": {
+    "attachment_id_alphabet": "ASCII letters, digits, underscore and hyphen",
+    "attachment_id_max_bytes": 4096,
+    "other_gmail_id_max_bytes": 256,
+    "generic_http_path_segment_max_bytes": 512,
+    "path_override": "Only fixed provider gmail, exact attachments.get operation and attachment_id parameter; uses the full bounded validator",
+    "google_vendor_maximum_claimed": false,
+    "encoded_invoke_arguments_limit_bytes": 262144,
+    "entire_http_request_limit_bytes": 1048576
+  },
+  "validation": {
+    "red": "original source fails the exact new attachment-schema regression; no production files reverted",
+    "green_top_level_tests": 338,
+    "green_subtests": 862,
+    "green_failures": 0,
+    "new_regression_tests": 4,
+    "new_invalid_identifier_subcases": 15,
+    "packages": [
+      "providers",
+      "central",
+      "auth"
+    ],
+    "red_log_sha256": "97cb51b7074e3393e737526e52c45cc51981a8b7b46c445ea81696d13c30d966",
+    "green_log_sha256": "a8875a762c5af803990b9e0788d9c8c524d0d69e82af5c9b2e0edb97351a3f2a",
+    "shared_resource_monitor": true,
+    "go_parallelism": 1,
+    "new_sdk_or_client_builds": 0,
+    "provider_calls_from_automated_tests": 0
+  },
+  "google_console_observation": {
+    "observed_at": "2026-10-22T14:28:34.955756+00:00",
+    "source": "authenticated Google Cloud console, read-only observation",
+    "ai_agent_client_setting_enabled": true,
+    "branding": "verified",
+    "homepage": "complete",
+    "data_access": "in review",
+    "remaining_review_sections": [
+      "privacy",
+      "app functionality",
+      "appropriate data access",
+      "minimum scopes",
+      "additional requirements"
+    ],
+    "google_approval_claimed": false,
+    "google_security_assessment_completion_claimed": false
+  },
+  "custody": {
+    "execution": "central service",
+    "credentials": "encrypted service vault; reusable provider tokens not returned to consumers",
+    "invocation_replay_storage": "admission/outcome metadata; provider contents not stored as replay results",
+    "public_privacy_disclosure": "https://openagent.uno/privacy",
+    "review_evidence_requirement": "Google submission must describe the actual central custody/processing path"
+  },
+  "cleanup": {
+    "exact_generated_messages_moved_to_recoverable_trash": 2,
+    "method": "existing owner Gmail connector after exact metadata verification; TRASH then verified via ordinary central messages.get",
+    "central_trash_tool_claimed": false,
+    "permanent_deletion": false,
+    "other_messages_modified": false,
+    "provider_global_revocation": false,
+    "qa_connection_handles_disconnected": true,
+    "private_admission_removed": false
+  },
+  "not_qualified": [
+    "delivery to other recipients",
+    "raw 1 MiB attachment upload",
+    "seven live operations freshly repeated under the fixed commit",
+    "native installed-client/UI end-to-end acceptance",
+    "connection isolation through a distinct registered second installation; observed second local identity was rejected at signature verification",
+    "general Google approval or completed restricted-scope security assessment"
+  ],
+  "activation": {
+    "performed": false,
+    "required_operator_change_after_provider_gate": "Normal config-only activation: remove temporary private admission, add gmail to qualified_catalog_ids, advance public revision to4 because availability changes the signed descriptor; preserve app, scopes, keys, vault and unrelated descriptors.",
+    "ordinary_client_flow": "signed catalog -> Create with current contract, trusted recipient and selected operations without qualification_id -> hosted consent -> status/Complete -> host authorization -> handle-based permitted Invoke",
+    "silent_credential_migration": false,
+    "new_sdk_release_required_for_this_service_fix": false
+  },
+  "references": {
+    "technical_note": "../../docs/central-gmail-qualification-2026-10-22.md",
+    "prior_activation_audit": "../../docs/central-oauth-activation-2026-10-21.md",
+    "google_attachment_api": "https://developers.google.com/workspace/gmail/api/reference/rest/v1/users.messages.attachments/get",
+    "google_unverified_apps": "https://support.google.com/cloud/answer/7454865?hl=en",
+    "google_restricted_scope_verification": "https://developers.google.com/identity/protocols/oauth2/production-readiness/restricted-scope-verification"
+  }
+}

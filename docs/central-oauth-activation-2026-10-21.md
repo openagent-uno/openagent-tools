@@ -1,5 +1,10 @@
 # Central OAuth activation audit — 21 October 2026
 
+**22 October update:** Gmail's subsequent [central technical qualification](central-gmail-qualification-2026-10-22.md)
+passed using six unchanged operation paths plus the corrected live attachment
+path. Its general availability remains disabled pending Google review. The
+findings below retain the original 21 October audit snapshot.
+
 The production ConfigMap was read without reading Secret values: the existing
 broker has 15 configured OAuth provider profiles. The central/v1 service serves
 catalog revision 2, with only CoinGecko qualified and available. **None of the

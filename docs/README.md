@@ -1,6 +1,7 @@
 # Independent OpenAgent tools
 
 - [Native X11 typing: published Linux x64 component0.1.3 and native regression](native-x11-typing.md)
+- [Gmail central technical qualification](central-gmail-qualification-2026-10-22.md) — seven-operation composite evidence, corrected attachment limits and Google review still pending; general availability remains disabled.
 
 The [ChatGPT app inventory and connector coverage](chatgpt-app-coverage.md)
 records all publicly observed category cards, the editorial Popular order and
