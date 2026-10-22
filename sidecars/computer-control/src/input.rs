@@ -1,7 +1,7 @@
 //! Input actions (keyboard + mouse) backed by enigo.
 //! enigo uses: CGEvent (macOS), XTest or Wayland portal (Linux), SendInput (Windows).
 
-use anyhow::{Context, Result, anyhow};
+use anyhow::{anyhow, Context, Result};
 use enigo::{Axis, Button, Coordinate, Direction, Enigo, Keyboard, Mouse, Settings};
 
 #[cfg(target_os = "macos")]
@@ -11,7 +11,10 @@ pub const MAC_ACCESSIBILITY_HINT: &str =
 #[cfg(target_os = "macos")]
 fn is_accessibility_error(e: &anyhow::Error) -> bool {
     let s = format!("{e:#}").to_lowercase();
-    s.contains("accessibility") || s.contains("not trusted") || s.contains("axiserror") || s.contains("permission")
+    s.contains("accessibility")
+        || s.contains("not trusted")
+        || s.contains("axiserror")
+        || s.contains("permission")
 }
 
 /// Ask macOS TCC for Accessibility permission, triggering the system
@@ -51,6 +54,36 @@ use crate::keys;
 
 pub struct InputController {
     enigo: Enigo,
+    // Enigo 0.5 caches the extra X11 keycodes it creates. Layout reloads can
+    // remove those bindings while this MCP process remains alive. Keep text
+    // transactions independent of that stale cache, without clipboard access.
+    #[cfg(target_os = "linux")]
+    text_connection: Option<Enigo>,
+}
+
+fn input_settings() -> Settings {
+    #[allow(unused_mut)]
+    let mut settings = Settings::default();
+    #[cfg(target_os = "linux")]
+    {
+        settings.x11_display = nonempty_env("DISPLAY");
+        settings.wayland_display = nonempty_env("WAYLAND_DISPLAY");
+    }
+    settings
+}
+
+#[cfg(any(target_os = "linux", test))]
+fn fresh_text_connection<T, E>(
+    current: &mut Option<T>,
+    connect: impl FnOnce() -> std::result::Result<T, E>,
+) -> std::result::Result<&mut T, E> {
+    // Drop BEFORE taking the new keymap snapshot: the previous Enigo's Drop
+    // releases its temporary mappings. Reversing this order invalidates the
+    // replacement's freshly captured map. A connection error leaves no stale
+    // instance that could report successful typing while dropping characters.
+    *current = None;
+    *current = Some(connect()?);
+    Ok(current.as_mut().expect("connection just initialized"))
 }
 
 impl InputController {
@@ -67,17 +100,7 @@ impl InputController {
             }
         }
 
-        #[allow(unused_mut)]
-        let mut settings = Settings::default();
-        #[cfg(target_os = "linux")]
-        {
-            // Passing the display names explicitly avoids libxdo relying on
-            // process-global lookup internally. That lookup is unreliable in
-            // frozen helpers and on arm64 desktop sessions even though the
-            // inherited DISPLAY/WAYLAND_DISPLAY values are valid.
-            settings.x11_display = nonempty_env("DISPLAY");
-            settings.wayland_display = nonempty_env("WAYLAND_DISPLAY");
-        }
+        let settings = input_settings();
         let enigo = match Enigo::new(&settings) {
             Ok(e) => e,
             Err(e) => {
@@ -94,10 +117,22 @@ impl InputController {
                 return Err(err.context("enigo init failed"));
             }
         };
-        Ok(Self { enigo })
+        Ok(Self {
+            enigo,
+            #[cfg(target_os = "linux")]
+            text_connection: None,
+        })
     }
 
     pub fn type_text(&mut self, text: &str) -> Result<()> {
+        #[cfg(target_os = "linux")]
+        {
+            let connection = fresh_text_connection(&mut self.text_connection, || {
+                Enigo::new(&input_settings()).context("text input connection failed")
+            })?;
+            connection.text(text).context("enigo.text")?;
+        }
+        #[cfg(not(target_os = "linux"))]
         self.enigo.text(text).context("enigo.text")?;
         Ok(())
     }
@@ -109,9 +144,7 @@ impl InputController {
         }
         // Press in order, release in reverse order.
         for k in &keys {
-            self.enigo
-                .key(*k, Direction::Press)
-                .context("key press")?;
+            self.enigo.key(*k, Direction::Press).context("key press")?;
         }
         for k in keys.iter().rev() {
             self.enigo
@@ -230,6 +263,36 @@ pub fn parse_scroll_text(text: &str) -> Result<(&str, Option<u32>)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn text_connection_drops_owned_mapping_before_refreshing_the_snapshot() {
+        use std::{cell::RefCell, rc::Rc};
+        struct OwnedMapping(Rc<RefCell<Vec<&'static str>>>);
+        impl Drop for OwnedMapping {
+            fn drop(&mut self) {
+                self.0.borrow_mut().push("drop old mapping");
+            }
+        }
+        let events = Rc::new(RefCell::new(Vec::new()));
+        let mut current = Some(OwnedMapping(events.clone()));
+        let result: Result<_, ()> = fresh_text_connection(&mut current, || {
+            events.borrow_mut().push("capture fresh map");
+            Ok(OwnedMapping(events.clone()))
+        });
+        assert!(result.is_ok());
+        assert_eq!(*events.borrow(), ["drop old mapping", "capture fresh map"]);
+    }
+
+    #[test]
+    fn failed_text_refresh_cannot_reuse_the_stale_connection() {
+        let mut current = Some("stale map");
+        assert!(fresh_text_connection(&mut current, || Err::<&str, _>("disconnected")).is_err());
+        assert!(current.is_none());
+        assert_eq!(
+            *fresh_text_connection(&mut current, || Ok::<_, &str>("fresh map")).unwrap(),
+            "fresh map"
+        );
+    }
 
     #[test]
     fn scroll_text_parses_direction_only() {

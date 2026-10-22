@@ -1,5 +1,7 @@
 # Independent OpenAgent tools
 
+- [Native X11 typing: published Linux x64 component0.1.3 and native regression](native-x11-typing.md)
+
 The [ChatGPT app inventory and connector coverage](chatgpt-app-coverage.md)
 records all publicly observed category cards, the editorial Popular order and
 the API/MCP research backlog. Implementation, registration, published artifacts
