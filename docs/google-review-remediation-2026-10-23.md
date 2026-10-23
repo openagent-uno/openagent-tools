@@ -46,7 +46,32 @@ API calls with the receiving host. The current
 must identify the profile actually demonstrated and must not imply local-only
 custody for central execution.
 
-## Remaining review evidence
+## Qualification and published runner
+
+SDK/runner [0.1.14](https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.14)
+contains the correction, with versioned platform bundles, Python wheel,
+manifest and checksums. Its source is commit
+`cbb856e14127a50675ae4f166854fdf0bf31a54f`; the functional scope correction
+is commit `d71e5d4cb786f9c3ab220d3e705fc117b36621c9`.
+The service deployment uses that functional correction and catalog revision 4.
+The public central Gmail entry remains unavailable.
+
+Isolated qualification completed all 23 reviewed operations, explicit refresh,
+a subsequent read in a separate process and scoped disconnect for all four
+connections. Gmail used central execution; Drive, Calendar and Analytics used
+the local runner. Source-account checks verified two neutral self-addressed
+emails, an outside-app Drive file updated through the connector, a newly
+created Drive file, and private Calendar event create/update/delete without
+attendees. Analytics historical and realtime requests returned real empty
+reports from an accessible property. QA mail and files were moved to their
+recoverable trash through owner controls; those cleanup actions are not
+claimed as Gmail or Drive connector operations.
+
+These results do not establish elapsed-expiry behavior, every shared-calendar
+case, other platforms' native execution or Google approval. Existing product
+bundle pins were not changed by publishing the standalone runner.
+
+## Review submission boundary
 
 The previous video is historical evidence, not proof of the revised scopes.
 Its replacement must show expanded readable consent for each connector, the
