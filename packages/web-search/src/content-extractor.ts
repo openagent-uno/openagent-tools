@@ -2,12 +2,15 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { ContentExtractionOptions, SearchResult } from './types.js';
 import { cleanText, getWordCount, getContentPreview, generateTimestamp, isPdfUrl } from './utils.js';
+import { BlockedUrlError, UrlGuardOptions, fetchPublicPage } from './url-guard.js';
 
 export class ContentExtractor {
   private readonly defaultTimeout: number;
   private readonly maxContentLength: number;
+  private readonly urlGuard: UrlGuardOptions;
 
-  constructor() {
+  constructor(urlGuard: UrlGuardOptions = {}) {
+    this.urlGuard = urlGuard;
     this.defaultTimeout = 10000;
     // Read MAX_CONTENT_LENGTH from environment variable, fallback to 500KB
     const envMaxLength = process.env.MAX_CONTENT_LENGTH;
@@ -24,7 +27,7 @@ export class ContentExtractor {
     const { url, timeout = this.defaultTimeout, maxContentLength = this.maxContentLength } = options;
     
     try {
-      const response = await axios.get(url, {
+      const response = await fetchPublicPage(url, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
           'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
@@ -45,17 +48,20 @@ export class ContentExtractor {
         timeout,
         maxContentLength,
         validateStatus: (status: number) => status < 400,
-      });
+      }, this.urlGuard);
 
       return this.parseContent(response.data);
     } catch (error) {
       console.error(`Content extraction error for ${url}:`, error);
+      if (error instanceof BlockedUrlError) {
+        throw error;
+      }
       
       // If it's a 403 error, try with different headers
       if (axios.isAxiosError(error) && error.response?.status === 403) {
         console.log(`[ContentExtractor] Trying alternative headers for ${url}`);
         try {
-          const response = await axios.get(url, {
+          const response = await fetchPublicPage(url, {
             headers: {
               'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
               'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
@@ -70,7 +76,7 @@ export class ContentExtractor {
             timeout,
             maxContentLength,
             validateStatus: (status: number) => status < 400,
-          });
+          }, this.urlGuard);
           
           console.log(`[ContentExtractor] Alternative headers worked for ${url}`);
           return this.parseContent(response.data);
