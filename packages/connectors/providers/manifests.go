@@ -254,6 +254,14 @@ func gmailManifest() Manifest {
 			},
 		},
 	}
+	for index := range operations {
+		scope := GmailReadScope
+		switch operations[index].Name {
+		case "outreach.gmail.drafts.create", "outreach.gmail.drafts.send", "outreach.gmail.messages.send":
+			scope = GmailComposeScope
+		}
+		operations[index].RequiredScopes = []string{scope}
+	}
 	return Manifest{
 		Provider: "gmail", Capability: domain.Outreach, APIVersion: "v1",
 		OriginKind: OriginFixed, Origin: "https://www.googleapis.com",

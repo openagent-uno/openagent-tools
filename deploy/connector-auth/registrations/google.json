@@ -36,13 +36,13 @@
   ],
   "declared_scopes": [
     "https://www.googleapis.com/auth/drive",
-    "https://www.googleapis.com/auth/gmail.modify",
-    "https://www.googleapis.com/auth/gmail.send",
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/gmail.compose",
     "https://www.googleapis.com/auth/analytics.readonly",
     "https://www.googleapis.com/auth/calendar.calendarlist.readonly",
     "https://www.googleapis.com/auth/calendar.events"
   ],
-  "scope_declaration_saved": "2026-10-18",
+  "scope_declaration_saved": "2026-10-23",
   "enabled_apis": [
     "gmail.googleapis.com",
     "drive.googleapis.com",
@@ -177,8 +177,8 @@
       "gmail_modify_restricted": 821
     },
     "intended_use_selections_observed": {
-      "drive": "Produttività Drive",
-      "gmail.modify": "Produttività email"
+      "drive": "Produttivit\u00e0 Drive",
+      "gmail.modify": "Produttivit\u00e0 email"
     },
     "required_youtube_video_url_available": false,
     "demo_video_recorded": false,
@@ -190,7 +190,7 @@
     "evidence_filename": "google-scope-review-awaiting-demo.jpg",
     "evidence_sha256": "f2e4698926c2da00698836f651c8493f7138a79926aff86a46467971597d92d8"
   },
-  "data_access_review_status": "in_review",
+  "data_access_review_status": "action_required",
   "data_access_verification_submitted": true,
   "data_access_review_checkpoint": {
     "observed_at": "2026-10-19T16:54:00Z",
@@ -234,5 +234,19 @@
     "observed_at_precision": "minute",
     "visible_checkbox_screenshot_sha256": "d146e523d177c75921dd1bfd343ef877f2470e864fd11996fcbc0843df6f933b",
     "visible_checkbox_screenshot_recorded_at": "2026-10-19T17:19:17.861021+00:00"
+  },
+  "data_access_review_action_required": {
+    "observed_at": "2026-10-23",
+    "source": "Google Third-Party Data Safety Team email and authenticated Data Access console",
+    "items": [
+      "scope necessity and narrower alternatives",
+      "exact code/console/consent alignment",
+      "replacement video showing all requested scope functions and source-account effects",
+      "reproducible reviewer instructions and test access where needed"
+    ],
+    "scope_correction": "New Gmail requests use readonly plus compose; previous modify/send grants remain historical and are not silently migrated.",
+    "console_scope_and_justification_update_saved": true,
+    "replacement_video_submitted": false,
+    "verification_approved": false
   }
 }

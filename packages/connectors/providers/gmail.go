@@ -13,12 +13,34 @@ import (
 )
 
 const (
+	GmailReadScope              = "https://www.googleapis.com/auth/gmail.readonly"
+	GmailComposeScope           = "https://www.googleapis.com/auth/gmail.compose"
+	gmailLegacyModifyScope      = "https://www.googleapis.com/auth/gmail.modify"
+	gmailLegacySendScope        = "https://www.googleapis.com/auth/gmail.send"
 	maxGmailDecodedMessageBytes = 8 << 20
 	// Gmail attachment IDs can exceed message/thread IDs. This local bound
 	// applies only to attachment IDs, not other IDs or generic path segments.
 	maxGmailAttachmentIDBytes      = 4096
 	gmailAttachmentIDSchemaPattern = `^[A-Za-z0-9_-]+$`
 )
+
+// OperationScopesGranted preserves already consented Gmail grants while new
+// connections request read or compose access only for the selected operations.
+// Other HTTP providers retain exact matching of their manifest requirements.
+func (a *HTTPAdapter) OperationScopesGranted(granted []string, name string) bool {
+	op, ok := a.operations[name]
+	if !ok || !domain.ValidProviderScopes(granted) {
+		return false
+	}
+	if a.Provider() != "gmail" {
+		return domain.GrantsScopes(granted, op.RequiredScopes)
+	}
+	if domain.GrantsScopes(granted, op.RequiredScopes) || domain.GrantsScopes(granted, []string{gmailLegacyModifyScope}) {
+		return true
+	}
+	// gmail.send permits messages.send, but not drafts.create or drafts.send.
+	return name == "outreach.gmail.messages.send" && domain.GrantsScopes(granted, []string{gmailLegacySendScope})
+}
 
 var (
 	gmailOpaqueIDPattern     = regexp.MustCompile(`^[A-Za-z0-9_-]{1,256}$`)

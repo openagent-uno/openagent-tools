@@ -12,6 +12,34 @@ import (
 	"github.com/openagent-uno/openagent-tools/packages/connectors/domain"
 )
 
+func TestGmailOperationScopesSeparateReadingAndComposing(t *testing.T) {
+	adapter, err := NewHTTPAdapter(gmailManifest(), successDoer())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, op := range adapter.Operations() {
+		compose := op.Name == "outreach.gmail.drafts.create" || op.Name == "outreach.gmail.drafts.send" || op.Name == "outreach.gmail.messages.send"
+		want := GmailReadScope
+		if compose {
+			want = GmailComposeScope
+		}
+		if len(op.RequiredScopes) != 1 || op.RequiredScopes[0] != want {
+			t.Fatalf("%s does not request its minimal scope", op.Name)
+		}
+		if adapter.OperationScopesGranted([]string{GmailReadScope}, op.Name) == compose ||
+			adapter.OperationScopesGranted([]string{GmailComposeScope}, op.Name) != compose ||
+			!adapter.OperationScopesGranted([]string{gmailLegacyModifyScope}, op.Name) ||
+			adapter.OperationScopesGranted([]string{gmailLegacySendScope}, op.Name) != (op.Name == "outreach.gmail.messages.send") ||
+			adapter.OperationScopesGranted(nil, op.Name) ||
+			adapter.OperationScopesGranted([]string{GmailReadScope + ".attacker"}, op.Name) {
+			t.Fatalf("%s accepted an incompatible Gmail grant", op.Name)
+		}
+	}
+	if adapter.OperationScopesGranted([]string{gmailLegacyModifyScope}, "files.drive.search") {
+		t.Fatal("legacy Gmail grant escaped its provider")
+	}
+}
+
 func TestGmailManifestIsFixedTypedAndPolicyClassified(t *testing.T) {
 	t.Parallel()
 	manifest := gmailManifest()

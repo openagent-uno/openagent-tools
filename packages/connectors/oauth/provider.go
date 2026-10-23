@@ -435,6 +435,14 @@ func (e Engine) Refresh(ctx context.Context, p Provider, refresh, shop string, s
 		}
 		return Token{}, ErrAuthentication
 	}
+	// Old host-held Gmail grants retain their original registration and exact
+	// bound scopes. This exception applies only to refresh, never new consent or
+	// code exchange; request still rejects any provider-returned scope expansion.
+	if p.ID == "gmail" && !approvedScopes(p, scopes) && len(scopes) > 0 && len(p.Scopes) == 2 &&
+		approvedScopes(Provider{Scopes: []string{"https://www.googleapis.com/auth/gmail.readonly", "https://www.googleapis.com/auth/gmail.compose"}}, p.Scopes) &&
+		approvedScopes(Provider{Scopes: []string{"https://www.googleapis.com/auth/gmail.modify", "https://www.googleapis.com/auth/gmail.send"}}, scopes) {
+		p.Scopes = append(append([]string{}, p.Scopes...), scopes...)
+	}
 	if !approvedScopes(p, scopes) {
 		if p.ID == "slack_import" {
 			return Token{}, slackRefreshFailure("preflight", "scope_config", "none")

@@ -15,6 +15,37 @@ type localDoer struct {
 	request *http.Request
 }
 
+func TestGmailRuntimeKeepsReadOnlyAndLegacyGrantsBound(t *testing.T) {
+	d := &localDoer{}
+	runtime, err := NewRuntime(d)
+	if err != nil {
+		t.Fatal(err)
+	}
+	binding := Binding{CatalogID: "gmail", AllowWrite: true,
+		Principal:  domain.Principal{WorkspaceID: "workspace", ActorID: "owner"},
+		Connection: domain.Connection{ID: "gmail-connection", WorkspaceID: "workspace", Provider: "gmail", Capability: domain.Outreach, Enabled: true}}
+	for _, tc := range []struct {
+		scope string
+		count int
+	}{
+		{"https://www.googleapis.com/auth/gmail.readonly", 4},
+		{"https://www.googleapis.com/auth/gmail.compose", 3},
+		{"https://www.googleapis.com/auth/gmail.modify", 7},
+		{"https://www.googleapis.com/auth/gmail.send", 1},
+	} {
+		binding.Connection.Scopes = []string{tc.scope}
+		tools, err := runtime.Tools(binding)
+		if err != nil || len(tools) != tc.count {
+			t.Fatalf("scope %s exposes %d tools, want %d: %v", tc.scope, len(tools), tc.count, err)
+		}
+	}
+	binding.Connection.Scopes = []string{"https://www.googleapis.com/auth/gmail.readonly"}
+	_, err = runtime.Invoke(context.Background(), Call{Binding: binding, Tool: "outreach.gmail.messages.send", InvocationID: "denied-write", Arguments: json.RawMessage(`{}`)})
+	if err == nil || d.calls != 0 {
+		t.Fatal("read-only grant reached the send provider")
+	}
+}
+
 func (d *localDoer) Do(r *http.Request) (*http.Response, error) {
 	d.calls++
 	d.request = r

@@ -283,7 +283,7 @@ func TestGmailQualificationConfigRejectsBroaderOrAmbiguousAdmission(t *testing.T
 			}
 		})
 	}
-	for _, scopes := range [][]string{{centralOAuthModify}, {centralOAuthModify, centralOAuthSend, "https://www.googleapis.com/auth/drive"}, {centralOAuthModify, centralOAuthModify}} {
+	for _, scopes := range [][]string{{gmailReadScope}, {gmailReadScope, gmailComposeScope, "https://www.googleapis.com/auth/drive"}, {gmailReadScope, gmailReadScope}} {
 		f := newQualificationFixture(t)
 		p := f.config.Auth.Providers["gmail"]
 		p.Scopes = scopes

@@ -121,7 +121,7 @@ identities, zero revisions, missing expiry and deadlines more than 24 hours
 ahead reject startup. A retained expired row remains disabled without blocking
 the public service's restart. The configured Gmail provider must reuse its
 existing app, callback and secret reference, enable PKCE, and declare exactly
-`gmail.modify` and `gmail.send`. No new app, legacy token import, provider-wide
+`gmail.readonly` and `gmail.compose`. No new app, legacy token import, provider-wide
 QA gate, account creation or provider consent is implied by this configuration.
 
 The authenticated host calls `client.QualificationCatalog(ctx, recipient)`;
@@ -139,8 +139,12 @@ Pass the private catalog's `qualification.id` as `CreateRequest.QualificationID`
 alongside its exact contract hash, recipient and selected operations. The normal
 OAuth, status, refresh and invocation routes apply; `Connection.QualificationID`
 identifies the temporary grant. Host ACLs and per-action approval remain
-mandatory. Selecting read tools does not make the Google token read-only:
-`gmail.modify` also permits sending at Google.
+mandatory. A connection selecting only read tools requests `gmail.readonly`;
+a connection selecting draft or send tools also requests `gmail.compose`.
+Existing host-held `gmail.modify` credentials remain usable for their authorized
+operations and refresh under their original app; no new consent requests that
+broader scope. `gmail.send` alone permits only direct message sending, not draft
+management.
 
 Each grant stores a hash of the entire immutable admission in the encrypted
 vault. Removing/changing the row or passing its deadline denies discovery,

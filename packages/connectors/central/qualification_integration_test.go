@@ -84,7 +84,7 @@ func newQualificationFixture(t *testing.T) *qualificationFixture {
 	base := "https://" + f.http.Listener.Addr().String()
 	provider := oauth.Provider{ID: "gmail", AppID: "fixture-google-app", ClientID: "fixture-client", SecretFile: secret,
 		AuthorizationURL: base + "/provider/authorize", TokenURL: base + "/provider/token", RedirectURI: base + "/v1/oauth/gmail/callback",
-		Scopes: []string{centralOAuthModify, centralOAuthSend}, PKCE: true}
+		Scopes: []string{gmailReadScope, gmailComposeScope}, PKCE: true}
 	store, err := auth.NewStore(filepath.Join(f.stateDir, "metadata.json"))
 	if err != nil {
 		t.Fatal(err)
@@ -139,7 +139,7 @@ func newQualificationFixture(t *testing.T) *qualificationFixture {
 			version := f.version.Add(1)
 			w.Header().Set("Content-Type", "application/json")
 			_ = json.NewEncoder(w).Encode(map[string]any{"access_token": fmt.Sprintf("CENTRAL-ACCESS-%d", version),
-				"refresh_token": fmt.Sprintf("CENTRAL-REFRESH-%d", version), "expires_in": 3600, "scope": centralOAuthModify + " " + centralOAuthSend})
+				"refresh_token": fmt.Sprintf("CENTRAL-REFRESH-%d", version), "expires_in": 3600, "scope": gmailReadScope + " " + gmailComposeScope})
 			return
 		}
 		if strings.HasPrefix(r.URL.Path, "/v1/registry/") || strings.HasPrefix(r.URL.Path, "/v1/execution/") {

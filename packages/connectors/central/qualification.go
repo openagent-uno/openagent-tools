@@ -26,8 +26,8 @@ type QualificationAdmission struct {
 	ExpiresAt      time.Time `json:"expires_at"`
 }
 
-const gmailModifyScope = "https://www.googleapis.com/auth/gmail.modify"
-const gmailSendScope = "https://www.googleapis.com/auth/gmail.send"
+const gmailReadScope = "https://www.googleapis.com/auth/gmail.readonly"
+const gmailComposeScope = "https://www.googleapis.com/auth/gmail.compose"
 
 func validQualification(q QualificationAdmission) bool {
 	return domain.ValidResourceID(q.ID) && q.Revision > 0 && q.CatalogID == "gmail" &&
@@ -84,7 +84,7 @@ func prepareQualification(q *QualificationAdmission, registry *Registry, provide
 	}
 	p := providers["gmail"]
 	if p.ID != "gmail" || !p.PKCE || len(p.Scopes) != 2 ||
-		!((p.Scopes[0] == gmailModifyScope && p.Scopes[1] == gmailSendScope) || (p.Scopes[1] == gmailModifyScope && p.Scopes[0] == gmailSendScope)) {
+		!((p.Scopes[0] == gmailReadScope && p.Scopes[1] == gmailComposeScope) || (p.Scopes[1] == gmailReadScope && p.Scopes[0] == gmailComposeScope)) {
 		return nil, nil, auth.ErrDenied
 	}
 	d, ok := registry.Lookup("gmail")
