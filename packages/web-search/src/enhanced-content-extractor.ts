@@ -4,14 +4,17 @@ import { Page } from 'playwright';
 import { ContentExtractionOptions, SearchResult } from './types.js';
 import { cleanText, getWordCount, getContentPreview, generateTimestamp, isPdfUrl } from './utils.js';
 import { BrowserPool } from './browser-pool.js';
+import { BlockedUrlError, MAX_REDIRECTS, UrlGuardOptions, assertPublicHttpUrl, fetchPublicPage } from './url-guard.js';
 
 export class EnhancedContentExtractor {
   private readonly defaultTimeout: number;
   private readonly maxContentLength: number;
   private browserPool: BrowserPool;
   private fallbackThreshold: number;
+  private readonly urlGuard: UrlGuardOptions;
 
-  constructor() {
+  constructor(urlGuard: UrlGuardOptions = {}) {
+    this.urlGuard = urlGuard;
     this.defaultTimeout = parseInt(process.env.DEFAULT_TIMEOUT || '6000', 10);
     
     // Read MAX_CONTENT_LENGTH from environment variable, fallback to 500KB
@@ -34,7 +37,13 @@ export class EnhancedContentExtractor {
     const { url } = options;
     
     console.log(`[EnhancedContentExtractor] Starting extraction for: ${url}`);
-    
+
+    // Refuse non-http(s) and non-public destinations before either client
+    // runs. A refusal is final: the browser fallback below is never a way
+    // around it (its JS-heavy-site test matches on substrings anywhere in
+    // the URL, so `http://169.254.169.254/?twitter.com` would qualify).
+    await assertPublicHttpUrl(url, this.urlGuard);
+
     // First, try with regular HTTP client (faster)
     try {
       const content = await this.extractWithAxios(options);
@@ -42,7 +51,10 @@ export class EnhancedContentExtractor {
       return content;
     } catch (error) {
       console.log(`[EnhancedContentExtractor] Axios failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
-      
+      if (error instanceof BlockedUrlError) {
+        throw error;
+      }
+
       // Check if this looks like a case where browser would help
       if (this.shouldUseBrowser(error, url)) {
         console.log(`[EnhancedContentExtractor] Falling back to headless browser for: ${url}`);
@@ -63,12 +75,12 @@ export class EnhancedContentExtractor {
   private async extractWithAxios(options: ContentExtractionOptions): Promise<string> {
     const { url, timeout = this.defaultTimeout, maxContentLength = this.maxContentLength } = options;
     
-    const response = await axios.get(url, {
+    const response = await fetchPublicPage(url, {
       headers: this.getRandomHeaders(),
       timeout,
       // Remove maxContentLength from axios config - handle truncation manually
       validateStatus: (status: number) => status < 400,
-    });
+    }, this.urlGuard);
 
     let content = this.parseContent(response.data);
     
@@ -150,28 +162,18 @@ export class EnhancedContentExtractor {
       });
 
       const page = await context.newPage();
-      
-      // Set up request interception to block unnecessary resources
-      await page.route('**/*', (route) => {
-        const resourceType = route.request().resourceType();
-        
-        // Block images, fonts, and other non-essential resources for faster loading
-        if (['image', 'font', 'media'].includes(resourceType)) {
-          route.abort();
-        } else {
-          route.continue();
-        }
-      });
 
       // Navigate with realistic options and better error handling
       console.log(`[BrowserExtractor] Navigating to ${url}`);
-      
+
       try {
-        await page.goto(url, { 
-          waitUntil: 'domcontentloaded', // Don't wait for all resources
-          timeout: Math.min(timeout, 8000) // Reduced timeout, max 8 seconds
-        });
+        // Reduced timeout, max 8 seconds
+        await this.navigateGuarded(page, url, Math.min(timeout, 8000));
       } catch (gotoError) {
+        if (gotoError instanceof BlockedUrlError) {
+          await context.close();
+          throw gotoError;
+        }
         // Handle specific protocol errors
         const errorMessage = gotoError instanceof Error ? gotoError.message : String(gotoError);
         
@@ -192,21 +194,14 @@ export class EnhancedContentExtractor {
           });
           
           const http1Page = await http1Context.newPage();
-          
+
           // Disable HTTP/2 by intercepting requests
-          await http1Page.route('**/*', (route) => {
-            const resourceType = route.request().resourceType();
-            if (['image', 'font', 'media'].includes(resourceType)) {
-              route.abort();
-            } else {
-              route.continue();
-            }
-          });
-          
-          await http1Page.goto(url, { 
-            waitUntil: 'domcontentloaded',
-            timeout: Math.min(timeout, 6000)
-          });
+          try {
+            await this.navigateGuarded(http1Page, url, Math.min(timeout, 6000));
+          } catch (http1Error) {
+            await http1Context.close();
+            throw http1Error;
+          }
           
           // Quick content extraction
           const html = await http1Page.content();
@@ -246,6 +241,74 @@ export class EnhancedContentExtractor {
     }
   }
 
+  /**
+   * Navigate *page* to *url* with every request checked by the URL guard.
+   *
+   * Playwright hands a redirect's follow-up request to `page.route` neither
+   * when the handler continues nor when it fulfils with the 3xx itself, so a
+   * route check alone would let a public page bounce the browser to
+   * `169.254.169.254`. The main document is therefore fetched hop by hop
+   * (`maxRedirects: 0`): a redirect aborts the navigation, its target is
+   * validated, and only then is it navigated to. Sub-resources are checked
+   * on their first URL; a page can read none of their redirect targets.
+   */
+  private async navigateGuarded(page: Page, url: string, timeout: number): Promise<void> {
+    const mainFrame = page.mainFrame();
+    let redirectTo: string | null = null;
+    let refusal: unknown = null;
+
+    await page.route('**/*', async (route) => {
+      const request = route.request();
+      // Block images, fonts, and other non-essential resources for faster loading
+      if (['image', 'font', 'media'].includes(request.resourceType())) {
+        await route.abort();
+        return;
+      }
+      const isDocument = request.isNavigationRequest() && request.frame() === mainFrame;
+      try {
+        await assertPublicHttpUrl(request.url(), this.urlGuard);
+      } catch (error) {
+        if (isDocument) refusal = error;
+        await route.abort('blockedbyclient');
+        return;
+      }
+      if (!isDocument) {
+        await route.continue();
+        return;
+      }
+      let response;
+      try {
+        response = await route.fetch({ maxRedirects: 0 });
+      } catch (error) {
+        refusal = error;
+        await route.abort('failed');
+        return;
+      }
+      const location = response.headers()['location'];
+      if (response.status() >= 300 && response.status() < 400 && location) {
+        redirectTo = new URL(location, request.url()).href;
+        await route.abort('aborted');
+        return;
+      }
+      await route.fulfill({ response });
+    });
+
+    let target = url;
+    for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+      redirectTo = null;
+      refusal = null;
+      try {
+        await page.goto(target, { waitUntil: 'domcontentloaded', timeout });
+        return;
+      } catch (gotoError) {
+        if (refusal !== null) throw refusal;
+        if (redirectTo === null) throw gotoError;
+        target = redirectTo;
+      }
+    }
+    throw new Error(`Too many redirects (more than ${MAX_REDIRECTS}) starting at ${url}`);
+  }
+
   private async simulateHumanBehavior(page: Page): Promise<void> {
     try {
       // Random mouse movements
@@ -276,6 +339,11 @@ export class EnhancedContentExtractor {
   }
 
   private shouldUseBrowser(error: any, url: string): boolean {
+    // A guard refusal is a decision about the destination, not a symptom of
+    // bot detection: the browser would reach the same address.
+    if (error instanceof BlockedUrlError) {
+      return false;
+    }
     // Conditions where browser is likely to succeed where axios failed
     const indicators = [
       // HTTP status codes that suggest bot detection
