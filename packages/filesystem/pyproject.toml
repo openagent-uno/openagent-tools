@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "openagent-filesystem"
-version = "1.0.0b3.dev2026103002"
+version = "1.0.0b3"
 description = "Independent OpenAgent capability package"
 requires-python = ">=3.11"
 license = "MIT"
-dependencies = ["openagent-tool-protocol==1.0.0b2.dev2026103002"]
+dependencies = ["openagent-tool-protocol==1.0.0b2"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/openagent_filesystem"]
