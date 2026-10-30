@@ -1,6 +1,10 @@
 from __future__ import annotations
 
 import json
+import os
+from pathlib import Path
+
+import pytest
 
 from openagent_device_tools import (
     AGENT_IN_CHROME_MANIFEST,
@@ -93,3 +97,51 @@ def test_advanced_native_catalog_is_explicit_and_ships_sources():
     assert (source / "build.rs").is_file()
     assert (source / "src" / "advanced.rs").is_file()
     assert (source / "src" / "native_advanced.m").is_file()
+
+
+def test_recorded_catalog_matches_the_complete_materialized_contract():
+    from openagent_device_tools import sidecars
+    from openagent_tool_protocol.manifests import contract_payload
+
+    recorded = json.loads(Path(sidecars.__file__).with_name("sidecar-manifests.json").read_text())
+    for manifest in (COMPUTER_CONTROL_MANIFEST, AGENT_IN_CHROME_MANIFEST):
+        # Includes policy discriminators: an incomplete raw capture must not
+        # silently depend on fallback fields added only at import time.
+        assert recorded[manifest.name] == contract_payload(manifest)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("name", ["computer-control", "agent-in-chrome"])
+async def test_actual_mcp_sdk_catalog_matches_advertised_snapshot_exactly(name):
+    """Optional release fixture: initialize/list only; never launch/control a UI."""
+    value = os.environ.get("OPENAGENT_DEVICE_TOOLS_PROBE_BUNDLE")
+    if not value:
+        pytest.skip("Set OPENAGENT_DEVICE_TOOLS_PROBE_BUNDLE to an owned built bundle")
+    from openagent_capability_host.config import PluginSpec
+    from openagent_capability_host.mcp_stdio import MCPStdioServer
+    from openagent_tool_protocol.manifests import contract_payload
+
+    bundle = Path(value).resolve()
+    if name == "computer-control":
+        filename = "openagent-computer-control.exe" if os.name == "nt" else "openagent-computer-control"
+        binary = bundle / filename
+        app_binary = bundle / "openagent-computer-control.app/Contents/MacOS/openagent-computer-control"
+        if app_binary.is_file():
+            binary = app_binary
+        command = (str(binary),)
+        expected = COMPUTER_CONTROL_MANIFEST
+    else:
+        command = (str(bundle / ("node.exe" if os.name == "nt" else "node")),
+            str(bundle / "agent-in-chrome/host/mcp-server.js"))
+        expected = AGENT_IN_CHROME_MANIFEST
+    assert all(Path(part).is_file() for part in command), "The explicitly selected fixture is incomplete"
+    adapter = MCPStdioServer(PluginSpec(name, command), placeholder=expected)
+    try:
+        await adapter.start()
+        assert adapter.raw_initialize["serverInfo"] == {"name": expected.name, "version": expected.version}
+        assert adapter.raw_initialize["instructions"] == expected.instructions
+        # No dropping additionalProperties, number bounds, uniqueItems, refs,
+        # discriminators or metadata merely to make a stale snapshot pass.
+        assert contract_payload(adapter.manifest) == contract_payload(expected)
+    finally:
+        await adapter.close()

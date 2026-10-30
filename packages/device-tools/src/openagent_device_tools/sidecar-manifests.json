@@ -22,7 +22,6 @@
         "description": "List the browser tabs available to you. Call this once before any other browser tool so you know what tabs exist. Each new task should open its own tab with tabs_create_mcp unless told to reuse one.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
-          "additionalProperties": false,
           "properties": {
             "createIfEmpty": {
               "description": "Open a fresh blank tab if none exist.",
@@ -48,11 +47,12 @@
         "description": "Navigate a tab to a URL (protocol optional, defaults to https), or pass \"back\"/\"forward\" for history. Waits for the page to load.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
-          "additionalProperties": false,
           "properties": {
             "tabId": {
               "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
-              "type": "number"
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991,
+              "type": "integer"
             },
             "url": {
               "description": "URL, or \"back\"/\"forward\".",
@@ -72,7 +72,6 @@
         "description": "Mouse/keyboard/screenshot control of a tab. Prefer find + read_page (structured, cheap) to locate elements; only screenshot when you need to see pixels. Click at the center of the target. Coordinates are viewport pixels from a screenshot.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
-          "additionalProperties": false,
           "properties": {
             "action": {
               "description": "The action to perform.",
@@ -119,7 +118,7 @@
             "region": {
               "description": "(x0,y0,x1,y1) region for zoom.",
               "items": {
-                "$ref": "#/properties/coordinate/items"
+                "type": "number"
               },
               "maxItems": 4,
               "minItems": 4,
@@ -129,7 +128,7 @@
               "description": "Repeat count for key.",
               "maximum": 100,
               "minimum": 1,
-              "type": "number"
+              "type": "integer"
             },
             "scroll_amount": {
               "description": "Scroll ticks (default 3).",
@@ -150,7 +149,7 @@
             "start_coordinate": {
               "description": "(x, y) start for left_click_drag.",
               "items": {
-                "$ref": "#/properties/coordinate/items"
+                "type": "number"
               },
               "maxItems": 2,
               "minItems": 2,
@@ -158,7 +157,9 @@
             },
             "tabId": {
               "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
-              "type": "number"
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991,
+              "type": "integer"
             },
             "text": {
               "description": "Text to type, or space-separated keys for the key action (e.g. \"Enter\", \"cmd+a\").",
@@ -175,18 +176,20 @@
       },
       {
         "classification": "read_only",
-        "description": "Find elements by natural-language description or visible text (e.g. \"search box\", \"log in button\", \"post title containing cats\"). Returns up to 20 matches with refs usable by computer/form_input. The cheapest way to locate something \u2014 prefer it over screenshots.",
+        "description": "Find elements by natural-language description or visible text (e.g. \"search box\", \"log in button\", \"post title containing cats\"). Returns up to 20 matches with refs usable by computer/form_input. The cheapest way to locate something — prefer it over screenshots.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
-          "additionalProperties": false,
           "properties": {
             "query": {
               "description": "What to find.",
+              "minLength": 1,
               "type": "string"
             },
             "tabId": {
               "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
-              "type": "number"
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991,
+              "type": "integer"
             }
           },
           "required": [
@@ -202,7 +205,6 @@
         "description": "Set the value of a form field by its ref (from find/read_page). Booleans toggle checkboxes; strings fill text inputs and select options.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
-          "additionalProperties": false,
           "properties": {
             "ref": {
               "description": "Element ref.",
@@ -210,7 +212,9 @@
             },
             "tabId": {
               "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
-              "type": "number"
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991,
+              "type": "integer"
             },
             "value": {
               "description": "Value to set.",
@@ -235,11 +239,12 @@
         "description": "Extract the main readable text of the page (article/body), stripped of markup. Ideal for reading posts, comments, and articles cheaply.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
-          "additionalProperties": false,
           "properties": {
             "tabId": {
               "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
-              "type": "number"
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991,
+              "type": "integer"
             }
           },
           "required": [
@@ -254,11 +259,12 @@
         "description": "Accessibility-tree view of the page with element refs. Use filter:\"interactive\" for just buttons/links/inputs. Output is capped; narrow with depth or ref_id if it truncates.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
-          "additionalProperties": false,
           "properties": {
             "depth": {
               "description": "Max tree depth (default 15).",
-              "type": "number"
+              "maximum": 100,
+              "minimum": 0,
+              "type": "integer"
             },
             "filter": {
               "description": "\"interactive\" or \"all\" (default).",
@@ -269,8 +275,10 @@
               "type": "string"
             },
             "max_chars": {
-              "$ref": "#/properties/depth",
-              "description": "Output cap (default 50000)."
+              "description": "Output cap (default 50000).",
+              "maximum": 100000,
+              "minimum": 1,
+              "type": "integer"
             },
             "ref_id": {
               "description": "Read only this element's subtree.",
@@ -278,7 +286,9 @@
             },
             "tabId": {
               "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
-              "type": "number"
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991,
+              "type": "integer"
             }
           },
           "required": [
@@ -293,7 +303,6 @@
         "description": "Evaluate a JavaScript expression in the page and return its value. Write an expression (no `return`); promises are awaited.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
-          "additionalProperties": false,
           "properties": {
             "action": {
               "const": "javascript_exec",
@@ -302,7 +311,9 @@
             },
             "tabId": {
               "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
-              "type": "number"
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991,
+              "type": "integer"
             },
             "text": {
               "description": "Expression to evaluate.",
@@ -323,7 +334,6 @@
         "description": "Read captured console output for a tab. Always pass a pattern to avoid noise.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
-          "additionalProperties": false,
           "properties": {
             "clear": {
               "description": "Clear the buffer after reading.",
@@ -331,7 +341,9 @@
             },
             "limit": {
               "description": "Max messages (default 100).",
-              "type": "number"
+              "maximum": 1000,
+              "minimum": 1,
+              "type": "integer"
             },
             "onlyErrors": {
               "description": "Only errors/exceptions.",
@@ -343,7 +355,9 @@
             },
             "tabId": {
               "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
-              "type": "number"
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991,
+              "type": "integer"
             }
           },
           "required": [
@@ -358,7 +372,6 @@
         "description": "Read HTTP requests captured for a tab (recorded from the first time this tool is called on that tab).",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
-          "additionalProperties": false,
           "properties": {
             "clear": {
               "description": "Clear the buffer after reading.",
@@ -366,11 +379,15 @@
             },
             "limit": {
               "description": "Max requests (default 100).",
-              "type": "number"
+              "maximum": 1000,
+              "minimum": 1,
+              "type": "integer"
             },
             "tabId": {
               "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
-              "type": "number"
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991,
+              "type": "integer"
             },
             "urlPattern": {
               "description": "Substring URL filter.",
@@ -389,19 +406,24 @@
         "description": "Resize the browser window / viewport.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
-          "additionalProperties": false,
           "properties": {
             "height": {
               "description": "Height px.",
-              "type": "number"
+              "maximum": 16384,
+              "minimum": 1,
+              "type": "integer"
             },
             "tabId": {
               "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
-              "type": "number"
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991,
+              "type": "integer"
             },
             "width": {
               "description": "Width px.",
-              "type": "number"
+              "maximum": 16384,
+              "minimum": 1,
+              "type": "integer"
             }
           },
           "required": [
@@ -418,7 +440,6 @@
         "description": "Upload a previously captured screenshot to a file input identified by its ref.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
-          "additionalProperties": false,
           "properties": {
             "filename": {
               "description": "Filename (default \"image.png\").",
@@ -434,7 +455,9 @@
             },
             "tabId": {
               "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
-              "type": "number"
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991,
+              "type": "integer"
             }
           },
           "required": [
@@ -457,13 +480,12 @@
       },
       {
         "classification": "mutating",
-        "description": "Install a Chromium extension into the agent's browser from its Chrome Web Store ID (the 32-char id in the store URL), or a path to an unpacked extension. It persists across restarts and loads on every launch. Use for capabilities like a VPN/proxy extension \u2014 after installing, open it and sign in / pick options once. Restarts the browser to apply.",
+        "description": "Install a Chromium extension into the agent's browser from its Chrome Web Store ID (the 32-char id in the store URL), or a path to an unpacked extension. It persists across restarts and loads on every launch. Use for capabilities like a VPN/proxy extension — after installing, open it and sign in / pick options once. Restarts the browser to apply.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
-          "additionalProperties": false,
           "properties": {
             "source": {
-              "description": "Chrome Web Store extension ID (32 chars a\u2013p) or a path to an unpacked extension directory.",
+              "description": "Chrome Web Store extension ID (32 chars a–p) or a path to an unpacked extension directory.",
               "type": "string"
             }
           },
@@ -479,7 +501,6 @@
         "description": "Remove an agent-installed extension by its id (from list_extensions). Builtins can't be removed. Restarts the browser to apply.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
-          "additionalProperties": false,
           "properties": {
             "id": {
               "description": "Extension id to remove.",
@@ -497,7 +518,7 @@
         "classification": "read_only",
         "description": "Inspect configured browser IDs and actual backend features. Browser IDs are host-configured; no endpoint argument is accepted.",
         "input_schema": {
-          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#",
           "properties": {
             "browser_id": {
               "type": "string"
@@ -517,7 +538,7 @@
         },
         "description": "List, attach or detach an explicit browser/tab, request human takeover or inspect recovery. Resume requires host-signed metadata and never accepts approval proof in tool arguments.",
         "input_schema": {
-          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#",
           "properties": {
             "action": {
               "enum": [
@@ -541,6 +562,7 @@
               "type": "string"
             },
             "tabId": {
+              "maximum": 9007199254740991,
               "minimum": 1,
               "type": "integer"
             }
@@ -556,12 +578,13 @@
         "classification": "read_only",
         "description": "List exact frame/document handles for one tab, including cross-origin frames supported by Chromium. Re-discover after navigation or detach.",
         "input_schema": {
-          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#",
           "properties": {
             "browser_id": {
               "type": "string"
             },
             "tabId": {
+              "maximum": 9007199254740991,
               "minimum": 1,
               "type": "integer"
             }
@@ -577,7 +600,7 @@
         "classification": "read_only",
         "description": "Find semantic or CSS locators with bounded attached/visible/hidden/detached waits. Returns document-bound opaque element refs; never chooses the first ambiguous match.",
         "input_schema": {
-          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#",
           "properties": {
             "browser_id": {
               "type": "string"
@@ -616,6 +639,7 @@
               "type": "object"
             },
             "tabId": {
+              "maximum": 9007199254740991,
               "minimum": 1,
               "type": "integer"
             },
@@ -646,7 +670,7 @@
         "classification": "mutating",
         "description": "Act on exactly one current element ref or locator, with bounded readiness waits. Pins the actual element and document; no mutation replay after cancellation or uncertain execution.",
         "input_schema": {
-          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#",
           "properties": {
             "action": {
               "enum": [
@@ -709,6 +733,7 @@
               "type": "object"
             },
             "tabId": {
+              "maximum": 9007199254740991,
               "minimum": 1,
               "type": "integer"
             },
@@ -733,7 +758,7 @@
         "classification": "mutating",
         "description": "Set files on one exact file-input element. Inline base64 payloads or absolute paths within host-configured upload roots only; at most 10 files and 32 MiB total.",
         "input_schema": {
-          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#",
           "properties": {
             "browser_id": {
               "type": "string"
@@ -802,6 +827,7 @@
               "type": "object"
             },
             "tabId": {
+              "maximum": 9007199254740991,
               "minimum": 1,
               "type": "integer"
             },
@@ -830,7 +856,7 @@
         },
         "description": "Inspect, read bounded base64 chunks, cancel or explicitly release downloads belonging to one tab. No arbitrary host path is exposed or accepted.",
         "input_schema": {
-          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#",
           "properties": {
             "action": {
               "enum": [
@@ -859,6 +885,7 @@
               "type": "integer"
             },
             "tabId": {
+              "maximum": 9007199254740991,
               "minimum": 1,
               "type": "integer"
             }
@@ -881,7 +908,7 @@
         },
         "description": "Inspect or wait for a real page file chooser, then set or cancel its exact document-bound handle. Files use the same limits/policy as browser_upload.",
         "input_schema": {
-          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#",
           "properties": {
             "action": {
               "enum": [
@@ -923,6 +950,7 @@
               "type": "array"
             },
             "tabId": {
+              "maximum": 9007199254740991,
               "minimum": 1,
               "type": "integer"
             },
@@ -949,7 +977,7 @@
         },
         "description": "Query browser permission state or request a human decision for an exact origin. Grant/revoke require host-signed metadata; tool arguments cannot approve access.",
         "input_schema": {
-          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#",
           "properties": {
             "action": {
               "enum": [
@@ -980,13 +1008,13 @@
               },
               "maxItems": 6,
               "minItems": 1,
-              "type": "array",
-              "uniqueItems": true
+              "type": "array"
             },
             "request_id": {
               "type": "string"
             },
             "tabId": {
+              "maximum": 9007199254740991,
               "minimum": 1,
               "type": "integer"
             }
@@ -1023,7 +1051,13 @@
     "tools": [
       {
         "classification": "mutating",
-        "description": "Use a mouse and keyboard to interact with a computer, take screenshots, and record the screen.\n* This is an interface to a desktop GUI. You do not have access to a terminal or applications menu. You must click on desktop icons to start applications.\n* Always prefer using keyboard shortcuts rather than clicking, where possible.\n* If you see boxes with two letters in them, typing these letters will click that element. Use this instead of other shortcuts or clicking, where possible.\n* Some applications may take time to start or process actions, so you may need to wait and take successive screenshots to see the results of your actions. E.g. if you click on Firefox and a window doesn't open, try taking another screenshot.\n* Whenever you intend to move the cursor to click on an element like an icon, you should consult a screenshot to determine the coordinates of the element before moving the cursor.\n* If you tried clicking on a program or link but it failed to load, even after waiting, try adjusting your cursor position so that the tip of the cursor visually falls on the element that you want to click.\n* Make sure to click any buttons, links, icons, etc with the cursor tip in the center of the element. Don't click boxes on their edges unless asked.\n\nUsing the crosshair:\n* Screenshots show a red crosshair at the current cursor position.\n* After clicking, check where the crosshair appears vs your target. If it missed, adjust coordinates proportionally to the distance - start with large adjustments and refine. Avoid small incremental changes when the crosshair is far from the target (distances are often further than you expect).\n* Consider display dimensions when estimating positions. E.g. if it's 90% to the bottom of the screen, the coordinates should reflect this.\n* For another display, call computer_list_displays and pass its exact display_id. Coordinates and screenshot regions are relative to that display. Keyboard focus and recording cannot be bound to a display.\n\nRegion-of-interest (ROI):\n* `get_screenshot` and `start_screen_recording` accept an optional `region: [x, y, width, height]` in API image space. When set, the captured image/video is cropped to that rectangle before being downsampled, letting you focus the model on one pane or an animating element without capturing the whole screen.\n\nScreen recording:\n* `start_screen_recording` begins capturing the primary display to an `.mp4` file and returns immediately with the output path. Optional params: `fps` (1-60, default 30), `region` (ROI), `path` (defaults to a timestamped file in the OS temp dir), `max_duration_seconds` (auto-stop after N seconds).\n* `stop_screen_recording` stops the active recording and returns the final file path, frame count, and duration. Only one recording can be active at a time; starting a second before stopping the first returns an error.\n* Use recording to review animations, transitions, video playback, or any behavior that a single screenshot can't capture. Prefer a small `region` when possible \u2014 it keeps file size down and focuses the recording on the element under test.",
+        "classification_by_argument": {
+          "action": {
+            "get_cursor_position": "read_only",
+            "get_screenshot": "read_only"
+          }
+        },
+        "description": "Use a mouse and keyboard to interact with a computer, take screenshots, and record the screen.\n* This is an interface to a desktop GUI. You do not have access to a terminal or applications menu. You must click on desktop icons to start applications.\n* Always prefer using keyboard shortcuts rather than clicking, where possible.\n* If you see boxes with two letters in them, typing these letters will click that element. Use this instead of other shortcuts or clicking, where possible.\n* Some applications may take time to start or process actions, so you may need to wait and take successive screenshots to see the results of your actions. E.g. if you click on Firefox and a window doesn't open, try taking another screenshot.\n* Whenever you intend to move the cursor to click on an element like an icon, you should consult a screenshot to determine the coordinates of the element before moving the cursor.\n* If you tried clicking on a program or link but it failed to load, even after waiting, try adjusting your cursor position so that the tip of the cursor visually falls on the element that you want to click.\n* Make sure to click any buttons, links, icons, etc with the cursor tip in the center of the element. Don't click boxes on their edges unless asked.\n\nUsing the crosshair:\n* Screenshots show a red crosshair at the current cursor position.\n* After clicking, check where the crosshair appears vs your target. If it missed, adjust coordinates proportionally to the distance - start with large adjustments and refine. Avoid small incremental changes when the crosshair is far from the target (distances are often further than you expect).\n* Consider display dimensions when estimating positions. E.g. if it's 90% to the bottom of the screen, the coordinates should reflect this.\n* For another display, call computer_list_displays and pass its exact display_id. Coordinates and screenshot regions are relative to that display. Keyboard focus and recording cannot be bound to a display.\n\nRegion-of-interest (ROI):\n* `get_screenshot` and `start_screen_recording` accept an optional `region: [x, y, width, height]` in API image space. When set, the captured image/video is cropped to that rectangle before being downsampled, letting you focus the model on one pane or an animating element without capturing the whole screen.\n\nScreen recording:\n* `start_screen_recording` begins capturing the primary display to an `.mp4` file and returns immediately with the output path. Optional params: `fps` (1-60, default 30), `region` (ROI), `path` (defaults to a timestamped file in the OS temp dir), `max_duration_seconds` (auto-stop after N seconds).\n* `stop_screen_recording` stops the active recording and returns the final file path, frame count, and duration. Only one recording can be active at a time; starting a second before stopping the first returns an error.\n* Use recording to review animations, transitions, video playback, or any behavior that a single screenshot can't capture. Prefer a small `region` when possible — it keeps file size down and focuses the recording on the element under test.",
         "input_schema": {
           "$defs": {
             "Action": {
@@ -1130,7 +1164,7 @@
             },
             "fps": {
               "default": null,
-              "description": "Frames per second for `start_screen_recording`. 1\u201360, default 30.",
+              "description": "Frames per second for `start_screen_recording`. 1–60, default 30.",
               "format": "uint32",
               "minimum": 0,
               "type": [
@@ -1158,7 +1192,7 @@
             },
             "region": {
               "default": null,
-              "description": "Optional region-of-interest `[x, y, width, height]` in API image space.\nSupported by `get_screenshot` and `start_screen_recording` \u2014 the\ncaptured image / video is cropped to this rectangle before downsampling.\nUseful for focusing the model on a specific panel, a video player,\na toast, or isolating an animating element for frame-by-frame review.",
+              "description": "Optional region-of-interest `[x, y, width, height]` in API image space.\nSupported by `get_screenshot` and `start_screen_recording` — the\ncaptured image / video is cropped to this rectangle before downsampling.\nUseful for focusing the model on a specific panel, a video player,\na toast, or isolating an animating element for frame-by-frame review.",
               "items": {
                 "format": "int32",
                 "type": "integer"
@@ -1244,7 +1278,7 @@
           "additionalProperties": false,
           "properties": {
             "max_depth": {
-              "description": "Maximum tree depth (1\u201330, default 12).",
+              "description": "Maximum tree depth (1–30, default 12).",
               "format": "uint8",
               "maximum": 30,
               "minimum": 1,
@@ -1254,7 +1288,7 @@
               ]
             },
             "max_nodes": {
-              "description": "Maximum elements (1\u20131000, default 300). Responses identify truncation.",
+              "description": "Maximum elements (1–1000, default 300). Responses identify truncation.",
               "format": "uint16",
               "maximum": 1000,
               "minimum": 1,
