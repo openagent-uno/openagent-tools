@@ -18,16 +18,21 @@ import { z } from "zod";
 import os from "node:os";
 import fs from "node:fs";
 import path from "node:path";
+import { AsyncLocalStorage } from "node:async_hooks";
+import { randomUUID } from "node:crypto";
+import { setTimeout as delay } from "node:timers/promises";
 
 import { CDPConnection } from "./cdp.js";
 import {
   ensureBrowser, VIEWPORT, CDP_PORT,
-  closeDedicatedBrowser,
+  closeDedicatedBrowser, getProfileWsEndpoint,
   installExtension, removeManagedExtension, listManagedExtensions, getBrowserVersion,
 } from "./browser.js";
 import { PAGE_SCRIPT } from "./page-script.js";
+import { AdvancedBrowser, configuredBrowserSlots, jsonToZod } from "./browser-advanced.js";
 
 const MAX_BUFFER = 1000;
+const invocation = new AsyncLocalStorage();
 
 function log(...a) {
   process.stderr.write("[agent-in-chrome] " + a.join(" ") + "\n");
@@ -37,7 +42,10 @@ function log(...a) {
 // Browser controller — owns the CDP connection, tabs, and per-tab buffers.
 // ───────────────────────────────────────────────────────────────────────────
 class BrowserController {
-  constructor() {
+  constructor(slot = { id: "dedicated" }) {
+    this.slot = slot;
+    this.humanControl = null;
+    this.advanced = null;
     this.cdp = null;
     this.ownsBrowser = false;
     this.browserPid = null;
@@ -47,6 +55,7 @@ class BrowserController {
     this.intByTarget = new Map(); // targetId -> int
     this.targetById = new Map(); // int -> targetId
     this.sessions = new Map(); // targetId -> { sessionId, injected, netEnabled }
+    this.attaching = new Map();
     this.console = new Map(); // targetId -> [msg]
     this.network = new Map(); // targetId -> [req]
     this.screenshots = new Map(); // imageId -> base64
@@ -54,13 +63,19 @@ class BrowserController {
 
   // Lazy: launch/connect on first use; concurrent callers await one promise.
   async ensure(onProgress) {
+    if (this.humanControl) throw new Error("human_control_active: automation is paused for human control");
     if (this.cdp && !this.cdp.closed) return;
     if (this._ensuring) return this._ensuring;
     this._ensuring = (async () => {
-      const { wsUrl, ownsBrowser, pid } = await ensureBrowser({ onProgress });
+      const launched = this.slot.external
+        ? { wsUrl: await getProfileWsEndpoint(this.slot.profile_dir, this.slot.cdp_port), ownsBrowser: false, pid: null }
+        : await ensureBrowser({ onProgress });
+      const { wsUrl, ownsBrowser, pid } = launched;
+      if (!wsUrl) throw new Error("configured_browser_unavailable: exact verified profile endpoint is unavailable");
       const cdp = new CDPConnection(wsUrl);
       await cdp.connect();
       cdp.onClose(() => {
+        if (this.cdp !== cdp) return;
         log("browser CDP connection closed");
         this.cdp = null;
         this.sessions.clear();
@@ -75,7 +90,10 @@ class BrowserController {
       // tool call re-attaches cleanly instead of using a dead sessionId.
       cdp.on("Target.detachedFromTarget", (p) => {
         for (const [tid, s] of this.sessions) {
-          if (s.sessionId === p.sessionId) this.sessions.delete(tid);
+          if (s.sessionId === p.sessionId) {
+            s.dispose?.();
+            this.sessions.delete(tid);
+          }
         }
       });
       await this.syncTargets();
@@ -112,6 +130,7 @@ class BrowserController {
       this.targetById.delete(n);
       this.intByTarget.delete(targetId);
     }
+    this.sessions.get(targetId)?.dispose?.();
     this.sessions.delete(targetId);
     this.console.delete(targetId);
     this.network.delete(targetId);
@@ -131,6 +150,7 @@ class BrowserController {
       if (!alivePages.has(tid)) {
         this.targetById.delete(n);
         this.intByTarget.delete(tid);
+        this.sessions.get(tid)?.dispose?.();
         this.sessions.delete(tid);
       }
     }
@@ -160,50 +180,72 @@ class BrowserController {
       if (!this.targetForTab(tabId)) throw new Error(`Tab ${tabId} does not exist. Call tabs_context_mcp first.`);
     }
     const tid = this.targetForTab(tabId);
+    if (this.attaching.has(tid)) return this.attaching.get(tid);
     let sess = this.sessions.get(tid);
     if (sess && sess.sessionId) return sess;
-
-    const { sessionId } = await this.cdp.send("Target.attachToTarget", { targetId: tid, flatten: true });
-    sess = { sessionId, injected: false, netEnabled: false };
-    this.sessions.set(tid, sess);
-
-    await this.cdp.send("Page.enable", {}, sessionId);
-    await this.cdp.send("Runtime.enable", {}, sessionId);
-    await this.cdp.send("Log.enable", {}, sessionId).catch(() => {});
-    await this.cdp.send("Emulation.setDeviceMetricsOverride", {
-      width: VIEWPORT.width, height: VIEWPORT.height, deviceScaleFactor: 1, mobile: false,
-    }, sessionId).catch(() => {});
-    await this.cdp.send("Page.addScriptToEvaluateOnNewDocument", { source: PAGE_SCRIPT }, sessionId).catch(() => {});
-
-    // Console capture (survives across navigations, capped).
-    const pushConsole = (level, text, url) => {
-      const arr = this.console.get(tid) || [];
-      arr.push({ level, text, url: url || "", timestamp: Date.now() });
-      if (arr.length > MAX_BUFFER) arr.splice(0, arr.length - MAX_BUFFER);
-      this.console.set(tid, arr);
-    };
-    this.cdp.on("Runtime.consoleAPICalled", (p) => {
-      const text = (p.args || []).map((a) => (a.value !== undefined ? a.value : a.description) ?? "").join(" ");
-      pushConsole(p.type || "log", text, p.stackTrace?.callFrames?.[0]?.url);
-    }, sessionId);
-    this.cdp.on("Log.entryAdded", (p) => {
-      if (p.entry) pushConsole(p.entry.level || "info", p.entry.text || "", p.entry.url);
-    }, sessionId);
-
-    // Reset the ref map / clear network on a real (main-frame) navigation.
-    this.cdp.on("Page.frameNavigated", (p) => {
-      if (p.frame && !p.frame.parentId) {
-        this.network.set(tid, []);
-        sess.injected = false;
-      }
-    }, sessionId);
-
-    await this.injectPageScript(sess);
-    return sess;
+    const connection = this.cdp;
+    const attaching = this.attachTarget(tid, connection);
+    this.attaching.set(tid, attaching);
+    try { return await attaching; }
+    finally { if (this.attaching.get(tid) === attaching) this.attaching.delete(tid); }
   }
 
-  async send(method, params, sess) {
-    return this.cdp.send(method, params, sess.sessionId);
+  async attachTarget(tid, connection) {
+    const { sessionId } = await connection.send("Target.attachToTarget", { targetId: tid, flatten: true });
+    if (this.cdp !== connection || !this.intByTarget.has(tid)) throw new Error("Browser target changed while attaching");
+    const listeners = [];
+    const sess = { sessionId, targetId: tid, connection, injected: false, netEnabled: false,
+      dispose: () => { for (const off of listeners.splice(0)) off(); } };
+    this.sessions.set(tid, sess);
+    try {
+      await connection.send("Page.enable", {}, sessionId);
+      await connection.send("Runtime.enable", {}, sessionId);
+      await connection.send("Log.enable", {}, sessionId).catch(() => {});
+      await connection.send("Emulation.setDeviceMetricsOverride", {
+        width: VIEWPORT.width, height: VIEWPORT.height, deviceScaleFactor: 1, mobile: false,
+      }, sessionId).catch(() => {});
+      await connection.send("Page.addScriptToEvaluateOnNewDocument", { source: PAGE_SCRIPT }, sessionId).catch(() => {});
+
+      // Console capture (survives across navigations, capped).
+      const pushConsole = (level, text, url) => {
+        const arr = this.console.get(tid) || [];
+        arr.push({ level, text, url: url || "", timestamp: Date.now() });
+        if (arr.length > MAX_BUFFER) arr.splice(0, arr.length - MAX_BUFFER);
+        this.console.set(tid, arr);
+      };
+      listeners.push(connection.on("Runtime.consoleAPICalled", (p) => {
+        const text = (p.args || []).map((a) => (a.value !== undefined ? a.value : a.description) ?? "").join(" ");
+        pushConsole(p.type || "log", text, p.stackTrace?.callFrames?.[0]?.url);
+      }, sessionId));
+      listeners.push(connection.on("Log.entryAdded", (p) => {
+        if (p.entry) pushConsole(p.entry.level || "info", p.entry.text || "", p.entry.url);
+      }, sessionId));
+
+      // Reset the ref map / clear network on a real (main-frame) navigation.
+      listeners.push(connection.on("Page.frameNavigated", (p) => {
+        if (p.frame && !p.frame.parentId) {
+          this.network.set(tid, []);
+          sess.injected = false;
+        }
+      }, sessionId));
+
+      await invocation.run({}, () => this.injectPageScript(sess));
+      if (this.cdp !== connection || this.sessions.get(tid) !== sess) throw new Error("Browser target detached while attaching");
+      return sess;
+    } catch (error) {
+      sess.dispose();
+      if (this.sessions.get(tid) === sess) this.sessions.delete(tid);
+      throw error;
+    }
+  }
+
+  async send(method, params, sess, { signal = invocation.getStore()?.signal } = {}) {
+    signal?.throwIfAborted();
+    if (this.humanControl && !(method === "Input.dispatchKeyEvent" && params.type === "keyUp") && !(method === "Input.dispatchMouseEvent" && params.type === "mouseReleased")) throw new Error("human_control_active: automation is paused for human control");
+    if (!this.cdp || (sess && (sess.connection !== this.cdp || this.sessions.get(sess.targetId) !== sess))) {
+      throw new Error("Browser target session is no longer attached");
+    }
+    return this.cdp.send(method, params, sess?.sessionId, { signal });
   }
 
   async evaluate(sess, expression, { returnByValue = true, awaitPromise = true, userGesture = false } = {}) {
@@ -240,19 +282,22 @@ class BrowserController {
   async enableNetwork(sess, tid) {
     if (sess.netEnabled) return;
     sess.netEnabled = true;
-    await this.send("Network.enable", {}, sess).catch(() => {});
+    try { await this.send("Network.enable", {}, sess); }
+    catch (error) { sess.netEnabled = false; throw error; }
     const push = (entry) => {
       const arr = this.network.get(tid) || [];
       arr.push(entry);
       if (arr.length > MAX_BUFFER) arr.splice(0, arr.length - MAX_BUFFER);
       this.network.set(tid, arr);
     };
-    this.cdp.on("Network.requestWillBeSent", (p) => {
+    const offRequest = this.cdp.on("Network.requestWillBeSent", (p) => {
       if (p.request) push({ url: p.request.url, method: p.request.method, status: 0, type: p.type || "Other", timestamp: Date.now() });
     }, sess.sessionId);
-    this.cdp.on("Network.responseReceived", (p) => {
+    const offResponse = this.cdp.on("Network.responseReceived", (p) => {
       if (p.response) push({ url: p.response.url, method: "", status: p.response.status, statusText: p.response.statusText, type: p.type || "Other", mimeType: p.response.mimeType, timestamp: Date.now() });
     }, sess.sessionId);
+    const dispose = sess.dispose;
+    sess.dispose = () => { offRequest(); offResponse(); dispose(); };
   }
 
   async screenshot(sess) {
@@ -261,7 +306,7 @@ class BrowserController {
     }, sess);
     let { data } = await shoot(55);
     if (data.length > 500000) ({ data } = await shoot(30));
-    const imageId = `screenshot_${Date.now()}_${Math.floor(this.nextTabId)}`;
+    const imageId = `screenshot_${randomUUID()}`;
     this.screenshots.set(imageId, data);
     const keys = [...this.screenshots.keys()];
     while (keys.length > 10) this.screenshots.delete(keys.shift());
@@ -288,6 +333,8 @@ class BrowserController {
   }
 
   async shutdown() {
+    await this.advanced?.close();
+    if (this.slot.external) { this.cdp?.close(); this.cdp = null; return; }
     await closeDedicatedBrowser(this.cdp, {
       ownsBrowser: this.ownsBrowser,
       browserPid: this.browserPid,
@@ -299,10 +346,52 @@ class BrowserController {
   }
 }
 
-const controller = new BrowserController();
+const browserSlots = configuredBrowserSlots();
+const controller = new BrowserController(browserSlots[0]);
+const controllers = new Map([["dedicated", controller]]);
+const advancedDefinitions = JSON.parse(fs.readFileSync(new URL("./browser-advanced-tools.json", import.meta.url), "utf8"));
+const advancedToolNames = new Set(advancedDefinitions.map((definition) => definition.name));
+function advancedFor(browserId = "dedicated") {
+  const slot = browserSlots.find((item) => item.id === browserId);
+  if (!slot) throw new Error("browser_not_configured: select an exact browser_id from browser_capabilities");
+  let owner = controllers.get(browserId);
+  if (!owner) { owner = new BrowserController(slot); controllers.set(browserId, owner); }
+  if (!owner.advanced) owner.advanced = new AdvancedBrowser(owner, slot);
+  return owner.advanced;
+}
+async function callAdvanced(name, args, extra) {
+  if (name === "browser_capabilities") {
+    const selected = args.browser_id ? [advancedFor(args.browser_id)] : browserSlots.map((slot) => advancedFor(slot.id));
+    return { browsers: selected.map((browser) => ({ label: browser.slot.label, ...browser.support() })) };
+  }
+  if (name === "browser_control" && args.action === "inventory" && args.browser_id === undefined) {
+    const inventories = await Promise.all(browserSlots.map((slot) => advancedFor(slot.id).control({ ...args, browser_id: slot.id }, extra.signal, extra._meta)));
+    return { ...inventories[0], browsers: inventories.map((item) => item.browser), pending_decisions: inventories.flatMap((item) => item.pending_decisions) };
+  }
+  const browser = advancedFor(args.browser_id);
+  switch (name) {
+    case "browser_control": return browser.control(args, extra.signal, extra._meta);
+    case "browser_frames": {
+      const record = await browser.page(args.tabId, extra.signal);
+      const frames = await Promise.all(record.page.frames().map(async (frame) => {
+        const current = browser.frameRecord(frame, record);
+        const parent = frame.parentFrame();
+        return { frame_ref: current.frame_ref, document_id: current.document_id,
+          parent_ref: parent ? browser.frameRecord(parent, record).frame_ref : null, url: frame.url() || await browser.abortable(() => frame.evaluate(() => location.href), extra.signal), name: frame.name() };
+      }));
+      return { browser_id: browser.slot.id, tabId: args.tabId, frames };
+    }
+    case "browser_locate": return browser.locate(args, extra.signal);
+    case "browser_action": return browser.action(args, extra.signal);
+    case "browser_upload": return browser.upload(args, extra.signal);
+    case "browser_downloads": return browser.download(args, extra.signal);
+    case "browser_file_chooser": return browser.chooser(args, extra.signal);
+    case "browser_permissions": return browser.permissions(args, extra.signal, extra._meta);
+  }
+}
 
 // ── CDP input helpers ──────────────────────────────────────────────────────
-function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
+function sleep(ms) { return delay(ms, undefined, { signal: invocation.getStore()?.signal }); }
 
 const KEY_MAP = {
   enter: "Enter", return: "Enter", tab: "Tab", escape: "Escape", esc: "Escape",
@@ -340,14 +429,14 @@ function parseModifierString(modStr) {
   return modifiers;
 }
 
-async function dispatchMouse(sess, type, x, y, opts = {}) {
+async function dispatchMouse(sess, type, x, y, opts = {}, requestOptions) {
   await controller.send("Input.dispatchMouseEvent", {
     type, x, y,
     button: opts.button || "left",
     buttons: opts.buttons || 0,
     clickCount: opts.clickCount || (type === "mousePressed" || type === "mouseReleased" ? 1 : 0),
     modifiers: opts.modifiers || 0,
-  }, sess);
+  }, sess, requestOptions);
 }
 
 async function mouseClick(sess, x, y, opts = {}) {
@@ -357,13 +446,21 @@ async function mouseClick(sess, x, y, opts = {}) {
   const buttons = button === "right" ? 2 : 1;
   await dispatchMouse(sess, "mouseMoved", x, y, { modifiers });
   await sleep(30);
-  await dispatchMouse(sess, "mousePressed", x, y, { button, clickCount, modifiers, buttons });
-  await sleep(30);
-  await dispatchMouse(sess, "mouseReleased", x, y, { button, clickCount, modifiers, buttons });
+  try {
+    await dispatchMouse(sess, "mousePressed", x, y, { button, clickCount, modifiers, buttons });
+    await sleep(30);
+  }
+  finally {
+    await dispatchMouse(sess, "mouseReleased", x, y, { button, clickCount, modifiers, buttons: 0 }, { signal: null });
+  }
 }
 
 async function waitForLoad(sess, timeout = 15000) {
-  return controller.cdp.once("Page.loadEventFired", { sessionId: sess.sessionId, timeout });
+  const signal = invocation.getStore()?.signal;
+  // Start listening before navigation, but do not leave an unhandled promise
+  // if that navigation command itself fails or is cancelled first.
+  return controller.cdp.once("Page.loadEventFired", { sessionId: sess.sessionId, timeout, signal })
+    .catch((error) => { if (signal?.aborted) return null; throw error; });
 }
 
 // ── Result helpers ──────────────────────────────────────────────────────────
@@ -420,7 +517,7 @@ const tools = {
       const p = waitForLoad(sess, 15000);
       const nav = await controller.send("Page.navigate", { url: target }, sess);
       if (nav.errorText && nav.errorText !== "net::ERR_ABORTED") {
-        return text(`Navigation to ${target} failed: ${nav.errorText}`);
+        return toolError(`Navigation to ${target} failed: ${nav.errorText}`);
       }
       await p;
     }
@@ -440,7 +537,7 @@ const tools = {
     let coordinate = args.coordinate;
     if (args.ref && !coordinate) {
       const c = await controller.callPageFn(sess, `window.__openagentChrome.getRefCoordinates(${JSON.stringify(args.ref)})`);
-      if (!c) return text(`Could not resolve ref "${args.ref}" to coordinates.`);
+      if (!c) return toolError(`Could not resolve ref "${args.ref}" to a current visible target. Refresh find/read_page in this tab.`);
       coordinate = [c.x, c.y];
     }
     const modifiers = parseModifierString(args.modifiers);
@@ -483,8 +580,11 @@ const tools = {
               code: isChar ? (/[a-z]/i.test(key) ? `Key${key.toUpperCase()}` : key) : key,
               windowsVirtualKeyCode: isChar ? key.toUpperCase().charCodeAt(0) : undefined,
             };
-            await controller.send("Input.dispatchKeyEvent", { type: "keyDown", text: isChar && !keyMod ? key : undefined, ...common }, sess);
-            await controller.send("Input.dispatchKeyEvent", { type: "keyUp", ...common }, sess);
+            try {
+              await controller.send("Input.dispatchKeyEvent", { type: "keyDown", text: isChar && !keyMod ? key : undefined, ...common }, sess);
+            } finally {
+              await controller.send("Input.dispatchKeyEvent", { type: "keyUp", ...common }, sess, { signal: null });
+            }
             await sleep(20);
           }
         }
@@ -509,7 +609,7 @@ const tools = {
         return text("Scrolled to target.");
       }
       case "wait": {
-        const d = Math.min(args.duration || 1, 30);
+        const d = Math.min(args.duration ?? 1, 30);
         await sleep(d * 1000);
         return text(`Waited ${d}s`);
       }
@@ -519,12 +619,15 @@ const tools = {
         const [ex, ey] = coordinate;
         await dispatchMouse(sess, "mouseMoved", sx, sy, { modifiers });
         await sleep(30);
-        await dispatchMouse(sess, "mousePressed", sx, sy, { button: "left", modifiers, buttons: 1, clickCount: 1 });
-        for (let i = 1; i <= 10; i++) {
-          await dispatchMouse(sess, "mouseMoved", sx + ((ex - sx) * i) / 10, sy + ((ey - sy) * i) / 10, { modifiers, buttons: 1 });
-          await sleep(16);
+        try {
+          await dispatchMouse(sess, "mousePressed", sx, sy, { button: "left", modifiers, buttons: 1, clickCount: 1 });
+          for (let i = 1; i <= 10; i++) {
+            await dispatchMouse(sess, "mouseMoved", sx + ((ex - sx) * i) / 10, sy + ((ey - sy) * i) / 10, { modifiers, buttons: 1 });
+            await sleep(16);
+          }
+        } finally {
+          await dispatchMouse(sess, "mouseReleased", ex, ey, { button: "left", modifiers, buttons: 0, clickCount: 1 }, { signal: null });
         }
-        await dispatchMouse(sess, "mouseReleased", ex, ey, { button: "left", modifiers, buttons: 1, clickCount: 1 });
         return text(`Dragged from (${sx}, ${sy}) to (${ex}, ${ey})`);
       }
       case "zoom": {
@@ -619,9 +722,9 @@ const tools = {
     const sess = await controller.ensureAttached(args.tabId);
     const { windowId } = await controller.send("Browser.getWindowForTarget", { targetId: controller.targetForTab(args.tabId) }, sess).catch(() => ({}));
     if (windowId !== undefined) {
-      await controller.cdp.send("Browser.setWindowBounds", { windowId, bounds: { width: args.width, height: args.height } }).catch(() => {});
+      await controller.cdp.send("Browser.setWindowBounds", { windowId, bounds: { width: args.width, height: args.height } });
     }
-    await controller.send("Emulation.setDeviceMetricsOverride", { width: args.width, height: args.height, deviceScaleFactor: 1, mobile: false }, sess).catch(() => {});
+    await controller.send("Emulation.setDeviceMetricsOverride", { width: args.width, height: args.height, deviceScaleFactor: 1, mobile: false }, sess);
     return text(`Resized window to ${args.width}x${args.height}`);
   },
 
@@ -678,20 +781,29 @@ const tools = {
 // ───────────────────────────────────────────────────────────────────────────
 // MCP wiring
 // ───────────────────────────────────────────────────────────────────────────
-async function callTool(name, args) {
-  try {
-    const handler = tools[name];
-    if (!handler) return toolError(`Unknown tool: ${name}`);
-    // Catalog inspection and deterministic upload validation do not need a
-    // browser process. Keeping them lazy makes health/error probes bounded on
-    // machines where no Chromium-family browser is installed.
-    if (name !== "list_extensions" && name !== "upload_image") {
-      await controller.ensure();
+async function callTool(name, args, extra = {}) {
+  return invocation.run({ signal: extra.signal }, async () => {
+    try {
+      extra.signal?.throwIfAborted();
+      if (advancedToolNames.has(name)) {
+        const result = await callAdvanced(name, args || {}, extra);
+        return { content: [{ type: "text", text: JSON.stringify(result) }], structuredContent: result };
+      }
+      if (controller.humanControl && name !== "list_extensions") throw new Error("human_control_active: automation is paused for human control");
+      const handler = tools[name];
+      if (!handler) return toolError(`Unknown tool: ${name}`);
+      // Catalog inspection and deterministic upload validation do not need a
+      // browser process. Keeping them lazy makes health/error probes bounded on
+      // machines where no Chromium-family browser is installed.
+      if (name !== "list_extensions" && name !== "upload_image") {
+        await controller.ensure();
+      }
+      extra.signal?.throwIfAborted();
+      return await handler(args || {});
+    } catch (err) {
+      return { ...toolError(`Error: ${err.message}`), structuredContent: { error: { code: err.code || (err.name === "TimeoutError" ? "browser_timeout" : err.name === "AbortError" ? "cancelled" : /strict mode violation/i.test(err.message) ? "multiple_matches" : "browser_operation_failed"), message: err.message, ...(err.details || {}) } } };
     }
-    return await handler(args || {});
-  } catch (err) {
-    return toolError(`Error: ${err.message}`);
-  }
+  });
 }
 
 const MCP_INSTRUCTIONS = process.env.OPENAGENT_BROWSER_LOCATION === "server"
@@ -701,7 +813,7 @@ const MCP_INSTRUCTIONS = process.env.OPENAGENT_BROWSER_LOCATION === "server"
   : "Control OpenAgent's dedicated Chromium profile on the current client. " +
     "Call tabs_context_mcp before tab-specific tools. This is not the server's browser.";
 const server = new McpServer(
-  { name: "agent-in-chrome", version: "2.0.0" },
+  { name: "agent-in-chrome", version: "3.0.0" },
   { instructions: MCP_INSTRUCTIONS },
 );
 
@@ -722,28 +834,28 @@ const server = new McpServer(
   };
 }
 
-const n = z.number();
-const tabIdParam = z.number().describe("Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.");
+const n = z.number().finite();
+const tabIdParam = z.number().int().positive().describe("Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.");
 
 server.tool(
   "tabs_context_mcp",
   "List the browser tabs available to you. Call this once before any other browser tool so you know what tabs exist. Each new task should open its own tab with tabs_create_mcp unless told to reuse one.",
   { createIfEmpty: z.boolean().optional().describe("Open a fresh blank tab if none exist.") },
-  (a) => callTool("tabs_context_mcp", a),
+  (a, extra) => callTool("tabs_context_mcp", a, extra),
 );
 
 server.tool(
   "tabs_create_mcp",
   "Open a new blank tab and return its tab ID.",
   {},
-  (a) => callTool("tabs_create_mcp", a),
+  (a, extra) => callTool("tabs_create_mcp", a, extra),
 );
 
 server.tool(
   "navigate",
   "Navigate a tab to a URL (protocol optional, defaults to https), or pass \"back\"/\"forward\" for history. Waits for the page to load.",
   { url: z.string().describe('URL, or "back"/"forward".'), tabId: tabIdParam },
-  (a) => callTool("navigate", a),
+  (a, extra) => callTool("navigate", a, extra),
 );
 
 server.tool(
@@ -757,28 +869,28 @@ server.tool(
     modifiers: z.string().optional().describe('Modifier keys, e.g. "ctrl", "cmd+shift".'),
     ref: z.string().optional().describe("Element ref from find/read_page (alternative to coordinate)."),
     region: z.array(n).min(4).max(4).optional().describe("(x0,y0,x1,y1) region for zoom."),
-    repeat: n.min(1).max(100).optional().describe("Repeat count for key."),
+    repeat: n.int().min(1).max(100).optional().describe("Repeat count for key."),
     scroll_direction: z.enum(["up", "down", "left", "right"]).optional().describe("Direction for scroll."),
     scroll_amount: n.min(1).max(10).optional().describe("Scroll ticks (default 3)."),
     start_coordinate: z.array(n).min(2).max(2).optional().describe("(x, y) start for left_click_drag."),
     text: z.string().optional().describe('Text to type, or space-separated keys for the key action (e.g. "Enter", "cmd+a").'),
   },
-  (a) => callTool("computer", a),
+  (a, extra) => callTool("computer", a, extra),
 );
 
 server.tool(
   "find",
   'Find elements by natural-language description or visible text (e.g. "search box", "log in button", "post title containing cats"). Returns up to 20 matches with refs usable by computer/form_input. The cheapest way to locate something — prefer it over screenshots.',
-  { query: z.string().describe("What to find."), tabId: tabIdParam },
+  { query: z.string().trim().min(1).describe("What to find."), tabId: tabIdParam },
   { readOnlyHint: true, idempotentHint: true, destructiveHint: false },
-  (a) => callTool("find", a),
+  (a, extra) => callTool("find", a, extra),
 );
 
 server.tool(
   "form_input",
   "Set the value of a form field by its ref (from find/read_page). Booleans toggle checkboxes; strings fill text inputs and select options.",
   { ref: z.string().describe("Element ref."), value: z.union([z.string(), z.boolean(), z.number()]).describe("Value to set."), tabId: tabIdParam },
-  (a) => callTool("form_input", a),
+  (a, extra) => callTool("form_input", a, extra),
 );
 
 server.tool(
@@ -786,7 +898,7 @@ server.tool(
   "Extract the main readable text of the page (article/body), stripped of markup. Ideal for reading posts, comments, and articles cheaply.",
   { tabId: tabIdParam },
   { readOnlyHint: true, idempotentHint: true, destructiveHint: false },
-  (a) => callTool("get_page_text", a),
+  (a, extra) => callTool("get_page_text", a, extra),
 );
 
 server.tool(
@@ -795,19 +907,19 @@ server.tool(
   {
     tabId: tabIdParam,
     filter: z.enum(["interactive", "all"]).optional().describe('"interactive" or "all" (default).'),
-    depth: n.optional().describe("Max tree depth (default 15)."),
+    depth: n.int().min(0).max(100).optional().describe("Max tree depth (default 15)."),
     ref_id: z.string().optional().describe("Read only this element's subtree."),
-    max_chars: n.optional().describe("Output cap (default 50000)."),
+    max_chars: n.int().min(1).max(100000).optional().describe("Output cap (default 50000)."),
   },
   { readOnlyHint: true, idempotentHint: true, destructiveHint: false },
-  (a) => callTool("read_page", a),
+  (a, extra) => callTool("read_page", a, extra),
 );
 
 server.tool(
   "javascript_tool",
   "Evaluate a JavaScript expression in the page and return its value. Write an expression (no `return`); promises are awaited.",
   { action: z.literal("javascript_exec").describe("Must be 'javascript_exec'."), text: z.string().describe("Expression to evaluate."), tabId: tabIdParam },
-  (a) => callTool("javascript_tool", a),
+  (a, extra) => callTool("javascript_tool", a, extra),
 );
 
 server.tool(
@@ -816,11 +928,11 @@ server.tool(
   {
     tabId: tabIdParam,
     pattern: z.string().optional().describe("Regex filter."),
-    limit: n.optional().describe("Max messages (default 100)."),
+    limit: n.int().min(1).max(MAX_BUFFER).optional().describe("Max messages (default 100)."),
     onlyErrors: z.boolean().optional().describe("Only errors/exceptions."),
     clear: z.boolean().optional().describe("Clear the buffer after reading."),
   },
-  (a) => callTool("read_console_messages", a),
+  (a, extra) => callTool("read_console_messages", a, extra),
 );
 
 server.tool(
@@ -829,17 +941,17 @@ server.tool(
   {
     tabId: tabIdParam,
     urlPattern: z.string().optional().describe("Substring URL filter."),
-    limit: n.optional().describe("Max requests (default 100)."),
+    limit: n.int().min(1).max(MAX_BUFFER).optional().describe("Max requests (default 100)."),
     clear: z.boolean().optional().describe("Clear the buffer after reading."),
   },
-  (a) => callTool("read_network_requests", a),
+  (a, extra) => callTool("read_network_requests", a, extra),
 );
 
 server.tool(
   "resize_window",
   "Resize the browser window / viewport.",
-  { width: n.describe("Width px."), height: n.describe("Height px."), tabId: tabIdParam },
-  (a) => callTool("resize_window", a),
+  { width: n.int().min(1).max(16384).describe("Width px."), height: n.int().min(1).max(16384).describe("Height px."), tabId: tabIdParam },
+  (a, extra) => callTool("resize_window", a, extra),
 );
 
 server.tool(
@@ -851,7 +963,7 @@ server.tool(
     ref: z.string().optional().describe("Ref of the <input type=file> element."),
     filename: z.string().optional().describe('Filename (default "image.png").'),
   },
-  (a) => callTool("upload_image", a),
+  (a, extra) => callTool("upload_image", a, extra),
 );
 
 server.tool(
@@ -859,29 +971,37 @@ server.tool(
   "List the browser extensions installed in the agent's browser (builtin + agent-installed).",
   {},
   { readOnlyHint: true, idempotentHint: true, destructiveHint: false },
-  (a) => callTool("list_extensions", a),
+  (a, extra) => callTool("list_extensions", a, extra),
 );
 
 server.tool(
   "install_extension",
   "Install a Chromium extension into the agent's browser from its Chrome Web Store ID (the 32-char id in the store URL), or a path to an unpacked extension. It persists across restarts and loads on every launch. Use for capabilities like a VPN/proxy extension — after installing, open it and sign in / pick options once. Restarts the browser to apply.",
   { source: z.string().describe("Chrome Web Store extension ID (32 chars a–p) or a path to an unpacked extension directory.") },
-  (a) => callTool("install_extension", a),
+  (a, extra) => callTool("install_extension", a, extra),
 );
 
 server.tool(
   "remove_extension",
   "Remove an agent-installed extension by its id (from list_extensions). Builtins can't be removed. Restarts the browser to apply.",
   { id: z.string().describe("Extension id to remove.") },
-  (a) => callTool("remove_extension", a),
+  (a, extra) => callTool("remove_extension", a, extra),
 );
+
+for (const definition of advancedDefinitions) {
+  const schema = jsonToZod(definition.inputSchema, z);
+  const readOnly = definition.classification === "read_only";
+  server.tool(definition.name, definition.description, schema.shape,
+    { readOnlyHint: readOnly, idempotentHint: readOnly, destructiveHint: !readOnly },
+    (args, extra) => callTool(definition.name, args, extra));
+}
 
 // ── Lifecycle ───────────────────────────────────────────────────────────────
 let shuttingDown = false;
 async function shutdown() {
   if (shuttingDown) return;
   shuttingDown = true;
-  await controller.shutdown();
+  await Promise.allSettled([...controllers.values()].map((owner) => owner.shutdown()));
   process.exit(0);
 }
 process.on("SIGTERM", shutdown);

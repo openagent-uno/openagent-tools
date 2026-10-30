@@ -175,7 +175,7 @@
       },
       {
         "classification": "read_only",
-        "description": "Find elements by natural-language description or visible text (e.g. \"search box\", \"log in button\", \"post title containing cats\"). Returns up to 20 matches with refs usable by computer/form_input. The cheapest way to locate something — prefer it over screenshots.",
+        "description": "Find elements by natural-language description or visible text (e.g. \"search box\", \"log in button\", \"post title containing cats\"). Returns up to 20 matches with refs usable by computer/form_input. The cheapest way to locate something \u2014 prefer it over screenshots.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
           "additionalProperties": false,
@@ -457,13 +457,13 @@
       },
       {
         "classification": "mutating",
-        "description": "Install a Chromium extension into the agent's browser from its Chrome Web Store ID (the 32-char id in the store URL), or a path to an unpacked extension. It persists across restarts and loads on every launch. Use for capabilities like a VPN/proxy extension — after installing, open it and sign in / pick options once. Restarts the browser to apply.",
+        "description": "Install a Chromium extension into the agent's browser from its Chrome Web Store ID (the 32-char id in the store URL), or a path to an unpacked extension. It persists across restarts and loads on every launch. Use for capabilities like a VPN/proxy extension \u2014 after installing, open it and sign in / pick options once. Restarts the browser to apply.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
           "additionalProperties": false,
           "properties": {
             "source": {
-              "description": "Chrome Web Store extension ID (32 chars a–p) or a path to an unpacked extension directory.",
+              "description": "Chrome Web Store extension ID (32 chars a\u2013p) or a path to an unpacked extension directory.",
               "type": "string"
             }
           },
@@ -492,9 +492,515 @@
           "type": "object"
         },
         "name": "remove_extension"
+      },
+      {
+        "classification": "read_only",
+        "description": "Inspect configured browser IDs and actual backend features. Browser IDs are host-configured; no endpoint argument is accepted.",
+        "input_schema": {
+          "additionalProperties": false,
+          "properties": {
+            "browser_id": {
+              "type": "string"
+            }
+          },
+          "type": "object"
+        },
+        "name": "browser_capabilities"
+      },
+      {
+        "classification": "mutating",
+        "classification_by_argument": {
+          "action": {
+            "inventory": "read_only",
+            "recover": "read_only"
+          }
+        },
+        "description": "List, attach or detach an explicit browser/tab, request human takeover or inspect recovery. Resume requires host-signed metadata and never accepts approval proof in tool arguments.",
+        "input_schema": {
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "enum": [
+                "inventory",
+                "attach",
+                "detach",
+                "request_takeover",
+                "resume",
+                "recover"
+              ],
+              "type": "string"
+            },
+            "browser_id": {
+              "type": "string"
+            },
+            "reason": {
+              "maxLength": 1000,
+              "type": "string"
+            },
+            "request_id": {
+              "type": "string"
+            },
+            "tabId": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "action"
+          ],
+          "type": "object"
+        },
+        "name": "browser_control"
+      },
+      {
+        "classification": "read_only",
+        "description": "List exact frame/document handles for one tab, including cross-origin frames supported by Chromium. Re-discover after navigation or detach.",
+        "input_schema": {
+          "additionalProperties": false,
+          "properties": {
+            "browser_id": {
+              "type": "string"
+            },
+            "tabId": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "tabId"
+          ],
+          "type": "object"
+        },
+        "name": "browser_frames"
+      },
+      {
+        "classification": "read_only",
+        "description": "Find semantic or CSS locators with bounded attached/visible/hidden/detached waits. Returns document-bound opaque element refs; never chooses the first ambiguous match.",
+        "input_schema": {
+          "additionalProperties": false,
+          "properties": {
+            "browser_id": {
+              "type": "string"
+            },
+            "frame_ref": {
+              "type": "string"
+            },
+            "locator": {
+              "additionalProperties": false,
+              "properties": {
+                "css": {
+                  "type": "string"
+                },
+                "exact": {
+                  "type": "boolean"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "placeholder": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": "string"
+                },
+                "test_id": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "tabId": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "timeout_ms": {
+              "maximum": 30000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "wait_for": {
+              "enum": [
+                "attached",
+                "visible",
+                "hidden",
+                "detached"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "tabId",
+            "locator"
+          ],
+          "type": "object"
+        },
+        "name": "browser_locate"
+      },
+      {
+        "classification": "mutating",
+        "description": "Act on exactly one current element ref or locator, with bounded readiness waits. Pins the actual element and document; no mutation replay after cancellation or uncertain execution.",
+        "input_schema": {
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "enum": [
+                "click",
+                "fill",
+                "check",
+                "uncheck",
+                "select",
+                "press",
+                "hover",
+                "focus",
+                "scroll"
+              ],
+              "type": "string"
+            },
+            "browser_id": {
+              "type": "string"
+            },
+            "document_id": {
+              "type": "string"
+            },
+            "element_ref": {
+              "type": "string"
+            },
+            "frame_ref": {
+              "type": "string"
+            },
+            "key": {
+              "maxLength": 100,
+              "type": "string"
+            },
+            "locator": {
+              "additionalProperties": false,
+              "properties": {
+                "css": {
+                  "type": "string"
+                },
+                "exact": {
+                  "type": "boolean"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "placeholder": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": "string"
+                },
+                "test_id": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "tabId": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "timeout_ms": {
+              "maximum": 30000,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "value": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "tabId",
+            "action"
+          ],
+          "type": "object"
+        },
+        "name": "browser_action"
+      },
+      {
+        "classification": "mutating",
+        "description": "Set files on one exact file-input element. Inline base64 payloads or absolute paths within host-configured upload roots only; at most 10 files and 32 MiB total.",
+        "input_schema": {
+          "additionalProperties": false,
+          "properties": {
+            "browser_id": {
+              "type": "string"
+            },
+            "document_id": {
+              "type": "string"
+            },
+            "element_ref": {
+              "type": "string"
+            },
+            "files": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "data_base64": {
+                    "type": "string"
+                  },
+                  "mime_type": {
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "name": {
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "path": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "maxItems": 10,
+              "type": "array"
+            },
+            "frame_ref": {
+              "type": "string"
+            },
+            "locator": {
+              "additionalProperties": false,
+              "properties": {
+                "css": {
+                  "type": "string"
+                },
+                "exact": {
+                  "type": "boolean"
+                },
+                "label": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "placeholder": {
+                  "type": "string"
+                },
+                "role": {
+                  "type": "string"
+                },
+                "test_id": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            },
+            "tabId": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "timeout_ms": {
+              "maximum": 30000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "tabId",
+            "files"
+          ],
+          "type": "object"
+        },
+        "name": "browser_upload"
+      },
+      {
+        "classification": "mutating",
+        "classification_by_argument": {
+          "action": {
+            "list": "read_only",
+            "read": "read_only",
+            "status": "read_only"
+          }
+        },
+        "description": "Inspect, read bounded base64 chunks, cancel or explicitly release downloads belonging to one tab. No arbitrary host path is exposed or accepted.",
+        "input_schema": {
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "enum": [
+                "list",
+                "status",
+                "read",
+                "cancel",
+                "release"
+              ],
+              "type": "string"
+            },
+            "browser_id": {
+              "type": "string"
+            },
+            "download_id": {
+              "type": "string"
+            },
+            "max_bytes": {
+              "maximum": 1048576,
+              "minimum": 1,
+              "type": "integer"
+            },
+            "offset": {
+              "maximum": 33554432,
+              "minimum": 0,
+              "type": "integer"
+            },
+            "tabId": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "tabId",
+            "action"
+          ],
+          "type": "object"
+        },
+        "name": "browser_downloads"
+      },
+      {
+        "classification": "mutating",
+        "classification_by_argument": {
+          "action": {
+            "list": "read_only",
+            "wait": "read_only"
+          }
+        },
+        "description": "Inspect or wait for a real page file chooser, then set or cancel its exact document-bound handle. Files use the same limits/policy as browser_upload.",
+        "input_schema": {
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "enum": [
+                "list",
+                "wait",
+                "set",
+                "cancel"
+              ],
+              "type": "string"
+            },
+            "browser_id": {
+              "type": "string"
+            },
+            "chooser_id": {
+              "type": "string"
+            },
+            "files": {
+              "items": {
+                "additionalProperties": false,
+                "properties": {
+                  "data_base64": {
+                    "type": "string"
+                  },
+                  "mime_type": {
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "name": {
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "path": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              "maxItems": 10,
+              "type": "array"
+            },
+            "tabId": {
+              "minimum": 1,
+              "type": "integer"
+            },
+            "timeout_ms": {
+              "maximum": 30000,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "tabId",
+            "action"
+          ],
+          "type": "object"
+        },
+        "name": "browser_file_chooser"
+      },
+      {
+        "classification": "mutating",
+        "classification_by_argument": {
+          "action": {
+            "query": "read_only"
+          }
+        },
+        "description": "Query browser permission state or request a human decision for an exact origin. Grant/revoke require host-signed metadata; tool arguments cannot approve access.",
+        "input_schema": {
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "enum": [
+                "query",
+                "request",
+                "grant",
+                "revoke"
+              ],
+              "type": "string"
+            },
+            "browser_id": {
+              "type": "string"
+            },
+            "origin": {
+              "type": "string"
+            },
+            "permissions": {
+              "items": {
+                "enum": [
+                  "geolocation",
+                  "notifications",
+                  "camera",
+                  "microphone",
+                  "clipboard-read",
+                  "clipboard-write"
+                ],
+                "type": "string"
+              },
+              "maxItems": 6,
+              "minItems": 1,
+              "type": "array",
+              "uniqueItems": true
+            },
+            "request_id": {
+              "type": "string"
+            },
+            "tabId": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "tabId",
+            "action"
+          ],
+          "type": "object"
+        },
+        "name": "browser_permissions"
       }
     ],
-    "version": "2.0.0"
+    "version": "3.0.0"
   },
   "computer-control": {
     "id": "computer-control",
@@ -517,13 +1023,7 @@
     "tools": [
       {
         "classification": "mutating",
-        "classification_by_argument": {
-          "action": {
-            "get_cursor_position": "read_only",
-            "get_screenshot": "read_only"
-          }
-        },
-        "description": "Use a mouse and keyboard to interact with a computer, take screenshots, and record the screen.\n* This is an interface to a desktop GUI. You do not have access to a terminal or applications menu. You must click on desktop icons to start applications.\n* Always prefer using keyboard shortcuts rather than clicking, where possible.\n* If you see boxes with two letters in them, typing these letters will click that element. Use this instead of other shortcuts or clicking, where possible.\n* Some applications may take time to start or process actions, so you may need to wait and take successive screenshots to see the results of your actions. E.g. if you click on Firefox and a window doesn't open, try taking another screenshot.\n* Whenever you intend to move the cursor to click on an element like an icon, you should consult a screenshot to determine the coordinates of the element before moving the cursor.\n* If you tried clicking on a program or link but it failed to load, even after waiting, try adjusting your cursor position so that the tip of the cursor visually falls on the element that you want to click.\n* Make sure to click any buttons, links, icons, etc with the cursor tip in the center of the element. Don't click boxes on their edges unless asked.\n\nUsing the crosshair:\n* Screenshots show a red crosshair at the current cursor position.\n* After clicking, check where the crosshair appears vs your target. If it missed, adjust coordinates proportionally to the distance - start with large adjustments and refine. Avoid small incremental changes when the crosshair is far from the target (distances are often further than you expect).\n* Consider display dimensions when estimating positions. E.g. if it's 90% to the bottom of the screen, the coordinates should reflect this.\n* For another display, call computer_list_displays and pass its exact display_id. Coordinates and screenshot regions are relative to that display. Keyboard focus and recording cannot be bound to a display.\n\nRegion-of-interest (ROI):\n* `get_screenshot` and `start_screen_recording` accept an optional `region: [x, y, width, height]` in API image space. When set, the captured image/video is cropped to that rectangle before being downsampled, letting you focus the model on one pane or an animating element without capturing the whole screen.\n\nScreen recording:\n* `start_screen_recording` begins capturing the primary display to an `.mp4` file and returns immediately with the output path. Optional params: `fps` (1-60, default 30), `region` (ROI), `path` (defaults to a timestamped file in the OS temp dir), `max_duration_seconds` (auto-stop after N seconds).\n* `stop_screen_recording` stops the active recording and returns the final file path, frame count, and duration. Only one recording can be active at a time; starting a second before stopping the first returns an error.\n* Use recording to review animations, transitions, video playback, or any behavior that a single screenshot can't capture. Prefer a small `region` when possible — it keeps file size down and focuses the recording on the element under test.",
+        "description": "Use a mouse and keyboard to interact with a computer, take screenshots, and record the screen.\n* This is an interface to a desktop GUI. You do not have access to a terminal or applications menu. You must click on desktop icons to start applications.\n* Always prefer using keyboard shortcuts rather than clicking, where possible.\n* If you see boxes with two letters in them, typing these letters will click that element. Use this instead of other shortcuts or clicking, where possible.\n* Some applications may take time to start or process actions, so you may need to wait and take successive screenshots to see the results of your actions. E.g. if you click on Firefox and a window doesn't open, try taking another screenshot.\n* Whenever you intend to move the cursor to click on an element like an icon, you should consult a screenshot to determine the coordinates of the element before moving the cursor.\n* If you tried clicking on a program or link but it failed to load, even after waiting, try adjusting your cursor position so that the tip of the cursor visually falls on the element that you want to click.\n* Make sure to click any buttons, links, icons, etc with the cursor tip in the center of the element. Don't click boxes on their edges unless asked.\n\nUsing the crosshair:\n* Screenshots show a red crosshair at the current cursor position.\n* After clicking, check where the crosshair appears vs your target. If it missed, adjust coordinates proportionally to the distance - start with large adjustments and refine. Avoid small incremental changes when the crosshair is far from the target (distances are often further than you expect).\n* Consider display dimensions when estimating positions. E.g. if it's 90% to the bottom of the screen, the coordinates should reflect this.\n* For another display, call computer_list_displays and pass its exact display_id. Coordinates and screenshot regions are relative to that display. Keyboard focus and recording cannot be bound to a display.\n\nRegion-of-interest (ROI):\n* `get_screenshot` and `start_screen_recording` accept an optional `region: [x, y, width, height]` in API image space. When set, the captured image/video is cropped to that rectangle before being downsampled, letting you focus the model on one pane or an animating element without capturing the whole screen.\n\nScreen recording:\n* `start_screen_recording` begins capturing the primary display to an `.mp4` file and returns immediately with the output path. Optional params: `fps` (1-60, default 30), `region` (ROI), `path` (defaults to a timestamped file in the OS temp dir), `max_duration_seconds` (auto-stop after N seconds).\n* `stop_screen_recording` stops the active recording and returns the final file path, frame count, and duration. Only one recording can be active at a time; starting a second before stopping the first returns an error.\n* Use recording to review animations, transitions, video playback, or any behavior that a single screenshot can't capture. Prefer a small `region` when possible \u2014 it keeps file size down and focuses the recording on the element under test.",
         "input_schema": {
           "$defs": {
             "Action": {
@@ -630,7 +1130,7 @@
             },
             "fps": {
               "default": null,
-              "description": "Frames per second for `start_screen_recording`. 1–60, default 30.",
+              "description": "Frames per second for `start_screen_recording`. 1\u201360, default 30.",
               "format": "uint32",
               "minimum": 0,
               "type": [
@@ -658,7 +1158,7 @@
             },
             "region": {
               "default": null,
-              "description": "Optional region-of-interest `[x, y, width, height]` in API image space.\nSupported by `get_screenshot` and `start_screen_recording` — the\ncaptured image / video is cropped to this rectangle before downsampling.\nUseful for focusing the model on a specific panel, a video player,\na toast, or isolating an animating element for frame-by-frame review.",
+              "description": "Optional region-of-interest `[x, y, width, height]` in API image space.\nSupported by `get_screenshot` and `start_screen_recording` \u2014 the\ncaptured image / video is cropped to this rectangle before downsampling.\nUseful for focusing the model on a specific panel, a video player,\na toast, or isolating an animating element for frame-by-frame review.",
               "items": {
                 "format": "int32",
                 "type": "integer"
@@ -688,6 +1188,180 @@
         "name": "computer"
       },
       {
+        "classification": "mutating",
+        "description": "Perform press, show_menu or set_value on an element from computer_accessibility_snapshot. Pass its snapshot_id and element_id. macOS only. Exact window, process, element ownership and observed state are revalidated before acting. set_value requires an editable non-secure field and a value of at most 16 KiB. The snapshot is consumed once an attempt starts, including failures; inspect a fresh snapshot before any follow-up or retry. Actions are never automatically retried or replaced with mouse/keyboard input.",
+        "input_schema": {
+          "$defs": {
+            "ElementAction": {
+              "enum": [
+                "press",
+                "show_menu",
+                "set_value"
+              ],
+              "type": "string"
+            }
+          },
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "action": {
+              "$ref": "#/$defs/ElementAction"
+            },
+            "element_id": {
+              "maxLength": 11,
+              "minLength": 9,
+              "type": "string"
+            },
+            "snapshot_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "type": "string"
+            },
+            "value": {
+              "description": "Required only for set_value. Limited to 16 KiB; secure fields are excluded.",
+              "maxLength": 16384,
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "required": [
+            "snapshot_id",
+            "element_id",
+            "action"
+          ],
+          "title": "ActionArgs",
+          "type": "object"
+        },
+        "name": "computer_accessibility_action"
+      },
+      {
+        "classification": "read_only",
+        "description": "Read a bounded native accessibility tree of one exact window_id/pid from computer_list_windows. macOS only; other systems return accessibility_unsupported_platform. Requires Accessibility and Screen Recording permission. Returns element_id handles, supported actions, truncation and a snapshot_id expiring in 120 seconds. Each snapshot is single-use for actions. A fresh snapshot supersedes the previous snapshot of that window. Secure field values are omitted. No coordinate fallback.",
+        "input_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "max_depth": {
+              "description": "Maximum tree depth (1\u201330, default 12).",
+              "format": "uint8",
+              "maximum": 30,
+              "minimum": 1,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "max_nodes": {
+              "description": "Maximum elements (1\u20131000, default 300). Responses identify truncation.",
+              "format": "uint16",
+              "maximum": 1000,
+              "minimum": 1,
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "pid": {
+              "format": "uint32",
+              "minimum": 1,
+              "type": "integer"
+            },
+            "window_id": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "window_id",
+            "pid"
+          ],
+          "title": "SnapshotArgs",
+          "type": "object"
+        },
+        "name": "computer_accessibility_snapshot"
+      },
+      {
+        "classification": "read_only",
+        "description": "Report native macOS OS grants, exact app identity and actual input/clipboard/system-audio backend support. Optional app_ref must belong to this host principal. This is capability/permission reporting, not an OpenAI risk/approval service; current host authorization is always required and no tool argument grants it.",
+        "input_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "app_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            }
+          },
+          "title": "PolicyArgs",
+          "type": "object"
+        },
+        "name": "computer_app_policy"
+      },
+      {
+        "classification": "mutating",
+        "description": "Start authorized native loopback/system-output audio capture on macOS13+ using ScreenCaptureKit; never uses microphone. source must be system_output and choose exactly one owned app_ref or explicit all_system_output:true. Missing source never widens capture. Requires current host audio consent and Screen Recording/System Audio OS grant. Returns owned recording_id,source provenance,24kHz stereo WAV metadata; max_duration_ms default60000,max300000 auto-stops. No video frames are saved.",
+        "input_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "all_system_output": {
+              "default": false,
+              "type": "boolean"
+            },
+            "app_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "max_duration_ms": {
+              "default": 60000,
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            },
+            "source": {
+              "description": "Only public system-loopback audio is supported; never microphone fallback.",
+              "type": "string"
+            }
+          },
+          "required": [
+            "source"
+          ],
+          "title": "AudioStartArgs",
+          "type": "object"
+        },
+        "name": "computer_audio_start"
+      },
+      {
+        "classification": "mutating",
+        "description": "Stop exactly one owned native recording_id and return provenance plus MCP WAV audio. return_audio:false stops/releases the resource without emitting audio content (owned artifact is retained). Unknown,wrong-owner or consumed resources fail; missing/no-sample/OS capture errors are explicit and are not claimed as successful recordings.",
+        "input_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "recording_id": {
+              "type": "string"
+            },
+            "return_audio": {
+              "default": true,
+              "type": "boolean"
+            }
+          },
+          "required": [
+            "recording_id"
+          ],
+          "title": "AudioStopArgs",
+          "type": "object"
+        },
+        "name": "computer_audio_stop"
+      },
+      {
         "classification": "read_only",
         "description": "Capture a PNG of one window on this verified client computer. Use the exact window_id and pid returned by computer_list_windows; the call fails if the pair no longer exists. The image is downsampled to model limits. Requires Screen Recording permission where the OS does.",
         "input_schema": {
@@ -715,6 +1389,38 @@
         "name": "computer_capture_window"
       },
       {
+        "classification": "mutating",
+        "description": "Launch/activate exactly one observed macOS app_ref. Its canonical bundle/executable identity is revalidated and the ref consumed before submitting to NSWorkspace. Returns a fresh app_ref and confirmed PID. A timeout is indeterminate: inspect current apps before another launch; never automatically replay.",
+        "input_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "activate": {
+              "default": true,
+              "type": "boolean"
+            },
+            "app_ref": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "app_ref"
+          ],
+          "title": "LaunchArgs",
+          "type": "object"
+        },
+        "name": "computer_launch_app"
+      },
+      {
+        "classification": "read_only",
+        "description": "List launchable macOS application bundles from standard application directories and running apps. Returns fresh opaque app_ref handles bound to exact canonical bundle/executable versions and expiring after10minutes; the host must bind each handle to the originating principal. Coverage/truncation are explicit; no private LaunchServices enumeration or executable path argument.",
+        "input_schema": {
+          "properties": {},
+          "type": "object"
+        },
+        "name": "computer_list_apps"
+      },
+      {
         "classification": "read_only",
         "description": "List current displays on this verified client computer, including exact display_id, name, desktop origin, size and primary flag. A display can disappear; re-list after a stale-target error.",
         "input_schema": {
@@ -731,8 +1437,286 @@
           "type": "object"
         },
         "name": "computer_list_windows"
+      },
+      {
+        "classification": "mutating",
+        "description": "Paste explicit rich clipboard representations into an exact observed focused field. items contains1..4 unique MIME/base64 representations: text/plain,text/html,text/rtf,image/png,8MiB total. Saves all existing clipboard items/types privately before mutation, sends Cmd+V to the selected PID, and restores previous content only if no external clipboard change intervened. Original clipboard data is never returned. Restoration/resource limits fail before writing. Crash/uncertain paste is never automatically replayed; inspect result/target.",
+        "input_schema": {
+          "$defs": {
+            "ClipboardItem": {
+              "additionalProperties": false,
+              "properties": {
+                "data_base64": {
+                  "type": "string"
+                },
+                "mime_type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "mime_type",
+                "data_base64"
+              ],
+              "type": "object"
+            }
+          },
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "element_id": {
+              "type": "string"
+            },
+            "items": {
+              "items": {
+                "$ref": "#/$defs/ClipboardItem"
+              },
+              "type": "array"
+            },
+            "snapshot_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "snapshot_id",
+            "element_id",
+            "items"
+          ],
+          "title": "PasteArgs",
+          "type": "object"
+        },
+        "name": "computer_paste"
+      },
+      {
+        "classification": "mutating",
+        "description": "Perform exactly one native_action advertised on the observed element, including secondary actions such as AXRaise/AXIncrement/AXDecrement when available. Exact identity/state/ownership are revalidated and snapshot consumed. Never guess action names or repeat an uncertain mutation.",
+        "input_schema": {
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "element_id": {
+              "type": "string"
+            },
+            "native_action": {
+              "type": "string"
+            },
+            "snapshot_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "snapshot_id",
+            "element_id",
+            "native_action"
+          ],
+          "title": "PerformArgs",
+          "type": "object"
+        },
+        "name": "computer_perform_action"
+      },
+      {
+        "classification": "mutating",
+        "description": "Select text in one observed native non-secure field. Pass either UTF-16 start+length or one exact text match optionally disambiguated by adjacent prefix/suffix; mode text/before/after selects the match or caret. Surrogate-splitting, out-of-range and ambiguous matches fail. Requires exact app/window focus and a writable native selection range; no clipboard or coordinate fallback. Consumes snapshot.",
+        "input_schema": {
+          "$defs": {
+            "TextSelection": {
+              "additionalProperties": false,
+              "properties": {
+                "length": {
+                  "format": "uint32",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "mode": {
+                  "default": "text",
+                  "type": "string"
+                },
+                "prefix": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "start": {
+                  "format": "uint32",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "suffix": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "text": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "type": "object"
+            }
+          },
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "element_id": {
+              "type": "string"
+            },
+            "selection": {
+              "$ref": "#/$defs/TextSelection"
+            },
+            "snapshot_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "snapshot_id",
+            "element_id",
+            "selection"
+          ],
+          "title": "SelectArgs",
+          "type": "object"
+        },
+        "name": "computer_select_text"
+      },
+      {
+        "classification": "mutating",
+        "description": "Send bounded native input to one exact single-use window snapshot. input.action is explicit focus, key, type, click, drag or scroll. Other actions require that same app/window already focused; events target its PID and never another app. Coordinates are window-relative logical points. Physical key chords are explicit macOS key names. Snapshot/process/window/state are revalidated; partial/uncertain input is not replayed.",
+        "input_schema": {
+          "$defs": {
+            "InputAction": {
+              "enum": [
+                "focus",
+                "key",
+                "type",
+                "click",
+                "drag",
+                "scroll"
+              ],
+              "type": "string"
+            },
+            "WindowInput": {
+              "additionalProperties": false,
+              "properties": {
+                "action": {
+                  "$ref": "#/$defs/InputAction"
+                },
+                "amount": {
+                  "format": "uint32",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "button": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "click_count": {
+                  "description": "Explicit click count1..3; no automatic repeat on uncertainty.",
+                  "format": "uint8",
+                  "maximum": 255,
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "coordinate": {
+                  "description": "Window-relative logical points, not screenshot pixel coordinates.",
+                  "items": {
+                    "format": "double",
+                    "type": "number"
+                  },
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                },
+                "direction": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "duration_ms": {
+                  "description": "Hold key/button for0..1000ms within the native request budget.",
+                  "format": "uint32",
+                  "minimum": 0,
+                  "type": [
+                    "integer",
+                    "null"
+                  ]
+                },
+                "key": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "text": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "to_coordinate": {
+                  "items": {
+                    "format": "double",
+                    "type": "number"
+                  },
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "type": [
+                    "array",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "action"
+              ],
+              "type": "object"
+            }
+          },
+          "$schema": "https://json-schema.org/draft/2020-12/schema",
+          "additionalProperties": false,
+          "properties": {
+            "element_id": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "input": {
+              "$ref": "#/$defs/WindowInput"
+            },
+            "snapshot_id": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "snapshot_id",
+            "input"
+          ],
+          "title": "WindowInputArgs",
+          "type": "object"
+        },
+        "name": "computer_window_input"
       }
     ],
-    "version": "0.1.2"
+    "version": "0.1.5"
   }
 }

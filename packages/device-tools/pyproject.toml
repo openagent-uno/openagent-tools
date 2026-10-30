@@ -4,11 +4,11 @@ build-backend = "hatchling.build"
 
 [project]
 name = "openagent-device-tools"
-version = "1.0.0b4"
+version = "1.0.0b7.dev2026103004"
 description = "Independent OpenAgent capability package"
 requires-python = ">=3.11"
 license = "MIT"
-dependencies = ["openagent-tool-protocol==1.0.0b1"]
+dependencies = ["openagent-tool-protocol==1.0.0b2.dev2026103002"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/openagent_device_tools"]
@@ -24,8 +24,14 @@ packages = ["src/openagent_device_tools"]
 "../../sidecars/agent-in-chrome/host/page-script.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/page-script.js"
 "../../sidecars/agent-in-chrome/tab-group-extension/background.js" = "openagent_device_tools/sidecars/agent-in-chrome/tab-group-extension/background.js"
 "../../sidecars/agent-in-chrome/tab-group-extension/manifest.json" = "openagent_device_tools/sidecars/agent-in-chrome/tab-group-extension/manifest.json"
+"../../sidecars/computer-control/build.rs" = "openagent_device_tools/sidecars/computer-control/build.rs"
+"../../sidecars/computer-control/src/native_advanced.m" = "openagent_device_tools/sidecars/computer-control/src/native_advanced.m"
+"../../sidecars/computer-control/src/advanced.rs" = "openagent_device_tools/sidecars/computer-control/src/advanced.rs"
+"../../sidecars/agent-in-chrome/host/browser-advanced.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/browser-advanced.js"
+"../../sidecars/agent-in-chrome/host/browser-advanced-tools.json" = "openagent_device_tools/sidecars/agent-in-chrome/host/browser-advanced-tools.json"
 "../../sidecars/computer-control/Cargo.lock" = "openagent_device_tools/sidecars/computer-control/Cargo.lock"
 "../../sidecars/computer-control/Cargo.toml" = "openagent_device_tools/sidecars/computer-control/Cargo.toml"
+"../../sidecars/computer-control/src/accessibility.rs" = "openagent_device_tools/sidecars/computer-control/src/accessibility.rs"
 "../../sidecars/computer-control/src/capture.rs" = "openagent_device_tools/sidecars/computer-control/src/capture.rs"
 "../../sidecars/computer-control/src/input.rs" = "openagent_device_tools/sidecars/computer-control/src/input.rs"
 "../../sidecars/computer-control/src/keys.rs" = "openagent_device_tools/sidecars/computer-control/src/keys.rs"

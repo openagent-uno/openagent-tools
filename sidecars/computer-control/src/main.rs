@@ -1,3 +1,5 @@
+mod accessibility;
+mod advanced;
 mod capture;
 mod input;
 mod keys;
