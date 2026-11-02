@@ -1,0 +1,52 @@
+{
+  "date": "2026-11-02",
+  "status": "published-and-anonymously-verified",
+  "package": "openagent-web-search-mcp",
+  "version": "1.0.0-beta.3",
+  "source_commit": "41b4642c160eb3985b5652d81e2b5eb507176702",
+  "release": "https://github.com/openagent-uno/openagent-tools/releases/tag/web-search-v1.0.0-beta.3",
+  "artifact": {
+    "name": "openagent-web-search-mcp-1.0.0-beta.3.tgz",
+    "sha256": "9def83730a89a84f129cf3089828cb86a964c3fff87404d50750538a4fc5d9ce",
+    "size_bytes": 33470
+  },
+  "anonymousAssetsVerified": 4,
+  "qualification": {
+    "format": 1,
+    "passed": true,
+    "source_commit": "41b4642c160eb3985b5652d81e2b5eb507176702",
+    "artifact_sha256": "9def83730a89a84f129cf3089828cb86a964c3fff87404d50750538a4fc5d9ce",
+    "sourceTests": {
+      "beforeFix": {
+        "passed": 0,
+        "failed": 5
+      },
+      "afterFix": {
+        "passed": 18,
+        "failed": 0,
+        "skipped": 0
+      }
+    },
+    "installedLinux": {
+      "package": "openagent-web-search-mcp",
+      "version": "1.0.0-beta.3",
+      "platform": "linux",
+      "passed": true,
+      "browserRssKiBBeforeClose": 648008,
+      "realBrowser": true,
+      "providerMocks": false,
+      "browserLaunches": 1,
+      "peakContexts": 2,
+      "successfulConcurrentExtractions": 10,
+      "failedNavigationsDrained": 12,
+      "contextsAfterEachBatch": 0,
+      "ownedChromeProcessesAfterClose": 0,
+      "publicHttpExtractor": true,
+      "seconds": 9.119
+    },
+    "externalProviderAcceptance": "Separate standalone authenticated channel probe; controlled resource tests do not claim third-party search-provider availability."
+  },
+  "npmRegistryPublicationClaimed": false,
+  "browsersBundled": false,
+  "hostAdoption": "Separate dated standalone runtime acceptance; raw host evidence remains in private operator storage."
+}
