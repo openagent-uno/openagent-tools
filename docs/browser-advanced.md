@@ -121,7 +121,7 @@ locked. A deliberate Zod 4 migration was checked against its
 has no patched Zod 3 release. Actual catalog, schema and browser/approval tests
 pass with the new versions. `npm audit` reports **zero vulnerabilities** for
 this source tree. This does not constitute a signed native release or deployment
-of OpenAgent App, GlassPalace or ICS; each adopter must rebuild verified inputs
+of OpenAgent App or any embedding host; each adopter must rebuild verified inputs
 and exercise its own authenticated UI/control path.
 
 ## Product operator path and qualification
@@ -134,7 +134,7 @@ ordinary tool calls carry no approval metadata. Core's public MCP transport has
 an optional keyword-only `metadata` argument for this dispatch. An interrupted
 operator mutation is indeterminate and is never automatically replayed.
 
-OpenAgent Desktop's computer settings and the GlassPalace/ICS computer-sharing
+OpenAgent Desktop's computer settings and a conforming host's computer-sharing
 panel expose pending decisions. The renderer provides only a pending request ID
 and the desired decision. Electron main re-reads the host inventory, shows a
 native confirmation containing the exact browser, tab, origin and permission
@@ -151,7 +151,7 @@ pending approvals. Ordinary desktop/CLI account profile reuse remains unchanged.
 The source qualification receipt
 `outputs/openagent-codex-port/browser-adopter-advanced-e2e.json` in the comparison
 workspace records an actual compiled bridge → facade → per-principal MCP →
-headless Chrome run for OpenAgent, GlassPalace and ICS. It observed navigation,
+headless Chrome run for OpenAgent and two independent embedding-host adapters. It observed navigation,
 Unicode semantic fill, takeover, refusal of unsigned resume, signed operator
 resume, click, and permission grant/revoke. Its confirmation callback is injected
 for the owned test; **a real native confirmation dialog was not clicked** in that

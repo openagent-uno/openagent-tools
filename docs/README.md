@@ -1,5 +1,12 @@
 # Independent OpenAgent tools
 
+## Architecture and use
+
+- [Agnostic architecture: mandatory in every OpenAgent repository](AGNOSTICISM.md)
+- [Component responsibilities, organization and communication](COMPONENTS.md)
+- [Using the kernel, clients, tools and runners](USAGE.md)
+
+
 - [Native accessibility snapshots and actions](native-accessibility.md) — device-tools `1.0.0b5` / computer-control `0.1.4` source candidate; actual owned AppKit acceptance, signed product adoption still separate.
 
 - [Native X11 typing: published Linux x64 component0.1.3 and native regression](native-x11-typing.md)
