@@ -17,6 +17,7 @@
 //     guarantee that a site will treat the CDP-controlled browser as human.
 
 import fs from "node:fs";
+import { launchNativeBrowser } from "./native-browser.js";
 import os from "node:os";
 import path from "node:path";
 import http from "node:http";
@@ -136,7 +137,11 @@ export function resolveBinaryCandidates() {
   const out = [];
   const add = (p) => { if (p && isFile(p) && !out.includes(p)) out.push(p); };
 
-  add(process.env.OPENAGENT_CHROME_BINARY);
+  if (process.env.OPENAGENT_CHROME_BINARY) {
+    add(process.env.OPENAGENT_CHROME_BINARY);
+    if (!out.length) throw new Error('Configured browser executable is unavailable');
+    return out;
+  }
 
   let candidates = [];
   if (SYSTEM === "darwin") {
@@ -286,6 +291,8 @@ function launchArgs(binary, profile, port) {
     `--window-size=${VIEWPORT.width},${VIEWPORT.height + 120}`,
     "--window-position=40,40",
   ];
+  if (process.env.OPENAGENT_CHROME_HEADLESS === "true") args.push("--headless=new");
+  args.push(`--crash-dumps-dir=${path.join(profile, "crashes")}`);
   if (SYSTEM === "darwin") args.push("--use-mock-keychain");
   if (SYSTEM === "linux") {
     // Server-friendly flags: the sandbox needs kernel features often absent
@@ -397,7 +404,10 @@ async function launchAndWait(binary, profile, port, timeoutMs = 20000) {
   }
 
   log(`launching ${binary} (profile ${profile}, cdp :${port})`);
-  const child = spawn(cmd, argv, { detached: true, stdio: "ignore" });
+  const errorLog = fs.openSync(path.join(profile, 'native-browser.log'), 'a', 0o600);
+  let child;
+  try { child = spawn(cmd, argv, { detached: true, stdio: ['ignore', 'ignore', errorLog] }); }
+  finally { fs.closeSync(errorLog); }
   let exited = false;
   child.on("error", (e) => { exited = true; log("browser spawn error:", e.message); });
   child.on("exit", () => { exited = true; });
@@ -435,6 +445,10 @@ async function launchAndWait(binary, profile, port, timeoutMs = 20000) {
 export async function ensureBrowser({ port = CDP_PORT, onProgress } = {}) {
   const profile = profileDir();
   fs.mkdirSync(profile, { recursive: true });
+  if (process.env.OPENAGENT_CHROME_TRANSPORT === 'pipe') {
+    const binary = resolveBinary();
+    return launchNativeBrowser(binary, profile, launchArgs(binary, profile, port));
+  }
 
   // Reuse an already-healthy instance (survived an MCP restart, or launched by
   // a previous run). Never launch a second process on the same profile+port.

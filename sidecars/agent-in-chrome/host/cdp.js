@@ -8,6 +8,7 @@
 // listeners.
 
 import WebSocket from "ws";
+import { createPipeSocket } from "./native-browser.js";
 
 const REQUEST_TIMEOUT_MS = 30000;
 
@@ -32,7 +33,7 @@ export class CDPConnection {
     if (this.ws || this.closed) return Promise.reject(new Error("CDP connection cannot be reopened"));
     return new Promise((resolve, reject) => {
       // maxPayload high enough for full-page base64 screenshots.
-      this.ws = new WebSocket(this.wsUrl, {
+      this.ws = typeof this.wsUrl === "object" ? createPipeSocket(this.wsUrl) : new WebSocket(this.wsUrl, {
         maxPayload: 512 * 1024 * 1024,
         perMessageDeflate: false,
         handshakeTimeout: this.requestTimeoutMs,

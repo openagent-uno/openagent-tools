@@ -125,3 +125,5 @@ remains unchanged.
 - [Calendar and mail 0.1.7 prerelease](connector-calendar-mail-0.1.7-candidate.md) — operation subsets and remaining acceptance gates.
 
 - [Browser reference, form and transport reliability — source qualification, 30 October 2026](browser-reference-reliability.md).
+
+- [Browser launch, pipe transport and explicit host confinement adapters](browser-launch.md) — device-tools b9 source contract.

@@ -477,9 +477,15 @@ const tools = {
   async tabs_context_mcp(args) {
     let tabs = await controller.listTabs();
     if (tabs.length === 0 && args.createIfEmpty) {
-      await controller.cdp.send("Target.createTarget", { url: "about:blank" });
-      await sleep(150);
-      tabs = await controller.listTabs();
+      const { targetId } = await controller.cdp.send("Target.createTarget", { url: "about:blank" });
+      const deadline = Date.now() + 5000;
+      do {
+        tabs = await controller.listTabs();
+        if (tabs.some(tab => controller.targetForTab(tab.tabId) === targetId)) break;
+        await sleep(50);
+      } while (Date.now() < deadline);
+      if (!tabs.some(tab => controller.targetForTab(tab.tabId) === targetId))
+        throw new Error("Browser page target did not become ready before the deadline");
     }
     if (tabs.length === 0) return text("No tabs open. Call again with createIfEmpty: true to open one.");
     let out = "Tab Context:\n- Available tabs:\n";
