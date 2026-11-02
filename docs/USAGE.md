@@ -87,3 +87,9 @@ separation of credentials and arguments. For full SDK, broker, build and rollout
 contracts read [connectors](../packages/connectors/README.md) and
 [auth operations](../deploy/connector-auth/README.md). A catalog entry, optional
 OAuth registration and actual provider acceptance are separate facts.
+
+## Start an independent MCP server
+
+Use [examples/mcp-server](../examples/mcp-server/README.md) as the maintained
+stdio scaffold. It is installed independently and does not require the engine.
+Its hello-tool regression uses the actual MCP initialize/list/call protocol.

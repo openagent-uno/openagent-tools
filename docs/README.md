@@ -1,5 +1,7 @@
 # Independent OpenAgent tools
 
+- [Independent MCP stdio server starter](../examples/mcp-server/README.md) — installable example and real stdio contract test.
+
 ## Architecture and use
 
 - [Agnostic architecture: mandatory in every OpenAgent repository](AGNOSTICISM.md)

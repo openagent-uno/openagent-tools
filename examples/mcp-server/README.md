@@ -1,7 +1,9 @@
 # OpenAgent MCP scaffold
 
-Read [OpenAgent architecture and repository role](OPENAGENT-ARCHITECTURE.md)
-and [AGENTS.md](AGENTS.md) before using or changing this repository.
+This starter lives in `openagent-tools/examples/mcp-server`. Read the root
+[tool contracts](../../docs/USAGE.md) and [local guidance](AGENTS.md).
+Copy this directory for a new server or install it directly with
+`pip install ./examples/mcp-server` from the repository root.
 
 This is an independent MCP stdio scaffold. Run `pip install .`, then
 `python -m openagent_mcp_example` (or `openagent-mcp-example`). The host owns
@@ -26,3 +28,6 @@ OpenAgent must remain agnostic across every repository: no embedding-project or
 external consumer-client references, no consumer-specific defaults, feature
 branches or bug fixes. Add reusable public extension contracts upstream when
 needed; keep domain adapters, branding and business permissions outside.
+
+The original standalone template Git history is retained by the subtree import;
+its refs and release provenance are recorded in the template migration receipt.
