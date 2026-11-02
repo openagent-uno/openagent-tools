@@ -76,12 +76,13 @@ export class AdvancedBrowser {
   }
 
   support() {
-    return { browser_id: this.slot.id, backend: this.slot.backend, availability: this.controller.cdp && !this.controller.cdp.closed ? 'connected' : 'not_probed', semantic_locators: true,
-      bounded_waits: true, cross_origin_frames: true, file_upload_payloads: true,
-      file_upload_paths: this.uploadRoots.length > 0, downloads: this.slot.allow_downloads,
-      file_chooser: true, takeover: true, signed_host_decisions: Boolean(this.secret),
+    const pipe = process.env.OPENAGENT_CHROME_TRANSPORT === 'pipe' || typeof this.controller.cdp?.wsUrl === 'object';
+    return { browser_id: this.slot.id, backend: this.slot.backend, availability: this.controller.cdp && !this.controller.cdp.closed ? 'connected' : 'not_probed', semantic_locators: !pipe,
+      bounded_waits: !pipe, cross_origin_frames: !pipe, file_upload_payloads: !pipe,
+      file_upload_paths: !pipe && this.uploadRoots.length > 0, downloads: !pipe && this.slot.allow_downloads,
+      file_chooser: !pipe, takeover: true, signed_host_decisions: Boolean(this.secret),
       permission_query: true, provider_credential_storage: false, openai_service_required: false,
-      unsupported_backends: ['safari', 'webkit', 'firefox'], human_control: Boolean(this.controller.humanControl),
+      unsupported_backends: ['safari', 'webkit', 'firefox'], unsupported_semantic_transports: ['pipe'], human_control: Boolean(this.controller.humanControl),
       limits: { timeout_ms: 30000, file_bytes: MAX_FILE_BYTES, files_per_upload: 10, download_count: MAX_DOWNLOADS, element_refs: MAX_REFS } };
   }
 
@@ -92,6 +93,8 @@ export class AdvancedBrowser {
   async ensure(signal) {
     signal?.throwIfAborted(); this.assertAutomated();
     await this.controller.ensure();
+    if (typeof this.controller.cdp?.wsUrl !== 'string')
+      fail('unsupported_browser_transport', 'Semantic browser operations require a WebSocket CDP endpoint; basic CDP tools remain available over pipes.');
     if (this.browser?.isConnected() && this.connection === this.controller.cdp) return;
     if (this.connecting) return this.connecting;
     this.connecting = (async () => {

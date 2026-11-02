@@ -19,3 +19,12 @@ Configuration is supplied by the authenticated host, never model tool arguments.
 Consumers distribute the exact public sidecar and its dependency lock; no source
 rewrite, browser dependency profile or node_modules transformation is required.
 Windows/macOS installed GUI acceptance remains separate from transport tests.
+
+Device-tools b10 also closes a pipe-backed browser by its owned child lifecycle,
+without probing an unrelated TCP port. An owned Chromium regression exercises
+launch, CDP version, target creation and shutdown on that transport.
+
+The Playwright semantic layer currently requires a WebSocket CDP endpoint. A
+pipe-backed browser advertises those operations as unavailable and returns an
+explicit unsupported-transport outcome, without switching browser or exposing a
+TCP debugger. Basic CDP tools remain supported on the pipe transport.

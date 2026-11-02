@@ -367,6 +367,14 @@ export async function closeDedicatedBrowser(
   try { if (connection) connection.close(); } catch {}
   if (ownsBrowser && browserPid) killGroup(browserPid);
 
+  const pipeChild = connection?.wsUrl?.child;
+  if (pipeChild) {
+    const deadline = Date.now() + Math.max(0, Number(timeoutMs) || 0);
+    while (Date.now() < deadline && pipeChild.exitCode === null && pipeChild.signalCode === null)
+      await sleep(25);
+    return pipeChild.exitCode !== null || pipeChild.signalCode !== null;
+  }
+
   const deadline = Date.now() + Math.max(0, Number(timeoutMs) || 0);
   while (Date.now() < deadline) {
     if (!(await getWsEndpoint(port, 100))) return true;
