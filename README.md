@@ -3,12 +3,12 @@
 Read [OpenAgent architecture and repository role](OPENAGENT-ARCHITECTURE.md)
 and [AGENTS.md](AGENTS.md) before using or changing this repository.
 
-This tree preserves an earlier MCP scaffold. Its existing packaging and discovery
-metadata include assumptions about a particular host implementation; they are
-compatibility debt, not OpenAgent's general integration contract. The previous
-host deployment recipe is removed from this maintained README; Git history
-preserves the original. This documentation update does not claim the scaffold's
-implementation has already been generalized.
+This is an independent MCP stdio scaffold. Run `pip install .`, then
+`python -m openagent_mcp_example` (or `openagent-mcp-example`). The host owns
+stdio, discovery, authentication, authorization and process lifecycle. The
+example exposes only `hello`; no shared database, vault, pod or SDK is required.
+The container uses the same stdio entry point; attach stdin when invoking it.
+`skill.yaml` is optional descriptive metadata and grants no permissions.
 
 For new generic capabilities, start from the independent provider contract in
 [OpenAgent Tools](https://github.com/openagent-uno/openagent-tools/blob/main/docs/USAGE.md).

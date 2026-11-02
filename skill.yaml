@@ -1,54 +1,9 @@
-id: my-skill                      # kebab-case, unique across all skills
-version: 0.1.0                    # semver — bump on every image release
-display_name: "My Skill"
-icon: sparkles                    # lucide-react icon name OR url to a 64px png
-category: utility                 # ingester | reasoning | action | utility
-description: "One-sentence description shown in the marketplace install card."
-author: your-org                  # shown in the catalog; use your Gitea/GitHub handle
-license: MIT                      # MIT | Apache-2.0 | proprietary
-tier: free                        # free | starter | pro | enterprise
-runtime: sidecar                  # sidecar (per-user pod) | central (shared deployment)
-
-# MCP tools this skill exposes to the agent pod.
-# Keep descriptions concise — the agent uses them for tool selection.
+# Optional descriptive metadata. It grants no authority and installs no runtime.
+id: example-tools
+version: 0.2.0
+description: Independent MCP stdio example
+transport: stdio
+command: [python, -m, openagent_mcp_example]
 exports:
-  - name: my_skill_hello
-    description: "Say hello — replace with your actual tool"
-
-# Permissions the orchestrator enforces via NetworkPolicy + Secret RBAC.
-permissions:
-  - read:events                   # may SELECT from `events`
-  - write:db                      # may write to its own tables (and shared tables if needed)
-  # - write:vault                 # may write markdown notes to the user's vault
-  # - network:external            # may make egress HTTP calls (Telegram API, Gmail, …)
-
-# Config keys the install dialog will render.
-# `secret: true` → stored in a k8s Secret (not a ConfigMap).
-config_schema:
-  - key: example_api_key
-    type: string
-    secret: true
-    required: true
-    label: "API Key"
-  - key: example_setting
-    type: string
-    secret: false
-    required: false
-    label: "Optional setting"
-    default: "default-value"
-
-# Cron schedules. Set to null if the skill is purely on-demand.
-schedule:
-  ingest: null                    # e.g. "*/15 * * * *" for every 15 min
-  insights: null                  # e.g. "0 * * * *" for every hour
-
-# Other skills that must be installed for this skill to make sense.
-depends_on: []
-# depends_on:
-#   - people-graph
-#   - insight-engine
-
-resources:
-  cpu_request: "50m"
-  memory_request: "64Mi"
-  storage_quota_mb: 100           # per-user, on the shared PVC sub-path
+  - name: hello
+    description: Return a greeting without external effects
