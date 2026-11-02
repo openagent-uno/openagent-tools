@@ -18,5 +18,12 @@
     "tests/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "tests/test_stdio.py": "3ddd2500a26cc81a4285cc4065acfac2c5e2dcf5a2c60bf8fdd652e87019d115"
   },
-  "preservation": "Full source ancestry imported by git subtree, original ref aliases retained separately; README/guidance adapted after byte-exact import."
+  "preservation": "Full source ancestry imported by git subtree, original ref aliases retained separately; README/guidance adapted after byte-exact import.",
+  "source_repository_deleted": true,
+  "original_refs_preserved": true,
+  "git_ancestry_verified": true,
+  "history_release_mirror_removed_by_owner_decision": true,
+  "current_example_release": "https://github.com/openagent-uno/openagent-tools/releases/tag/mcp-template-v0.2.0",
+  "mcp_stdio_test": "passed: initialize, list_tools, call_tool",
+  "source_backup": "verified local Git bundle and private canonical repository backup; no secrets in public receipt"
 }

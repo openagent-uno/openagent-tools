@@ -31,3 +31,9 @@ needed; keep domain adapters, branding and business permissions outside.
 
 The original standalone template Git history is retained by the subtree import;
 its refs and release provenance are recorded in the template migration receipt.
+
+The standalone wrapper repository was retired on 2 November 2026. Use the
+[0.2.0 example wheel](https://github.com/openagent-uno/openagent-tools/releases/tag/mcp-template-v0.2.0)
+or this directory. From here, run `uv run --extra dev pytest -q` for the real
+MCP stdio contract test. Historical release retention was explicitly declined;
+source ancestry and original reference aliases remain available in this repo.
