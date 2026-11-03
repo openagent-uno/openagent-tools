@@ -288,6 +288,16 @@ async function prepareProxy(port) {
 }
 
 // ── Launch flags ──────────────────────────────────────────────────────────
+export function renderingArgs(environment = process.env) {
+  const renderer = environment.OPENAGENT_CHROME_RENDERER || 'default';
+  if (renderer === 'default') return [];
+  if (renderer !== 'software') throw new Error('OPENAGENT_CHROME_RENDERER must be default or software');
+  // A trusted host may have no usable GPU (for example a virtual machine).
+  // Keep this explicit: do not retry a failed browser with weaker confinement.
+  // SwiftShader executes in the same inherited process boundary as Chromium.
+  return ['--disable-gpu', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'];
+}
+
 function launchArgs(binary, profile, port) {
   const args = [
     `--user-data-dir=${profile}`,
@@ -307,6 +317,7 @@ function launchArgs(binary, profile, port) {
     `--window-size=${VIEWPORT.width},${VIEWPORT.height + 120}`,
     "--window-position=40,40",
   ];
+  args.push(...renderingArgs());
   if (process.env.OPENAGENT_CHROME_HEADLESS === "true") args.push("--headless=new");
   args.push(`--crash-dumps-dir=${path.join(profile, "crashes")}`);
   if (SYSTEM === "darwin") args.push("--use-mock-keychain");

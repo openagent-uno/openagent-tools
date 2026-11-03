@@ -20,6 +20,13 @@ same surface the extension wrapped, minus every failure mode above.
 
 ## Design guarantees
 
+A trusted host without a usable GPU can set `OPENAGENT_CHROME_RENDERER=software`.
+The default preserves Chromium's normal rendering selection. Software mode uses
+SwiftShader/CPU rendering explicitly; it does not retry a failed browser, expose
+a TCP debugger or change the host's confinement policy. Unknown values fail.
+The macOS boundary qualification checks real DOM, screenshots, private pipes
+and denial of a file outside the host-owned fixture.
+
 - **Lazy** — the browser launches on the *first browser tool call*, never at
   server startup. Nothing pops up until the agent decides to use it.
 - **Owned reuse** — reconnect only when Chrome's `DevToolsActivePort` marker in
