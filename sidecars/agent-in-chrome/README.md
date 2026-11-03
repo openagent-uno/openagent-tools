@@ -47,6 +47,7 @@ same surface the extension wrapped, minus every failure mode above.
 | `browser.js`     | binary resolution, lazy launch, owned-CDP discovery, signed CRX3 verification. |
 | `cdp.js`         | minimal CDP-over-`ws` client (flattened sessions, id/event routing). |
 | `page-script.js` | in-page helpers (a11y tree, find, form_input, page text, ref map).   |
+| `navigation.js`  | `navigate` URL gate: http(s) and browser pages only, never local files. |
 
 ## Config (env)
 
@@ -145,6 +146,15 @@ scroll/screenshot/drag/hover/zoom), `find`, `read_page`, `get_page_text`,
 `form_input`, `javascript_tool`, `read_console_messages`,
 `read_network_requests`, `resize_window`, `upload_image`,
 `install_extension`, `remove_extension`, `list_extensions`.
+
+`navigate` accepts http(s) URLs (a bare host gets `https://`) and the browser's
+own `about:`/`chrome:` pages. It refuses `file:`, `filesystem:`, `view-source:`,
+`blob:`, `data:` and `javascript:`: the browser runs as the host account, so a
+local-file URL would expose whatever that account can read (agent configuration,
+mounted credentials). Pages cannot open local files themselves; Chromium blocks
+page-initiated `file:` navigations, fetches and popups (covered by
+`navigation.test.mjs` against a real browser). Hosts that want a browser-wide
+backstop can also set the Chromium `URLBlocklist` policy to `["file://*"]`.
 
 Token discipline: prefer `find` + `read_page` + `get_page_text` (structured,
 cheap) to locate and read; take a `computer` screenshot only when you need to
