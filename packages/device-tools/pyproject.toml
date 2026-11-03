@@ -4,11 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "openagent-device-tools"
-version = "1.0.0b11"
+version = "1.0.0b12"
 description = "Independent OpenAgent capability package"
 requires-python = ">=3.11"
 license = "MIT"
 dependencies = ["openagent-tool-protocol==1.0.0b2"]
+
+[project.scripts]
+openagent-browser-session = "openagent_device_tools.browser_session:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/openagent_device_tools"]
@@ -42,4 +45,5 @@ packages = ["src/openagent_device_tools"]
 
 "../../sidecars/agent-in-chrome/host/native-browser.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/native-browser.js"
 "../../sidecars/agent-in-chrome/host/proxy-relay.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/proxy-relay.js"
+"../../sidecars/agent-in-chrome/host/browser-session.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/browser-session.js"
 "../../sidecars/agent-in-chrome/host/windows-browser.py" = "openagent_device_tools/sidecars/agent-in-chrome/host/windows-browser.py"

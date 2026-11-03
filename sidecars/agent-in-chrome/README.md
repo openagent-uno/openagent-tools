@@ -75,6 +75,31 @@ OS/architecture unless `OPENAGENT_CHROME_BINARY` points at another trusted
 Chromium-compatible executable. This includes Linux/Windows ARM64: Agent in
 Chrome never substitutes an x64 snapshot or downloads a mutable fallback.
 
+## Interactive session and live view
+
+`openagent-browser-session` (device-tools console script, `host/browser-session.js`)
+opens the same dedicated browser without a model — same profile, flags and egress
+proxy — for a person to sign in, pass a site verification or configure the profile
+once. It serves a WebSocket live view at `/live` (and `GET /health`):
+
+- Authentication: `Authorization: Bearer $OPENAGENT_BROWSER_LIVE_TOKEN` (required,
+  ≥ 32 characters). The host that started the session proxies its own users to it.
+- Out: `{"type":"frame","data":<base64 JPEG>,"width","height"}`, `{"type":"page","url"}`,
+  `{"type":"ready"}`, `{"type":"error"}`, `{"type":"closed","status"}`.
+- In: `mouse` (`press|release|move`, `x`/`y` normalized 0–1), `wheel` (`dx`, `dy`),
+  `text` (inserted text), `key` (Enter, Backspace, Tab, Escape, Delete, arrows,
+  Home/End/PageUp/PageDown with modifiers), `navigate` (http/https), `back`, `done`.
+- `done`, `--timeout` (30–86400 s) or SIGTERM close the browser cleanly so cookies
+  are flushed; stdout ends with `{"status": ...}`. The view follows popups (OAuth).
+
+```sh
+OPENAGENT_BROWSER_LIVE_TOKEN=... OPENAGENT_CHROME_PROFILE_DIR=/profiles/chrome \
+  openagent-browser-session --url https://example.com/login --listen 0.0.0.0:9300
+```
+
+Credentials typed by the person go to the site only; the session neither reads nor
+stores them, and the agent never receives the live-view token.
+
 ## Extensions
 
 The agent's browser always loads the builtin cosmetic tab-group extension, plus
