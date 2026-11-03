@@ -24,8 +24,12 @@ A trusted host without a usable GPU can set `OPENAGENT_CHROME_RENDERER=software`
 The default preserves Chromium's normal rendering selection. Software mode uses
 SwiftShader/CPU rendering explicitly; it does not retry a failed browser, expose
 a TCP debugger or change the host's confinement policy. Unknown values fail.
-The macOS boundary qualification checks real DOM, screenshots, private pipes
-and denial of a file outside the host-owned fixture.
+The Mac ARM boundary qualification uses the official standalone headless shell
+and checks real DOM, screenshots, private pipes and denial of an outside file.
+The complete graphical application can require additional host-owned graphics
+resources even in headless mode; software rendering does not itself grant them.
+`chrome-headless-shell` and `chrome-headless-shell.exe` use their native headless
+engine on every platform, rather than requesting the separate unified engine.
 
 Before confining a macOS browser, a trusted host can invoke
 `node macos-host-requirements.js --binary /absolute/browser --profile /absolute/profile`.

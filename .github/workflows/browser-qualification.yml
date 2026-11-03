@@ -6,6 +6,39 @@ on:
 permissions:
   contents: read
 jobs:
+  wheel:
+    needs: browser
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.12'
+      - run: python -m pip install uv==0.11.14
+      - run: uv build --wheel --out-dir "$RUNNER_TEMP/device-wheel"
+        working-directory: packages/device-tools
+      - name: Record the exact clean source and qualified wheel
+        run: |
+          python - <<'PY'
+          import hashlib,json,os,pathlib,subprocess
+          root=pathlib.Path(os.environ['RUNNER_TEMP'])/'device-wheel'
+          if subprocess.check_output(['git','status','--porcelain'],text=True).strip():raise ValueError('Clean source required')
+          wheel=root/'openagent_device_tools-1.0.0b16-py3-none-any.whl'
+          checksum=hashlib.sha256(wheel.read_bytes()).hexdigest()
+          (root/'SHA256SUMS').write_text(checksum+'  '+wheel.name+'\n')
+          (root/'qualification.json').write_text(json.dumps({'source_commit':os.environ['GITHUB_SHA'],'run':os.environ['GITHUB_RUN_ID'],
+              'version':'1.0.0b16','wheel_sha256':checksum,'bytes':wheel.stat().st_size,'dirty_snapshot':False,
+              'scope':'Actual Mac ARM software DOM and screenshot in inherited sandbox; outside sentinel denied; private CDP pipe; not a signed application release'},indent=2)+'\n')
+          PY
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: Device-Tools-1.0.0b16
+          path: ${{ runner.temp }}/device-wheel/*
+          retention-days: 3
+          if-no-files-found: error
   browser:
     runs-on: macos-14
     timeout-minutes: 15
