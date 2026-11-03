@@ -50,6 +50,8 @@ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 let launched,cdp;
 try {
  launched=await ensureBrowser();assert.equal(typeof launched.wsUrl,'object');
+ launched.wsUrl.child.on('exit',(code,signal)=>console.error('Owned Chromium exit',JSON.stringify({code,signal})));
+ launched.wsUrl.child.on('error',error=>console.error('Owned Chromium spawn error',error.code));
  assert.ok(!launched.wsUrl.child.spawnargs.some(arg=>arg.startsWith('--remote-debugging-port')));
  cdp=new CDPConnection(launched.wsUrl);await cdp.connect();
  await cdp.send('Browser.getVersion');
@@ -78,7 +80,7 @@ try {
                    'MAC_CHROMIUM_TMPDIR':str(box/'tmp'),'PATH':'/usr/bin:/bin',
                    'OPENAGENT_CHROME_PROFILE_DIR':str(box/'profile'),'OPENAGENT_CHROME_BINARY':str(binary),
                    'OPENAGENT_CHROME_TRANSPORT':'pipe','OPENAGENT_CHROME_INHERITED_SANDBOX':'1',
-                   'OPENAGENT_CHROME_HEADLESS':'true','OPENAGENT_CHROME_RENDERER':'software',
+                   'OPENAGENT_CHROME_HEADLESS':'true','OPENAGENT_CHROME_RENDERER':'software','OPENAGENT_CHROME_DIAGNOSTICS':'true',
                    'OWNED_SENTINEL':str(outside)}
     result = subprocess.run(['/usr/bin/sandbox-exec','-p',profile,str(node),'--input-type=module','-e',script],
                             env=environment,cwd=box,timeout=90)
