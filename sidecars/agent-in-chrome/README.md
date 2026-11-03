@@ -56,6 +56,14 @@ same surface the extension wrapped, minus every failure mode above.
   browser when a product explicitly registers it as a durable host capability.
   Omitted for the normal App/CLI device capability. The flag changes only MCP
   instructions; it does not alter profile ownership or grant remote access.
+- `OPENAGENT_CHROME_PROFILE_EXCLUSIVE=1` — the embedding host guarantees a single
+  writer for this profile (for example one container at a time on a mounted
+  volume). A Chromium `SingletonLock` naming another host is then stale and is
+  removed before launch, instead of leaving the profile "in use by another
+  computer" forever. Without it, locks are left to Chromium.
+- `OPENAGENT_CHROME_CLOSE_GRACE_MS` (default 10000) — after `Browser.close`, how
+  long a launched browser may take to flush cookies and release its profile lock
+  before its process group is killed.
 - `OPENAGENT_BROWSER_EXTERNAL=1` — when the server attaches to an independently
   supervised Chrome using a verified profile marker, disconnect the MCP without
   closing that browser. The normal sidecar-owned browser still closes on exit.

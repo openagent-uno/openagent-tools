@@ -341,6 +341,35 @@ function launchArgs(binary, profile, port) {
   return args;
 }
 
+function processAlive(pid) {
+  try { process.kill(pid, 0); return true; } catch (error) { return error.code === "EPERM"; }
+}
+
+// Grace period for a requested Browser.close to finish writing the profile
+// (cookies, the Singleton lock) before the process group is killed.
+const CLOSE_GRACE_MS = Math.max(0, Number(process.env.OPENAGENT_CHROME_CLOSE_GRACE_MS || 10000));
+
+/**
+ * Persistent profiles mounted into short-lived hosts (containers, jobs) keep
+ * Chromium's SingletonLock from the previous host when that host died without
+ * a clean exit. Chromium then refuses the profile as "in use by another
+ * computer". When the embedding host guarantees a single writer for the
+ * profile (OPENAGENT_CHROME_PROFILE_EXCLUSIVE=1), a lock naming another host
+ * is stale by construction and is removed. Without the opt-in nothing changes.
+ */
+export function clearForeignProfileLock(profile, hostname = os.hostname()) {
+  if (process.env.OPENAGENT_CHROME_PROFILE_EXCLUSIVE !== "1") return false;
+  let target;
+  try { target = fs.readlinkSync(path.join(profile, "SingletonLock")); } catch { return false; }
+  const owner = target.slice(0, target.lastIndexOf("-"));
+  if (!owner || owner === hostname) return false;
+  for (const name of ["SingletonLock", "SingletonSocket", "SingletonCookie"]) {
+    try { fs.rmSync(path.join(profile, name), { force: true }); } catch {}
+  }
+  log(`removed stale profile lock left by host ${owner}`);
+  return true;
+}
+
 function killGroup(pid) {
   if (!pid) return;
   try { process.kill(-pid, "SIGKILL"); } catch {
@@ -383,7 +412,12 @@ export async function closeDedicatedBrowser(
     } catch {}
   }
   try { if (connection) connection.close(); } catch {}
-  if (ownsBrowser && browserPid) killGroup(browserPid);
+  if (ownsBrowser && browserPid) {
+    // Let Browser.close flush cookies and release the profile lock first.
+    const graceful = Date.now() + CLOSE_GRACE_MS;
+    while (processAlive(browserPid) && Date.now() < graceful) await sleep(50);
+    killGroup(browserPid);
+  }
 
   const pipeChild = connection?.wsUrl?.child;
   if (pipeChild) {
@@ -471,6 +505,7 @@ async function launchAndWait(binary, profile, port, timeoutMs = 20000) {
 export async function ensureBrowser({ port = CDP_PORT, onProgress } = {}) {
   const profile = profileDir();
   fs.mkdirSync(profile, { recursive: true });
+  clearForeignProfileLock(profile);
   await prepareProxy(port);
   if (process.env.OPENAGENT_CHROME_TRANSPORT === 'pipe') {
     const binary = resolveBinary();

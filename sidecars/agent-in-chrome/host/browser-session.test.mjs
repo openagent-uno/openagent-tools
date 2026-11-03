@@ -102,3 +102,44 @@ test('real Chromium session streams frames, accepts input and exits cleanly on d
   assert.equal(code, 0);
   assert.deepEqual(JSON.parse(stdout.trim().split('\n').pop()), { status: 'done' });
 });
+
+test('a foreign host lock is cleared only when the host declares exclusive ownership', async (t) => {
+  const { clearForeignProfileLock } = await import('./browser.js');
+  const { symlink, readlink } = await import('node:fs/promises');
+  const profile = await mkdtemp(path.join(tmpdir(), 'oa-lock-'));
+  t.after(() => rm(profile, { recursive: true, force: true }));
+  await symlink('old-pod-host-31', path.join(profile, 'SingletonLock'));
+  await symlink('/tmp/x/SingletonSocket', path.join(profile, 'SingletonSocket'));
+  delete process.env.OPENAGENT_CHROME_PROFILE_EXCLUSIVE;
+  assert.equal(clearForeignProfileLock(profile, 'new-pod-host'), false);
+  assert.equal(await readlink(path.join(profile, 'SingletonLock')), 'old-pod-host-31');
+  process.env.OPENAGENT_CHROME_PROFILE_EXCLUSIVE = '1';
+  t.after(() => { delete process.env.OPENAGENT_CHROME_PROFILE_EXCLUSIVE; });
+  assert.equal(clearForeignProfileLock(profile, 'old-pod-host'), false, 'own host lock is left to Chromium');
+  assert.equal(clearForeignProfileLock(profile, 'new-pod-host'), true);
+  await assert.rejects(readlink(path.join(profile, 'SingletonLock')));
+  await assert.rejects(readlink(path.join(profile, 'SingletonSocket')));
+});
+
+test('done leaves no profile lock behind and a second session reuses the profile', { skip: !binary, timeout: 120000 }, async (t) => {
+  const profile = await mkdtemp(path.join(tmpdir(), 'oa-reuse-'));
+  t.after(() => rm(profile, { recursive: true, force: true }));
+  const { readlink } = await import('node:fs/promises');
+  for (let round = 0; round < 2; round += 1) {
+    const livePort = 20000 + Math.floor(Math.random() * 20000);
+    const child = spawn(process.execPath, [path.join(here, 'browser-session.js'), '--url', 'about:blank', '--listen', `127.0.0.1:${livePort}`, '--timeout', '60'], {
+      env: { ...process.env, OPENAGENT_BROWSER_LIVE_TOKEN: TOKEN, OPENAGENT_CHROME_PROFILE_DIR: profile, OPENAGENT_CHROME_BINARY: binary,
+        OPENAGENT_CHROME_CDP_PORT: String(livePort + 1), OPENAGENT_CHROME_HEADLESS: 'true' }, stdio: ['ignore', 'pipe', 'pipe'] });
+    t.after(() => { if (child.exitCode === null) child.kill('SIGKILL'); });
+    let socket;
+    for (let attempt = 0; attempt < 60 && !socket; attempt += 1) {
+      await new Promise((r) => setTimeout(r, 500));
+      try { const c = new WebSocket(`ws://127.0.0.1:${livePort}/live`, { headers: { Authorization: `Bearer ${TOKEN}` } }); await once(c, 'open'); socket = c; } catch {}
+    }
+    assert.ok(socket, `round ${round}: live view did not come up`);
+    socket.send(JSON.stringify({ type: 'done' }));
+    const [code] = await once(child, 'exit');
+    assert.equal(code, 0);
+    await assert.rejects(readlink(path.join(profile, 'SingletonLock')), `round ${round}: lock left behind`);
+  }
+});
