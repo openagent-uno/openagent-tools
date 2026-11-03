@@ -18,6 +18,7 @@
 
 import fs from "node:fs";
 import { launchNativeBrowser } from "./native-browser.js";
+import { chromeProxyServer, parseProxy, startProxyRelay } from "./proxy-relay.js";
 import os from "node:os";
 import path from "node:path";
 import http from "node:http";
@@ -271,6 +272,21 @@ export async function getBrowserVersion(port = CDP_PORT) {
 
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
+// ── Egress proxy ──────────────────────────────────────────────────────────
+let proxyServer = null;
+let proxyRelay = null;
+
+async function prepareProxy(port) {
+  const proxy = parseProxy(process.env.OPENAGENT_CHROME_PROXY);
+  if (!proxy) { proxyServer = null; return; }
+  if (!proxy.username && !proxy.password) { proxyServer = chromeProxyServer(proxy); return; }
+  if (!proxyRelay) {
+    proxyRelay = await startProxyRelay(proxy, port < 65535 ? port + 1 : 0);
+    log(`egress via authenticated ${proxy.scheme} proxy ${proxy.host}:${proxy.port} (loopback relay)`);
+  }
+  proxyServer = proxyRelay.url;
+}
+
 // ── Launch flags ──────────────────────────────────────────────────────────
 function launchArgs(binary, profile, port) {
   const args = [
@@ -304,12 +320,14 @@ function launchArgs(binary, profile, port) {
   // the host is untouched. Value is a Chrome --proxy-server string, e.g.
   // "socks5://127.0.0.1:1080" or "http://proxy.example:8080". Loopback is always
   // bypassed so the CDP endpoint and localhost pages stay direct.
-  // NB: Chromium cannot authenticate to a SOCKS5 proxy directly — front an
-  // authenticated upstream with a local no-auth shim and point this at it.
-  const proxy = (process.env.OPENAGENT_CHROME_PROXY || "").trim();
-  if (proxy) {
-    args.push(`--proxy-server=${proxy}`);
+  // Credentials (http://user:pass@host:port, socks5://user:pass@...) are
+  // handled by the loopback relay prepared in ensureBrowser(); Chrome only
+  // ever sees a credential-free proxy URL.
+  if (proxyServer) {
+    args.push(`--proxy-server=${proxyServer}`);
     args.push("--proxy-bypass-list=127.0.0.1;localhost;[::1]");
+    // WebRTC would otherwise reveal the host's own address over direct UDP.
+    args.push("--force-webrtc-ip-handling-policy=disable_non_proxied_udp");
   }
   // Builtin cosmetic tab-group extension + any agent-installed extensions
   // (best-effort; ignored by browsers that block --load-extension). Automation
@@ -453,6 +471,7 @@ async function launchAndWait(binary, profile, port, timeoutMs = 20000) {
 export async function ensureBrowser({ port = CDP_PORT, onProgress } = {}) {
   const profile = profileDir();
   fs.mkdirSync(profile, { recursive: true });
+  await prepareProxy(port);
   if (process.env.OPENAGENT_CHROME_TRANSPORT === 'pipe') {
     const binary = resolveBinary();
     return launchNativeBrowser(binary, profile, launchArgs(binary, profile, port));

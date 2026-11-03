@@ -59,11 +59,16 @@ same surface the extension wrapped, minus every failure mode above.
 - `OPENAGENT_BROWSER_EXTERNAL=1` — when the server attaches to an independently
   supervised Chrome using a verified profile marker, disconnect the MCP without
   closing that browser. The normal sidecar-owned browser still closes on exit.
-- `OPENAGENT_CHROME_PROXY` — egress proxy for page traffic, a Chrome
-  `--proxy-server` string (e.g. `socks5://127.0.0.1:1080`). Loopback is always
-  bypassed. NB: Chromium can't authenticate to SOCKS5 directly — front an
-  authenticated upstream with a local no-auth shim, or use a proxy *extension*
-  (see below) that handles its own auth.
+- `OPENAGENT_CHROME_PROXY` — egress proxy for page traffic: `http://`, `https://`
+  or `socks5://` URL. Loopback is always bypassed and WebRTC is limited to
+  proxied UDP so it cannot reveal the host address. Credentials in the URL
+  (`http://user:pass@host:port`, `socks5://user:pass@host:port`) are supported:
+  Chromium accepts none on `--proxy-server` (and cannot authenticate to SOCKS5),
+  so the sidecar starts a loopback relay (`proxy-relay.js`) that opens every
+  tunnel through the upstream with those credentials. Chrome only sees
+  `http://127.0.0.1:<cdp port + 1>`; credentials stay out of its command line
+  and logs. A proxy/VPN *extension* (see below) remains an alternative for
+  providers that only ship one.
 
 Chrome, Chromium, Brave, or Edge must already be installed on every supported
 OS/architecture unless `OPENAGENT_CHROME_BINARY` points at another trusted
