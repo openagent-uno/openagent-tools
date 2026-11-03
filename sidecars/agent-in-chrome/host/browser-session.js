@@ -29,7 +29,7 @@ const SPECIAL_KEYS = {
 const BUTTONS = new Set(["left", "middle", "right"]);
 
 export function parseArgs(argv) {
-  const options = { url: "about:blank", listen: "127.0.0.1:9300", timeout: 1800, quality: 60, maxWidth: 1280 };
+  const options = { url: "about:blank", listen: "127.0.0.1:9300", timeout: 1800, quality: 60, maxWidth: 1280, inFlight: 2 };
   for (let i = 0; i < argv.length; i += 1) {
     const [key, value] = [argv[i], argv[i + 1]];
     if (key === "--url") { options.url = value; i += 1; }
@@ -37,6 +37,7 @@ export function parseArgs(argv) {
     else if (key === "--timeout") { options.timeout = Number(value); i += 1; }
     else if (key === "--quality") { options.quality = Number(value); i += 1; }
     else if (key === "--max-width") { options.maxWidth = Number(value); i += 1; }
+    else if (key === "--frames-in-flight") { options.inFlight = Number(value); i += 1; }
     else throw new Error(`unknown argument ${key}`);
   }
   const target = new URL(options.url);
@@ -48,6 +49,7 @@ export function parseArgs(argv) {
   if (!(options.timeout >= 30 && options.timeout <= 86400)) throw new Error("--timeout must be 30-86400 seconds");
   if (!(Number.isInteger(options.quality) && options.quality >= 20 && options.quality <= 95)) throw new Error("--quality must be 20-95");
   if (!(Number.isInteger(options.maxWidth) && options.maxWidth >= 320 && options.maxWidth <= 2560)) throw new Error("--max-width must be 320-2560");
+  if (!(Number.isInteger(options.inFlight) && options.inFlight >= 1 && options.inFlight <= 4)) throw new Error("--frames-in-flight must be 1-4");
   return options;
 }
 
@@ -106,9 +108,10 @@ async function main() {
   const cdp = new CDPConnection(launched.wsUrl);
   await cdp.connect();
 
-  // Flow control: each viewer gets one frame (binary JPEG) at a time and acknowledges
-  // it with {"type":"frame_ack"} once shown; frames arriving meanwhile replace the
-  // pending one. Latency stays at one frame however slow the viewer's link is.
+  // Flow control: each viewer has at most --frames-in-flight unacknowledged frames
+  // (binary JPEG) and acknowledges each with {"type":"frame_ack"} once shown; frames
+  // arriving meanwhile replace the pending one. Two in flight hide one network round
+  // trip without letting frames queue on a slow link.
   const viewers = new Map();
   let session = null, targetId = null, frame = null, finished = false;
   const broadcast = (payload) => {
@@ -116,9 +119,9 @@ async function main() {
     for (const viewer of viewers.keys()) if (viewer.readyState === 1) viewer.send(text);
   };
   const deliver = (viewer, state) => {
-    if (!state.latest || viewer.readyState !== 1) return;
+    if (!state.latest || viewer.readyState !== 1 || state.inFlight >= options.inFlight) return;
     viewer.send(state.latest, { binary: true });
-    state.latest = null; state.awaiting = Date.now();
+    state.latest = null; state.inFlight += 1; state.sentAt = Date.now();
   };
   const screencast = { format: "jpeg", quality: options.quality, maxWidth: options.maxWidth, maxHeight: Math.round(options.maxWidth * 0.75), everyNthFrame: 1 };
 
@@ -138,8 +141,9 @@ async function main() {
     const jpeg = Buffer.from(params.data, "base64");
     for (const [viewer, state] of viewers) {
       state.latest = jpeg;
-      // A viewer silent for 5 s may have lost an ack; resume instead of freezing.
-      if (!state.awaiting || Date.now() - state.awaiting > 5000) deliver(viewer, state);
+      // A viewer silent for 5 s may have lost acks; resume instead of freezing.
+      if (state.inFlight && Date.now() - state.sentAt > 5000) state.inFlight = 0;
+      deliver(viewer, state);
     }
     try { await cdp.send("Page.screencastFrameAck", { sessionId: params.sessionId }, session); } catch {}
   }, "*");
@@ -185,13 +189,13 @@ async function main() {
       return;
     }
     live.handleUpgrade(request, socket, head, (viewer) => {
-      const state = { awaiting: 0, latest: null };
+      const state = { inFlight: 0, sentAt: 0, latest: null };
       viewers.set(viewer, state);
       viewer.on("close", () => viewers.delete(viewer));
       viewer.on("message", async (raw) => {
         let message;
         try { message = JSON.parse(raw.toString()); } catch { viewer.send('{"type":"error","error":"invalid JSON"}'); return; }
-        if (message.type === "frame_ack") { state.awaiting = 0; deliver(viewer, state); return; }
+        if (message.type === "frame_ack") { state.inFlight = Math.max(0, state.inFlight - 1); deliver(viewer, state); return; }
         if (message.type === "done") { await finish("done"); return; }
         try {
           for (const [method, params] of inputCommands(message, frame)) await cdp.send(method, params, session);

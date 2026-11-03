@@ -27,12 +27,13 @@ const binary = await existingBrowserBinary();
 test('arguments are bounded and only http(s) start pages are accepted', () => {
   assert.deepEqual(
     { ...parseArgs(['--url', 'https://example.com/login', '--listen', '0.0.0.0:9300', '--timeout', '600']) },
-    { url: 'https://example.com/login', listen: '0.0.0.0:9300', timeout: 600, quality: 60, maxWidth: 1280, host: '0.0.0.0', port: 9300 },
+    { url: 'https://example.com/login', listen: '0.0.0.0:9300', timeout: 600, quality: 60, maxWidth: 1280, inFlight: 2, host: '0.0.0.0', port: 9300 },
   );
   assert.throws(() => parseArgs(['--url', 'file:///etc/passwd']), /http/);
   assert.throws(() => parseArgs(['--timeout', '5']), /timeout/);
   assert.throws(() => parseArgs(['--listen', 'nope']), /host:port/);
   assert.throws(() => parseArgs(['--quality', '100']), /quality/);
+  assert.throws(() => parseArgs(['--frames-in-flight', '9']), /in-flight/);
 });
 
 test('the live view requires the exact bearer token', () => {
@@ -65,7 +66,7 @@ test('real Chromium session streams frames, accepts input and exits cleanly on d
   const profile = await mkdtemp(path.join(tmpdir(), 'oa-session-'));
   t.after(() => rm(profile, { recursive: true, force: true }));
   const livePort = 20000 + Math.floor(Math.random() * 20000);
-  const child = spawn(process.execPath, [path.join(here, 'browser-session.js'), '--url', `${origin}/`, '--listen', `127.0.0.1:${livePort}`, '--timeout', '60'], {
+  const child = spawn(process.execPath, [path.join(here, 'browser-session.js'), '--url', `${origin}/`, '--listen', `127.0.0.1:${livePort}`, '--timeout', '60', '--frames-in-flight', '1'], {
     env: { ...process.env, OPENAGENT_BROWSER_LIVE_TOKEN: TOKEN, OPENAGENT_CHROME_PROFILE_DIR: profile,
       OPENAGENT_CHROME_BINARY: binary, OPENAGENT_CHROME_CDP_PORT: String(livePort + 1), OPENAGENT_CHROME_HEADLESS: 'true' },
     stdio: ['ignore', 'pipe', 'pipe'],
