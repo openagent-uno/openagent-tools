@@ -92,8 +92,13 @@ once. It serves a WebSocket live view at `/live` (and `GET /health`):
 
 - Authentication: `Authorization: Bearer $OPENAGENT_BROWSER_LIVE_TOKEN` (required,
   ≥ 32 characters). The host that started the session proxies its own users to it.
-- Out: `{"type":"frame","data":<base64 JPEG>,"width","height"}`, `{"type":"page","url"}`,
-  `{"type":"ready"}`, `{"type":"error"}`, `{"type":"closed","status"}`.
+- Out: each frame is a **binary** WebSocket message (JPEG bytes); text messages are
+  `{"type":"viewport","width","height"}`, `{"type":"page","url"}`, `{"type":"ready"}`,
+  `{"type":"error"}`, `{"type":"closed","status"}`.
+- Flow control: after showing a frame the viewer sends `{"type":"frame_ack"}`; until then
+  newer frames replace the pending one, so a slow link never queues frames and input
+  latency stays at one frame (a viewer silent for 5 s is resumed). `--quality` (20–95,
+  default 60) and `--max-width` (320–2560, default 1280) size the stream.
 - In: `mouse` (`press|release|move`, `x`/`y` normalized 0–1), `wheel` (`dx`, `dy`),
   `text` (inserted text), `key` (Enter, Backspace, Tab, Escape, Delete, arrows,
   Home/End/PageUp/PageDown with modifiers), `navigate` (http/https), `back`, `done`.

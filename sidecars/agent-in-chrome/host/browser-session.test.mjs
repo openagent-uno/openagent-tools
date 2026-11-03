@@ -27,11 +27,12 @@ const binary = await existingBrowserBinary();
 test('arguments are bounded and only http(s) start pages are accepted', () => {
   assert.deepEqual(
     { ...parseArgs(['--url', 'https://example.com/login', '--listen', '0.0.0.0:9300', '--timeout', '600']) },
-    { url: 'https://example.com/login', listen: '0.0.0.0:9300', timeout: 600, host: '0.0.0.0', port: 9300 },
+    { url: 'https://example.com/login', listen: '0.0.0.0:9300', timeout: 600, quality: 60, maxWidth: 1280, host: '0.0.0.0', port: 9300 },
   );
   assert.throws(() => parseArgs(['--url', 'file:///etc/passwd']), /http/);
   assert.throws(() => parseArgs(['--timeout', '5']), /timeout/);
   assert.throws(() => parseArgs(['--listen', 'nope']), /host:port/);
+  assert.throws(() => parseArgs(['--quality', '100']), /quality/);
 });
 
 test('the live view requires the exact bearer token', () => {
@@ -85,16 +86,27 @@ test('real Chromium session streams frames, accepts input and exits cleanly on d
   await assert.rejects(once(rejected, 'open'), /401/);
 
   const messages = [];
-  socket.on('message', (raw) => messages.push(JSON.parse(raw.toString())));
+  let frames = 0, firstFrame = null;
+  socket.on('message', (raw, isBinary) => {
+    if (isBinary) { frames += 1; firstFrame ??= raw; return; }
+    messages.push(JSON.parse(raw.toString()));
+  });
   const waitFor = async (predicate, label) => {
     for (let i = 0; i < 100; i += 1) { const found = messages.find(predicate); if (found) return found; await new Promise((r) => setTimeout(r, 100)); }
     throw new Error(`timed out waiting for ${label}`);
   };
-  const frame = await waitFor((m) => m.type === 'frame', 'first frame');
-  assert.ok(frame.width > 0 && Buffer.from(frame.data, 'base64').subarray(0, 2).equals(Buffer.from([0xff, 0xd8])), 'JPEG frame');
+  for (let i = 0; i < 100 && !firstFrame; i += 1) await new Promise((r) => setTimeout(r, 100));
+  assert.ok(firstFrame && firstFrame.subarray(0, 2).equals(Buffer.from([0xff, 0xd8])), 'binary JPEG frame');
+  // Flow control: the click changes the page, but no new frame arrives before frame_ack.
+  const before = frames;
   socket.send(JSON.stringify({ type: 'mouse', action: 'press', x: 0.5, y: 0.6 }));
   socket.send(JSON.stringify({ type: 'mouse', action: 'release', x: 0.5, y: 0.6 }));
   await waitFor((m) => m.type === 'page' && m.url.endsWith('/next'), 'navigation after click');
+  await new Promise((r) => setTimeout(r, 800));
+  assert.equal(frames, before, 'frames must wait for frame_ack');
+  socket.send(JSON.stringify({ type: 'frame_ack' }));
+  for (let i = 0; i < 50 && frames === before; i += 1) await new Promise((r) => setTimeout(r, 100));
+  assert.equal(frames, before + 1, 'ack releases exactly the latest frame');
   socket.send(JSON.stringify({ type: 'navigate', url: 'javascript:alert(1)' }));
   await waitFor((m) => m.type === 'error', 'rejected navigation');
   socket.send(JSON.stringify({ type: 'done' }));

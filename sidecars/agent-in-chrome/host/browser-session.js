@@ -29,12 +29,14 @@ const SPECIAL_KEYS = {
 const BUTTONS = new Set(["left", "middle", "right"]);
 
 export function parseArgs(argv) {
-  const options = { url: "about:blank", listen: "127.0.0.1:9300", timeout: 1800 };
+  const options = { url: "about:blank", listen: "127.0.0.1:9300", timeout: 1800, quality: 60, maxWidth: 1280 };
   for (let i = 0; i < argv.length; i += 1) {
     const [key, value] = [argv[i], argv[i + 1]];
     if (key === "--url") { options.url = value; i += 1; }
     else if (key === "--listen") { options.listen = value; i += 1; }
     else if (key === "--timeout") { options.timeout = Number(value); i += 1; }
+    else if (key === "--quality") { options.quality = Number(value); i += 1; }
+    else if (key === "--max-width") { options.maxWidth = Number(value); i += 1; }
     else throw new Error(`unknown argument ${key}`);
   }
   const target = new URL(options.url);
@@ -44,6 +46,8 @@ export function parseArgs(argv) {
   options.port = Number(options.listen.slice(separator + 1));
   if (!Number.isInteger(options.port) || options.port < 1 || options.port > 65535) throw new Error("--listen needs host:port");
   if (!(options.timeout >= 30 && options.timeout <= 86400)) throw new Error("--timeout must be 30-86400 seconds");
+  if (!(Number.isInteger(options.quality) && options.quality >= 20 && options.quality <= 95)) throw new Error("--quality must be 20-95");
+  if (!(Number.isInteger(options.maxWidth) && options.maxWidth >= 320 && options.maxWidth <= 2560)) throw new Error("--max-width must be 320-2560");
   return options;
 }
 
@@ -102,25 +106,41 @@ async function main() {
   const cdp = new CDPConnection(launched.wsUrl);
   await cdp.connect();
 
-  const viewers = new Set();
+  // Flow control: each viewer gets one frame (binary JPEG) at a time and acknowledges
+  // it with {"type":"frame_ack"} once shown; frames arriving meanwhile replace the
+  // pending one. Latency stays at one frame however slow the viewer's link is.
+  const viewers = new Map();
   let session = null, targetId = null, frame = null, finished = false;
   const broadcast = (payload) => {
     const text = JSON.stringify(payload);
-    for (const viewer of viewers) if (viewer.readyState === 1) viewer.send(text);
+    for (const viewer of viewers.keys()) if (viewer.readyState === 1) viewer.send(text);
   };
+  const deliver = (viewer, state) => {
+    if (!state.latest || viewer.readyState !== 1) return;
+    viewer.send(state.latest, { binary: true });
+    state.latest = null; state.awaiting = Date.now();
+  };
+  const screencast = { format: "jpeg", quality: options.quality, maxWidth: options.maxWidth, maxHeight: Math.round(options.maxWidth * 0.75), everyNthFrame: 1 };
 
   async function follow(id) {
     if (session) { try { await cdp.send("Page.stopScreencast", {}, session); } catch {} }
     const attached = await cdp.send("Target.attachToTarget", { targetId: id, flatten: true });
     session = attached.sessionId; targetId = id;
     await cdp.send("Page.enable", {}, session);
-    await cdp.send("Page.startScreencast", { format: "jpeg", quality: 70, maxWidth: 1440, maxHeight: 1000, everyNthFrame: 1 }, session);
+    await cdp.send("Page.startScreencast", screencast, session);
   }
 
   cdp.on("Page.screencastFrame", async (params, sid) => {
     if (sid !== session) return;
+    const resized = !frame || frame.deviceWidth !== params.metadata.deviceWidth || frame.deviceHeight !== params.metadata.deviceHeight;
     frame = params.metadata;
-    broadcast({ type: "frame", data: params.data, width: frame.deviceWidth, height: frame.deviceHeight });
+    if (resized) broadcast({ type: "viewport", width: frame.deviceWidth, height: frame.deviceHeight });
+    const jpeg = Buffer.from(params.data, "base64");
+    for (const [viewer, state] of viewers) {
+      state.latest = jpeg;
+      // A viewer silent for 5 s may have lost an ack; resume instead of freezing.
+      if (!state.awaiting || Date.now() - state.awaiting > 5000) deliver(viewer, state);
+    }
     try { await cdp.send("Page.screencastFrameAck", { sessionId: params.sessionId }, session); } catch {}
   }, "*");
   cdp.on("Page.frameNavigated", async (params, sid) => {
@@ -147,7 +167,7 @@ async function main() {
     if (finished) return;
     finished = true;
     broadcast({ type: "closed", status });
-    for (const viewer of viewers) { try { viewer.close(1000, status); } catch {} }
+    for (const viewer of viewers.keys()) { try { viewer.close(1000, status); } catch {} }
     server.close();
     await closeDedicatedBrowser(cdp, { ownsBrowser: launched.ownsBrowser, browserPid: launched.pid, port });
     process.stdout.write(JSON.stringify({ status }) + "\n");
@@ -165,11 +185,13 @@ async function main() {
       return;
     }
     live.handleUpgrade(request, socket, head, (viewer) => {
-      viewers.add(viewer);
+      const state = { awaiting: 0, latest: null };
+      viewers.set(viewer, state);
       viewer.on("close", () => viewers.delete(viewer));
       viewer.on("message", async (raw) => {
         let message;
         try { message = JSON.parse(raw.toString()); } catch { viewer.send('{"type":"error","error":"invalid JSON"}'); return; }
+        if (message.type === "frame_ack") { state.awaiting = 0; deliver(viewer, state); return; }
         if (message.type === "done") { await finish("done"); return; }
         try {
           for (const [method, params] of inputCommands(message, frame)) await cdp.send(method, params, session);
@@ -178,9 +200,10 @@ async function main() {
         }
       });
       viewer.send(JSON.stringify({ type: "ready", url: options.url }));
+      if (frame) viewer.send(JSON.stringify({ type: "viewport", width: frame.deviceWidth, height: frame.deviceHeight }));
       // Force a fresh frame for a late viewer.
       cdp.send("Page.stopScreencast", {}, session).then(() =>
-        cdp.send("Page.startScreencast", { format: "jpeg", quality: 70, maxWidth: 1440, maxHeight: 1000 }, session)).catch(() => {});
+        cdp.send("Page.startScreencast", screencast, session)).catch(() => {});
     });
   });
   server.listen(options.port, options.host);
