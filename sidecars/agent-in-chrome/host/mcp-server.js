@@ -29,6 +29,7 @@ import {
   installExtension, removeManagedExtension, listManagedExtensions, getBrowserVersion,
 } from "./browser.js";
 import { PAGE_SCRIPT } from "./page-script.js";
+import { navigationTarget } from "./navigation.js";
 import { AdvancedBrowser, configuredBrowserSlots, jsonToZod } from "./browser-advanced.js";
 
 const MAX_BUFFER = 1000;
@@ -515,11 +516,9 @@ const tools = {
       await controller.send("Page.navigateToHistoryEntry", { entryId }, sess);
       await p;
     } else {
-      let target = url;
-      if (!/^https?:\/\//i.test(target) && !/^(about|chrome|edge|brave):/i.test(target)) {
-        target = "https://" + target.replace(/^[a-z]{1,6}:\/+/i, "");
-      }
-      try { new URL(target); } catch { return text(`Invalid URL: "${url}".`); }
+      const resolved = navigationTarget(url);
+      if (resolved.error) return toolError(resolved.error);
+      const target = resolved.url;
       const p = waitForLoad(sess, 15000);
       const nav = await controller.send("Page.navigate", { url: target }, sess);
       if (nav.errorText && nav.errorText !== "net::ERR_ABORTED") {

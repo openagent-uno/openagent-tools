@@ -46,5 +46,6 @@ packages = ["src/openagent_device_tools"]
 
 "../../sidecars/agent-in-chrome/host/native-browser.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/native-browser.js"
 "../../sidecars/agent-in-chrome/host/proxy-relay.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/proxy-relay.js"
+"../../sidecars/agent-in-chrome/host/navigation.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/navigation.js"
 "../../sidecars/agent-in-chrome/host/browser-session.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/browser-session.js"
 "../../sidecars/agent-in-chrome/host/windows-browser.py" = "openagent_device_tools/sidecars/agent-in-chrome/host/windows-browser.py"
