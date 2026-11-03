@@ -20,6 +20,7 @@ packages = ["src/openagent_device_tools"]
 "../../THIRD_PARTY_NOTICES.md" = "openagent_device_tools/THIRD_PARTY_NOTICES.md"
 "../../sidecars/agent-in-chrome/README.md" = "openagent_device_tools/sidecars/agent-in-chrome/README.md"
 "../../sidecars/agent-in-chrome/host/browser.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/browser.js"
+"../../sidecars/agent-in-chrome/host/macos-host-requirements.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/macos-host-requirements.js"
 "../../sidecars/agent-in-chrome/host/cdp.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/cdp.js"
 "../../sidecars/agent-in-chrome/host/mcp-server.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/mcp-server.js"
 "../../sidecars/agent-in-chrome/host/package-lock.json" = "openagent_device_tools/sidecars/agent-in-chrome/host/package-lock.json"

@@ -27,6 +27,13 @@ a TCP debugger or change the host's confinement policy. Unknown values fail.
 The macOS boundary qualification checks real DOM, screenshots, private pipes
 and denial of a file outside the host-owned fixture.
 
+Before confining a macOS browser, a trusted host can invoke
+`node macos-host-requirements.js --binary /absolute/browser --profile /absolute/profile`.
+The JSON descriptor declares the exact App Shim Mach registration name derived
+from that browser's bundle identifier and profile. Chromium requires this IPC
+even for headless operation. The host owns the decision to grant this literal
+name; the SDK never installs policy, grants wildcard access or authorizes a host.
+
 - **Lazy** — the browser launches on the *first browser tool call*, never at
   server startup. Nothing pops up until the agent decides to use it.
 - **Owned reuse** — reconnect only when Chrome's `DevToolsActivePort` marker in

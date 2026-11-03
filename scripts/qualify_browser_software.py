@@ -35,6 +35,9 @@ with tempfile.TemporaryDirectory(prefix='oa-render-', dir='/private/tmp') as dir
 (allow file-write* (subpath BOX) (literal "/dev/null"))
 '''.replace('HOST', quoted(host)).replace('BROWSER', quoted(binary.parents[3])).replace('BOX', quoted(box))
     node = Path(subprocess.check_output(['which','node'], text=True).strip()).resolve()
+    requirements = json.loads(subprocess.check_output([str(node),str(host/'macos-host-requirements.js'),
+        '--binary',str(binary),'--profile',str(box/'profile')],text=True))
+    profile += '\n(allow mach-register (global-name '+json.dumps(requirements['machRegister'][0])+'))\n'
     profile += '\n(allow file-read* (subpath '+quoted(node.parent.parent)+'))\n'
     script = '''import fs from 'node:fs';
 import http from 'node:http';
