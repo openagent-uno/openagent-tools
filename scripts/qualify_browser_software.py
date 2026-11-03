@@ -41,6 +41,8 @@ with tempfile.TemporaryDirectory(prefix='oa-render-', dir='/private/tmp') as dir
         '--binary',str(binary),'--profile',str(box/'profile')],text=True))
     for service in requirements['machRegister']:
         profile += '\n(allow mach-register (global-name '+json.dumps(service)+'))\n'
+    for prefix in requirements['machRegisterPrefixes']:
+        profile += '\n(allow mach-register (global-name-prefix '+json.dumps(prefix)+'))\n'
     profile += '\n(allow file-read* (subpath '+quoted(node.parent.parent)+'))\n'
     script = '''import fs from 'node:fs';
 import http from 'node:http';

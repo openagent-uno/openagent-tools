@@ -18,13 +18,13 @@ export function macosHostRequirements(binary, profile) {
   if (process.platform !== 'darwin' || !path.isAbsolute(binary)) throw new Error('Explicit macOS browser binary required');
   if (path.basename(binary) === 'chrome-headless-shell') {
     macosAppShimServiceName('org.chromium.Chromium',profile); // Validate the profile contract.
-    return {schema:1,platform:'darwin',profile,machRegister:[]};
+    return {schema:1,platform:'darwin',profile,machRegister:[],machRegisterPrefixes:['org.chromium.Chromium.MachPortRendezvousServer.']};
   }
   let bundle = path.dirname(binary);
   while (!bundle.endsWith('.app') && path.dirname(bundle) !== bundle) bundle = path.dirname(bundle);
   if (!bundle.endsWith('.app')) throw new Error('Browser application bundle required');
   const identifier = execFileSync('/usr/libexec/PlistBuddy', ['-c','Print:CFBundleIdentifier',path.join(bundle,'Contents/Info.plist')], {encoding:'utf8'}).trim();
-  return {schema:1,platform:'darwin',profile,machRegister:[macosAppShimServiceName(identifier,profile)]};
+  return {schema:1,platform:'darwin',profile,machRegister:[macosAppShimServiceName(identifier,profile)],machRegisterPrefixes:[identifier+'.MachPortRendezvousServer.']};
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

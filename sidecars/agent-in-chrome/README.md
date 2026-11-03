@@ -32,7 +32,10 @@ Before confining a macOS browser, a trusted host can invoke
 The JSON descriptor declares the exact App Shim Mach registration name derived
 from that browser's bundle identifier and profile. Chromium requires this IPC
 even for headless operation. The host owns the decision to grant this literal
-name; the SDK never installs policy, grants wildcard access or authorizes a host.
+name. A separate narrow vendor rendezvous prefix is declared because Chromium
+names those per-process endpoints using the child PID. The standalone headless
+shell needs that rendezvous prefix but no App Shim service. The SDK never
+installs policy or authorizes a host; the host must review the declared resources.
 
 - **Lazy** — the browser launches on the *first browser tool call*, never at
   server startup. Nothing pops up until the agent decides to use it.
