@@ -26,16 +26,16 @@ jobs:
           import hashlib,json,os,pathlib,subprocess
           root=pathlib.Path(os.environ['RUNNER_TEMP'])/'device-wheel'
           if subprocess.check_output(['git','status','--porcelain'],text=True).strip():raise ValueError('Clean source required')
-          wheel=root/'openagent_device_tools-1.0.0b16-py3-none-any.whl'
+          wheel=root/'openagent_device_tools-1.0.0b17-py3-none-any.whl'
           checksum=hashlib.sha256(wheel.read_bytes()).hexdigest()
           (root/'SHA256SUMS').write_text(checksum+'  '+wheel.name+'\n')
           (root/'qualification.json').write_text(json.dumps({'source_commit':os.environ['GITHUB_SHA'],'run':os.environ['GITHUB_RUN_ID'],
-              'version':'1.0.0b16','wheel_sha256':checksum,'bytes':wheel.stat().st_size,'dirty_snapshot':False,
+              'version':'1.0.0b17','wheel_sha256':checksum,'bytes':wheel.stat().st_size,'dirty_snapshot':False,
               'scope':'Actual Mac ARM software DOM and screenshot in inherited sandbox; outside sentinel denied; private CDP pipe; not a signed application release'},indent=2)+'\n')
           PY
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: Device-Tools-1.0.0b16
+          name: Device-Tools-1.0.0b17
           path: ${{ runner.temp }}/device-wheel/*
           retention-days: 3
           if-no-files-found: error
