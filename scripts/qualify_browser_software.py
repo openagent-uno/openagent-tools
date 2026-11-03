@@ -20,6 +20,7 @@ with tempfile.TemporaryDirectory(prefix='oa-render-', dir='/private/tmp') as dir
     outside.write_text('synthetic sentinel, not host data')
     for name in ['tmp', 'profile']: (box/name).mkdir(mode=0o700)
     quoted = lambda path: json.dumps(str(path))
+    browser_root = binary.parent if binary.name == 'chrome-headless-shell' else binary.parents[3]
     profile = '''(version 1)
 (deny default)
 (allow process-exec process-fork)
@@ -34,11 +35,12 @@ with tempfile.TemporaryDirectory(prefix='oa-render-', dir='/private/tmp') as dir
  (subpath "/private/var/db/timezone") (subpath "/dev")
  (subpath HOST) (subpath BROWSER) (subpath BOX))
 (allow file-write* (subpath BOX) (literal "/dev/null"))
-'''.replace('HOST', quoted(host)).replace('BROWSER', quoted(binary.parents[3])).replace('BOX', quoted(box))
+'''.replace('HOST', quoted(host)).replace('BROWSER', quoted(browser_root)).replace('BOX', quoted(box))
     node = Path(subprocess.check_output(['which','node'], text=True).strip()).resolve()
     requirements = json.loads(subprocess.check_output([str(node),str(host/'macos-host-requirements.js'),
         '--binary',str(binary),'--profile',str(box/'profile')],text=True))
-    profile += '\n(allow mach-register (global-name '+json.dumps(requirements['machRegister'][0])+'))\n'
+    for service in requirements['machRegister']:
+        profile += '\n(allow mach-register (global-name '+json.dumps(service)+'))\n'
     profile += '\n(allow file-read* (subpath '+quoted(node.parent.parent)+'))\n'
     script = '''import fs from 'node:fs';
 import http from 'node:http';

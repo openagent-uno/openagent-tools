@@ -16,6 +16,10 @@ export function macosAppShimServiceName(bundleIdentifier, profile) {
 
 export function macosHostRequirements(binary, profile) {
   if (process.platform !== 'darwin' || !path.isAbsolute(binary)) throw new Error('Explicit macOS browser binary required');
+  if (path.basename(binary) === 'chrome-headless-shell') {
+    macosAppShimServiceName('org.chromium.Chromium',profile); // Validate the profile contract.
+    return {schema:1,platform:'darwin',profile,machRegister:[]};
+  }
   let bundle = path.dirname(binary);
   while (!bundle.endsWith('.app') && path.dirname(bundle) !== bundle) bundle = path.dirname(bundle);
   if (!bundle.endsWith('.app')) throw new Error('Browser application bundle required');

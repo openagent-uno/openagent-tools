@@ -60,7 +60,7 @@ export async function launchNativeBrowser(binary, profile, args) {
   flags.push('--remote-debugging-pipe');
   // Windows Chrome's crashpad DLL opens a global pipe before startup. The
   // bundled official headless shell supports CDP without that external service.
-  if (process.platform === 'win32' && path.basename(binary) === 'chrome-headless-shell.exe') {
+  if (['chrome-headless-shell', 'chrome-headless-shell.exe'].includes(path.basename(binary))) {
     // The standalone shell implements the old headless engine. Do not select
     // Chrome's separate unified headless engine inside this executable.
     for (let index = flags.length - 1; index >= 0; index--)

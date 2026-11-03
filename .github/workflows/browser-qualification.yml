@@ -26,8 +26,8 @@ jobs:
       - run: node --test sidecars/agent-in-chrome/host/browser-rendering.test.mjs
       - name: Acquire exact official Chromium bytes for the native boundary test
         run: |
-          curl --fail --location --retry 2 --max-time 300 https://storage.googleapis.com/chrome-for-testing-public/155.0.8059.39/mac-arm64/chrome-mac-arm64.zip -o "$RUNNER_TEMP/chrome.zip"
-          echo '529a71bd61aaa2ef266a4d4bd300ae9572ba6a3468a8d55c3023ffeffb5b6b4e  '"$RUNNER_TEMP/chrome.zip" | shasum -a 256 -c -
+          curl --fail --location --retry 2 --max-time 300 https://storage.googleapis.com/chrome-for-testing-public/155.0.8059.39/mac-arm64/chrome-headless-shell-mac-arm64.zip -o "$RUNNER_TEMP/chrome.zip"
+          echo 'b3e093c06001c41e68decbc8dd4a62f9efe4bf4e4dd247a686ea531863448d75  '"$RUNNER_TEMP/chrome.zip" | shasum -a 256 -c -
           ditto -x -k "$RUNNER_TEMP/chrome.zip" "$RUNNER_TEMP/chrome"
       - name: Real software DOM and screenshot under inherited native confinement
-        run: python scripts/qualify_browser_software.py --binary "$RUNNER_TEMP/chrome/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing"
+        run: python scripts/qualify_browser_software.py --binary "$RUNNER_TEMP/chrome/chrome-headless-shell-mac-arm64/chrome-headless-shell"
