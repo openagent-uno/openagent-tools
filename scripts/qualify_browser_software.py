@@ -5,6 +5,7 @@ import os
 from pathlib import Path
 import subprocess
 import tempfile
+import time
 
 parser = argparse.ArgumentParser(description=__doc__)
 parser.add_argument('--binary', required=True, type=Path)
@@ -50,6 +51,7 @@ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 let launched,cdp;
 try {
  launched=await ensureBrowser();assert.equal(typeof launched.wsUrl,'object');
+ fs.writeFileSync(process.env.OWNED_CHILD,JSON.stringify({pid:launched.pid}));
  launched.wsUrl.child.on('exit',(code,signal)=>console.error('Owned Chromium exit',JSON.stringify({code,signal})));
  launched.wsUrl.child.on('error',error=>console.error('Owned Chromium spawn error',error.code));
  assert.ok(!launched.wsUrl.child.spawnargs.some(arg=>arg.startsWith('--remote-debugging-port')));
@@ -81,10 +83,25 @@ try {
                    'OPENAGENT_CHROME_PROFILE_DIR':str(box/'profile'),'OPENAGENT_CHROME_BINARY':str(binary),
                    'OPENAGENT_CHROME_TRANSPORT':'pipe','OPENAGENT_CHROME_INHERITED_SANDBOX':'1',
                    'OPENAGENT_CHROME_HEADLESS':'true','OPENAGENT_CHROME_RENDERER':'software','OPENAGENT_CHROME_DIAGNOSTICS':'true',
-                   'OWNED_SENTINEL':str(outside)}
+                   'OWNED_SENTINEL':str(outside),'OWNED_CHILD':str(box/'owned-child.json')}
+    started = time.time()
     result = subprocess.run(['/usr/bin/sandbox-exec','-p',profile,str(node),'--input-type=module','-e',script],
                             env=environment,cwd=box,timeout=90)
     if result.returncode:
         log = box/'profile/native-browser.log'
         if log.is_file(): print(log.read_text(errors='replace')[-12000:])
+        pid = json.loads((box/'owned-child.json').read_text())['pid'] if (box/'owned-child.json').is_file() else None
+        reports = Path.home()/'Library/Logs/DiagnosticReports'
+        if reports.is_dir():
+            for report in reports.glob('*.ips'):
+                if report.stat().st_mtime < started: continue
+                try:
+                    parts=report.read_text().split('\n',1)
+                    value=json.loads(parts[1])
+                    if value.get('pid') == pid:
+                        print('Owned crash',json.dumps({k:value.get(k) for k in ['exception','termination','asi','faultingThread']})[:12000])
+                except (ValueError,OSError): pass
+        logs=subprocess.run(['sudo','-n','log','show','--style','compact','--last','1m','--predicate',
+            'eventMessage CONTAINS "deny" AND eventMessage CONTAINS "'+str(pid)+'"'],capture_output=True,text=True,timeout=30)
+        print('Owned sandbox denials',logs.stdout[-12000:])
     raise SystemExit(result.returncode)
