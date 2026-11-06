@@ -1,5 +1,9 @@
 # Independent OpenAgent tools
 
+- [Operation-scoped MCP client and typed errors](../packages/mcp-client/README.md)
+  — `openagent-mcp-client` 0.1.0b1 source candidate, preserving cancellation and
+  programming errors independently of remote availability failures.
+
 - [Independent MCP stdio server starter](../examples/mcp-server/README.md) — installable example and real stdio contract test.
 
 ## Architecture and use
