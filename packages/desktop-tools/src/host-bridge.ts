@@ -56,15 +56,18 @@ export class HostProcessBridge {
     await Promise.all(this.retiring);
     if (revision !== this.lifecycle)
       throw new CapabilityProtocolError("host_tools_stopped");
-    const launch = typeof this.launch === "function" ? await this.launch() : this.launch;
-    if (revision !== this.lifecycle) throw new CapabilityProtocolError("host_tools_stopped");
-    if (launch.unavailableReason)
-      throw new CapabilityProtocolError(launch.unavailableReason);
     const accountID = await this.certifiedAccount();
     if (!/^[A-Za-z0-9_-]{1,128}$/.test(accountID))
       throw new CapabilityProtocolError("account_context_required");
-    if (revision !== this.lifecycle)
-      throw new CapabilityProtocolError("host_tools_stopped");
+    if (revision !== this.lifecycle) throw new CapabilityProtocolError("host_tools_stopped");
+    const launch = typeof this.launch === "function" ? await this.launch() : this.launch;
+    if (revision !== this.lifecycle) throw new CapabilityProtocolError("host_tools_stopped");
+    if (launch.unavailableReason) throw new CapabilityProtocolError(launch.unavailableReason);
+    if (typeof this.launch === "function") {
+      const currentAccount = await this.certifiedAccount();
+      if (revision !== this.lifecycle) throw new CapabilityProtocolError("host_tools_stopped");
+      if (currentAccount !== accountID) throw new CapabilityProtocolError("account_context_required");
+    }
     const child = spawn(launch.command, launch.args, {
       cwd: launch.cwd,
       stdio: ["pipe", "pipe", "pipe"],
