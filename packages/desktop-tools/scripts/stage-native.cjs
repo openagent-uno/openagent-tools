@@ -11,7 +11,7 @@ const app=process.platform==='darwin';
 const relative=app?`${target}/openagent-computer-control.app`:`${target}`;
 const executable=app?'Contents/MacOS/'+name:name;
 if(!refresh){
- execFileSync('cargo',['build','--release','--locked'],{cwd:crate,stdio:'inherit'});
+ execFileSync('cargo',['build','--release','--locked'],{cwd:crate,stdio:'inherit',env:{...process.env,...(process.platform==='win32'?{RUSTFLAGS:((process.env.RUSTFLAGS||'')+' -C target-feature=+crt-static').trim()}:{})}});
  execFileSync(process.platform==='win32'?'python':'python3',[path.join(root,'scripts/native-notices.py')],{stdio:'inherit'});
  const destination=path.join(native,relative,executable);mkdirSync(path.dirname(destination),{recursive:true});
  copyFileSync(path.join(process.env.CARGO_TARGET_DIR||path.join(crate,'target'),'release',name),destination);if(process.platform!=='win32')chmodSync(destination,0o755);

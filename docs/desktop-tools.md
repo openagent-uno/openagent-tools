@@ -60,5 +60,7 @@ breaks simultaneous MCP capture and live viewing. Rehash the full bundle with
 
 The release cohort is `@openagent/desktop-tools@0.1.0`, device tools `1.0.0b18`,
 and native helper `0.1.7`. Public artifacts must carry all six qualified target
-entries from one immutable upstream commit. Local qualification, signed release
+entries with immutable upstream source revisions. Windows builds statically link
+the CRT; runtime discovery must not depend on a build machine’s installed
+redistributable. Each target must pass an actual native protocol launch. Local qualification, signed release
 artifacts and physical remote-device acceptance remain separate evidence.
