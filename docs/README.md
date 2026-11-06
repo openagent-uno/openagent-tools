@@ -1,5 +1,9 @@
 # Independent OpenAgent tools
 
+- [Operation-scoped MCP client and typed errors](../packages/mcp-client/README.md)
+  — `openagent-mcp-client` 0.1.0b1 source candidate, preserving cancellation and
+  programming errors independently of remote availability failures.
+
 - [Native X11 typing: published Linux x64 component0.1.3 and native regression](native-x11-typing.md)
 - [Gmail central technical qualification](central-gmail-qualification-2026-10-22.md) — seven-operation composite evidence, corrected attachment limits and Google review still pending; general availability remains disabled.
 
