@@ -18,3 +18,7 @@ staging verify their manifest SHA-256. Missing platforms fail explicitly.
 Electron applications must unpack `native/**` from ASAR. Python device tools
 carry the same manifest and artifact bytes. Full contracts and source build
 instructions are in the repository's `docs/desktop-tools.md`.
+
+Hosts can supply optional `prepareGrant` / `configureSession` transport ports and
+`beforeConnect` publisher setup. The SDK owns stream/window lifetime and URL
+validation; product-specific routing and transport hints remain host-owned.

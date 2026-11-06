@@ -39,7 +39,7 @@ export class HostProcessBridge {
   private retiring = new Set<Promise<void>>();
 
   constructor(
-    private readonly launch: HostToolsLaunch,
+    private readonly launch: HostToolsLaunch | (() => Promise<HostToolsLaunch>),
     private readonly certifiedAccount: () => Promise<string>,
     private readonly browserScope?: string,
   ) {
@@ -56,21 +56,23 @@ export class HostProcessBridge {
     await Promise.all(this.retiring);
     if (revision !== this.lifecycle)
       throw new CapabilityProtocolError("host_tools_stopped");
-    if (this.launch.unavailableReason)
-      throw new CapabilityProtocolError(this.launch.unavailableReason);
+    const launch = typeof this.launch === "function" ? await this.launch() : this.launch;
+    if (revision !== this.lifecycle) throw new CapabilityProtocolError("host_tools_stopped");
+    if (launch.unavailableReason)
+      throw new CapabilityProtocolError(launch.unavailableReason);
     const accountID = await this.certifiedAccount();
     if (!/^[A-Za-z0-9_-]{1,128}$/.test(accountID))
       throw new CapabilityProtocolError("account_context_required");
     if (revision !== this.lifecycle)
       throw new CapabilityProtocolError("host_tools_stopped");
-    const child = spawn(this.launch.command, this.launch.args, {
-      cwd: this.launch.cwd,
+    const child = spawn(launch.command, launch.args, {
+      cwd: launch.cwd,
       stdio: ["pipe", "pipe", "pipe"],
       shell: false,
       windowsHide: true,
       env: {
         ...process.env,
-        ...this.launch.env,
+        ...launch.env,
         PYTHONIOENCODING: "utf-8",
         PYTHONUTF8: "1",
       },

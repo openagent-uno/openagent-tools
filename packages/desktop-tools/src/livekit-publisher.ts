@@ -8,7 +8,7 @@ export type PublisherBridge = {
   onPacket(cb: (id: string, packet: unknown) => void): () => void;
   onEnded(cb: (id: string) => void): () => void;
 };
-export function startLiveKitPublisher(bridge: PublisherBridge): () => void {
+export function startLiveKitPublisher(bridge: PublisherBridge, options: { beforeConnect?: (grant: VideoGrant) => void } = {}): () => void {
   const streams = new Map<
     string,
     {
@@ -50,6 +50,7 @@ export function startLiveKitPublisher(bridge: PublisherBridge): () => void {
   });
   const ended = bridge.onEnded(stop);
   const publish = async (grant: VideoGrant) => {
+    options.beforeConnect?.(grant);
     const room = new Room(),
       canvas = document.createElement("canvas");
     let first: () => void = () => {};

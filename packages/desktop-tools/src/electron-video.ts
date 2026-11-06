@@ -1,4 +1,4 @@
-import { BrowserWindow, ipcMain, type IpcMainInvokeEvent } from "electron";
+import { BrowserWindow, ipcMain, type Session, type IpcMainInvokeEvent } from "electron";
 import { NativeScreenStream } from "./native-stream";
 import type { HostToolsLaunch } from "./host-bridge";
 export type VideoGrant = {
@@ -7,10 +7,13 @@ export type VideoGrant = {
   url: string;
   token: string;
   actorUserId: string;
+  transport?: Readonly<Record<string, unknown>>;
 };
 export interface VideoHostOptions {
   url: string;
   preload: string;
+  prepareGrant?: (grant: VideoGrant) => VideoGrant;
+  configureSession?: (session: Session) => void;
   launch: Pick<HostToolsLaunch, "command" | "args" | "env" | "cwd">;
 }
 
@@ -104,6 +107,7 @@ export class ComputerVideoHost {
     );
   }
   async start(grant: VideoGrant): Promise<void> {
+    grant = this.options.prepareGrant?.(grant) ?? grant;
     const endpoint = new URL(grant.url);
     if (
       endpoint.username ||
@@ -146,6 +150,7 @@ export class ComputerVideoHost {
           },
         });
         this.window = window;
+        this.options.configureSession?.(window.webContents.session);
         window.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
         window.webContents.on("will-navigate", (event) =>
           event.preventDefault(),

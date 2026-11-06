@@ -69,7 +69,7 @@ type Entry = {
 export class ComputerScopedTools {
   private entries = new Map<string, Entry>();
   private epoch = 0;
-  constructor(private readonly launch: HostToolsLaunch) {}
+  constructor(private readonly launch: HostToolsLaunch | (() => Promise<HostToolsLaunch>)) {}
 
   async invoke(
     kind: "native" | "browser",

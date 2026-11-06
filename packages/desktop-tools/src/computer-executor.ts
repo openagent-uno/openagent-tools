@@ -60,7 +60,7 @@ export class ComputerExecutor {
   constructor(
     private readonly binary: string,
     options: {
-      hostToolsLaunch?: HostToolsLaunch;
+      hostToolsLaunch?: HostToolsLaunch | (() => Promise<HostToolsLaunch>);
       shellTimeoutMs?: number;
       accessibilityLaunch?: { command: string; args: string[] };
     } = {},
