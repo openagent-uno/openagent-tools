@@ -66,3 +66,18 @@ class DesktopMedia(unittest.IsolatedAsyncioTestCase):
                 self.assertEqual('config',(await anext(iterator))['type']);self.assertEqual('frame',(await anext(iterator))['type'])
             finally:await iterator.aclose()
         finally:await pool.close_all()
+
+    def test_windows_arm64_uses_the_exact_qualified_artifact(self):
+        import tempfile,hashlib
+        from pathlib import Path
+        from unittest.mock import patch
+        import openagent_device_tools.media as media
+        with tempfile.TemporaryDirectory() as directory:
+            root=Path(directory);bundle=root/'native/win32-arm64';bundle.mkdir(parents=True)
+            binary=bundle/'helper.exe';binary.write_bytes(b'fixture')
+            role={'root':'win32-arm64','executable':'helper.exe','files':{'helper.exe':hashlib.sha256(b'fixture').hexdigest()}}
+            (root/'native/manifest.json').write_text(json.dumps({'protocol':'openagent-native-artifacts/2','artifacts':{'win32-arm64':{'roles':{'control':role}}}}))
+            with patch.object(media,'__file__',str(root/'media.py')),patch('platform.machine',return_value='ARM64'),patch('sys.platform','win32'):
+                self.assertEqual((str(binary.resolve()),),media.native_desktop_command())
+                binary.write_bytes(b'changed')
+                with self.assertRaisesRegex(ValueError,'digest'):media.native_desktop_command()

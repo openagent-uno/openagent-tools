@@ -55,7 +55,7 @@ def native_desktop_command(role="control"):
     if not (root/"manifest.json").is_file():return None
     manifest=json.loads((root/"manifest.json").read_text())
     if manifest.get("protocol")!="openagent-native-artifacts/2":raise ValueError("Invalid native artifact manifest")
-    machine={"aarch64":"arm64","AMD64":"x64","x86_64":"x64"}.get(platform.machine(),platform.machine())
+    machine={"aarch64":"arm64","arm64":"arm64","amd64":"x64","x86_64":"x64"}.get(platform.machine().lower(),platform.machine().lower())
     artifact=manifest.get("artifacts",{}).get(f"{sys.platform}-{machine}")
     selected=artifact.get("roles",{}).get(role) if artifact else None
     if selected is None:return None
