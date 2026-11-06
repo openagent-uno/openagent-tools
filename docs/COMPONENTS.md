@@ -8,6 +8,7 @@ Tools is independent of the reasoning engine and any embedding application.
 | Directory / distribution | Responsibility and communication |
 | --- | --- |
 | `packages/tool-protocol/` / `openagent-tool-protocol` | Neutral manifests, risk classification, full ToolResult and optional MCP transport |
+| `packages/mcp-client/` / `openagent-mcp-client` | Independent operation-scoped official MCP SDK client; typed errors, bounded catalogs and cancellation preservation |
 | `packages/filesystem/` / `openagent-filesystem` | FilesystemServer; direct Python calls or MCP stdio |
 | `packages/editor/` / `openagent-editor` | EditorServer, structured edits and search; direct calls or MCP stdio |
 | `packages/shell/` / `openagent-shell` | ShellServer and owned process lifecycle; direct calls or MCP stdio |
