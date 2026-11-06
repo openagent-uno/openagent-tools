@@ -93,3 +93,5 @@ OAuth registration and actual provider acceptance are separate facts.
 Use [examples/mcp-server](../examples/mcp-server/README.md) as the maintained
 stdio scaffold. It is installed independently and does not require the engine.
 Its hello-tool regression uses the actual MCP initialize/list/call protocol.
+
+- [Desktop execution, live media and native artifacts](desktop-tools.md)

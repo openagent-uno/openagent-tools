@@ -129,3 +129,5 @@ remains unchanged.
 - [Browser reference, form and transport reliability — source qualification, 30 October 2026](browser-reference-reliability.md).
 
 - [Browser launch, pipe transport and explicit host confinement adapters](browser-launch.md) — device-tools b9 source contract.
+
+- [Desktop execution, live media and native artifacts](desktop-tools.md)

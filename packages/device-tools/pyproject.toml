@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "openagent-device-tools"
-version = "1.0.0b17"
+version = "1.0.0b18"
 description = "Independent OpenAgent capability package"
 requires-python = ">=3.11"
 license = "MIT"
@@ -49,3 +49,9 @@ packages = ["src/openagent_device_tools"]
 "../../sidecars/agent-in-chrome/host/navigation.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/navigation.js"
 "../../sidecars/agent-in-chrome/host/browser-session.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/browser-session.js"
 "../../sidecars/agent-in-chrome/host/windows-browser.py" = "openagent_device_tools/sidecars/agent-in-chrome/host/windows-browser.py"
+
+"../../sidecars/computer-control/src/desktop.rs" = "openagent_device_tools/sidecars/computer-control/src/desktop.rs"
+"../../sidecars/computer-control/src/live.rs" = "openagent_device_tools/sidecars/computer-control/src/live.rs"
+"../../sidecars/computer-control/src/live_macos.rs" = "openagent_device_tools/sidecars/computer-control/src/live_macos.rs"
+"../../sidecars/computer-control/src/native_live.m" = "openagent_device_tools/sidecars/computer-control/src/native_live.m"
+"../desktop-tools/native" = "openagent_device_tools/native"

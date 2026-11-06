@@ -81,3 +81,5 @@ Install and verify sidecar artifacts separately; importing Tools starts none.
 See [usage examples](USAGE.md), [connector contracts](../packages/connectors/README.md),
 [browser protocol](browser-advanced.md), [native accessibility](native-accessibility.md),
 and [Core composition](https://github.com/openagent-uno/openagent-core/blob/main/docs/COMPONENTS.md).
+
+- [Desktop execution, live media and native artifacts](desktop-tools.md)
