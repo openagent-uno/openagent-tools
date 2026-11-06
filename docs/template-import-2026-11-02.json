@@ -1,0 +1,29 @@
+{
+  "source_repository": "openagent-uno/openagent-mcp-template",
+  "source_commit": "2240f44f2cbf22941c46399f2cd7e830ddbb6e49",
+  "destination": "examples/mcp-server",
+  "initial_import_files_sha256": {
+    ".gitignore": "188bf624da7606f33ec5889abe13d255c0e39db9d926ac9572746cbe0f054a5c",
+    "AGENTS.md": "1461ab304c30eb8a5f3fcec3b4e90793851ebe4c847d1a4bf420fb0a94ec9eb0",
+    "CLAUDE.md": "336cc4fbf19beaada7ccf9986414fa91851a8d7a07dfb3ccbe800a69eed0ab49",
+    "Dockerfile": "e4229ef9dee0174f373935861f7b6adfadfb549bb68ca592d378b439adc74d75",
+    "OPENAGENT-ARCHITECTURE.md": "4d2e00cfd2712608810d0e7d45f05becadeec97203a532384257b0ca98fb28a9",
+    "README.md": "367d24bfe63f3d0e9d52b894633c10bde56c6db210eb44b3cb04dadad8f60715",
+    "pyproject.toml": "033ad3316cd4a24bfa7fa474e0d02c5127656e2f268bd0218eda18d95fd0c760",
+    "skill.yaml": "d665105a3295fd2266f0f95f54341ce3d7c89c3f790096be76f7afda09a1da06",
+    "src/openagent_mcp_example/__init__.py": "ba076138b4ecdae51c11f1f38e654c668f34cb7a19d1e48daa09f73f951a0b7c",
+    "src/openagent_mcp_example/__main__.py": "ddd60a1df996b2b744c45953165711e5afe2711f5f0249f4e98875e1342411df",
+    "src/openagent_mcp_example/server.py": "90d86b7f2ea964d7927ad92e837713a69700f5e0a9bb4ad4415445c737a64f68",
+    "src/openagent_mcp_example/tools.py": "6d2445c650957ace46476fd6adb5a12761761c807d572e937f15dd9dd52f3dfa",
+    "tests/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "tests/test_stdio.py": "3ddd2500a26cc81a4285cc4065acfac2c5e2dcf5a2c60bf8fdd652e87019d115"
+  },
+  "preservation": "Full source ancestry imported by git subtree, original ref aliases retained separately; README/guidance adapted after byte-exact import.",
+  "source_repository_deleted": true,
+  "original_refs_preserved": true,
+  "git_ancestry_verified": true,
+  "history_release_mirror_removed_by_owner_decision": true,
+  "current_example_release": "https://github.com/openagent-uno/openagent-tools/releases/tag/mcp-template-v0.2.0",
+  "mcp_stdio_test": "passed: initialize, list_tools, call_tool",
+  "source_backup": "verified local Git bundle and private canonical repository backup; no secrets in public receipt"
+}

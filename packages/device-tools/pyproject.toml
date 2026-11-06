@@ -4,11 +4,14 @@ build-backend = "hatchling.build"
 
 [project]
 name = "openagent-device-tools"
-version = "1.0.0b4"
+version = "1.0.0b18"
 description = "Independent OpenAgent capability package"
 requires-python = ">=3.11"
 license = "MIT"
-dependencies = ["openagent-tool-protocol==1.0.0b1"]
+dependencies = ["openagent-tool-protocol==1.0.0b2"]
+
+[project.scripts]
+openagent-browser-session = "openagent_device_tools.browser_session:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/openagent_device_tools"]
@@ -17,6 +20,7 @@ packages = ["src/openagent_device_tools"]
 "../../THIRD_PARTY_NOTICES.md" = "openagent_device_tools/THIRD_PARTY_NOTICES.md"
 "../../sidecars/agent-in-chrome/README.md" = "openagent_device_tools/sidecars/agent-in-chrome/README.md"
 "../../sidecars/agent-in-chrome/host/browser.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/browser.js"
+"../../sidecars/agent-in-chrome/host/macos-host-requirements.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/macos-host-requirements.js"
 "../../sidecars/agent-in-chrome/host/cdp.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/cdp.js"
 "../../sidecars/agent-in-chrome/host/mcp-server.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/mcp-server.js"
 "../../sidecars/agent-in-chrome/host/package-lock.json" = "openagent_device_tools/sidecars/agent-in-chrome/host/package-lock.json"
@@ -24,8 +28,14 @@ packages = ["src/openagent_device_tools"]
 "../../sidecars/agent-in-chrome/host/page-script.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/page-script.js"
 "../../sidecars/agent-in-chrome/tab-group-extension/background.js" = "openagent_device_tools/sidecars/agent-in-chrome/tab-group-extension/background.js"
 "../../sidecars/agent-in-chrome/tab-group-extension/manifest.json" = "openagent_device_tools/sidecars/agent-in-chrome/tab-group-extension/manifest.json"
+"../../sidecars/computer-control/build.rs" = "openagent_device_tools/sidecars/computer-control/build.rs"
+"../../sidecars/computer-control/src/native_advanced.m" = "openagent_device_tools/sidecars/computer-control/src/native_advanced.m"
+"../../sidecars/computer-control/src/advanced.rs" = "openagent_device_tools/sidecars/computer-control/src/advanced.rs"
+"../../sidecars/agent-in-chrome/host/browser-advanced.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/browser-advanced.js"
+"../../sidecars/agent-in-chrome/host/browser-advanced-tools.json" = "openagent_device_tools/sidecars/agent-in-chrome/host/browser-advanced-tools.json"
 "../../sidecars/computer-control/Cargo.lock" = "openagent_device_tools/sidecars/computer-control/Cargo.lock"
 "../../sidecars/computer-control/Cargo.toml" = "openagent_device_tools/sidecars/computer-control/Cargo.toml"
+"../../sidecars/computer-control/src/accessibility.rs" = "openagent_device_tools/sidecars/computer-control/src/accessibility.rs"
 "../../sidecars/computer-control/src/capture.rs" = "openagent_device_tools/sidecars/computer-control/src/capture.rs"
 "../../sidecars/computer-control/src/input.rs" = "openagent_device_tools/sidecars/computer-control/src/input.rs"
 "../../sidecars/computer-control/src/keys.rs" = "openagent_device_tools/sidecars/computer-control/src/keys.rs"
@@ -33,3 +43,15 @@ packages = ["src/openagent_device_tools"]
 "../../sidecars/computer-control/src/record.rs" = "openagent_device_tools/sidecars/computer-control/src/record.rs"
 "../../sidecars/computer-control/src/scaling.rs" = "openagent_device_tools/sidecars/computer-control/src/scaling.rs"
 "../../sidecars/computer-control/src/tool.rs" = "openagent_device_tools/sidecars/computer-control/src/tool.rs"
+
+"../../sidecars/agent-in-chrome/host/native-browser.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/native-browser.js"
+"../../sidecars/agent-in-chrome/host/proxy-relay.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/proxy-relay.js"
+"../../sidecars/agent-in-chrome/host/navigation.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/navigation.js"
+"../../sidecars/agent-in-chrome/host/browser-session.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/browser-session.js"
+"../../sidecars/agent-in-chrome/host/windows-browser.py" = "openagent_device_tools/sidecars/agent-in-chrome/host/windows-browser.py"
+
+"../../sidecars/computer-control/src/desktop.rs" = "openagent_device_tools/sidecars/computer-control/src/desktop.rs"
+"../../sidecars/computer-control/src/live.rs" = "openagent_device_tools/sidecars/computer-control/src/live.rs"
+"../../sidecars/computer-control/src/live_macos.rs" = "openagent_device_tools/sidecars/computer-control/src/live_macos.rs"
+"../../sidecars/computer-control/src/native_live.m" = "openagent_device_tools/sidecars/computer-control/src/native_live.m"
+"../desktop-tools/native" = "openagent_device_tools/native"

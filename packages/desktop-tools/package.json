@@ -1,0 +1,103 @@
+{
+  "name": "@openagent/desktop-tools",
+  "version": "0.1.0",
+  "description": "Optional device execution and scoped capability transport for desktop hosts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./protocol": {
+      "types": "./dist/protocol.d.ts",
+      "default": "./dist/protocol.js"
+    },
+    "./host-bridge": {
+      "types": "./dist/host-bridge.d.ts",
+      "default": "./dist/host-bridge.js"
+    },
+    "./computer-scoped-tools": {
+      "types": "./dist/computer-scoped-tools.d.ts",
+      "default": "./dist/computer-scoped-tools.js"
+    },
+    "./computer-mcp-tools": {
+      "types": "./dist/computer-mcp-tools.d.ts",
+      "default": "./dist/computer-mcp-tools.js"
+    },
+    "./video": {
+      "types": "./dist/video-browser.d.ts",
+      "default": "./dist/video-browser.js"
+    },
+    "./electron-video": {
+      "types": "./dist/electron-video.d.ts",
+      "default": "./dist/electron-video.js"
+    },
+    "./livekit-publisher": {
+      "types": "./dist/livekit-publisher.d.ts",
+      "default": "./dist/livekit-publisher.js"
+    },
+    "./video-preload": {
+      "types": "./dist/video-preload.d.ts",
+      "default": "./dist/video-preload.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "native",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "node --test tests/*.test.cjs",
+    "build:native": "node scripts/stage-native.cjs"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.0",
+    "typescript": "^5.9.0",
+    "electron": "43.8.7",
+    "livekit-client": "2.22.1"
+  },
+  "license": "MIT",
+  "typesVersions": {
+    "*": {
+      "protocol": [
+        "dist/protocol.d.ts"
+      ],
+      "host-bridge": [
+        "dist/host-bridge.d.ts"
+      ],
+      "computer-scoped-tools": [
+        "dist/computer-scoped-tools.d.ts"
+      ],
+      "computer-mcp-tools": [
+        "dist/computer-mcp-tools.d.ts"
+      ],
+      "video": [
+        "dist/video-browser.d.ts"
+      ],
+      "electron-video": [
+        "dist/electron-video.d.ts"
+      ],
+      "livekit-publisher": [
+        "dist/livekit-publisher.d.ts"
+      ],
+      "video-preload": [
+        "dist/video-preload.d.ts"
+      ]
+    }
+  },
+  "peerDependencies": {
+    "electron": ">=41",
+    "livekit-client": ">=2.22.1"
+  },
+  "peerDependenciesMeta": {
+    "electron": {
+      "optional": true
+    },
+    "livekit-client": {
+      "optional": true
+    }
+  }
+}

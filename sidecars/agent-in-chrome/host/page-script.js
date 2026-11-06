@@ -4,7 +4,7 @@
 // It defines `window.__openagentChrome` with the DOM-side primitives the
 // structured tools need: an accessibility-tree renderer, natural-language
 // element finder, form setter, article-text extractor, and a stable element
-// ref map (ref_N ↔ element) backed by WeakRef so refs survive across tool
+// document-scoped ref map backed by WeakRef so refs survive across tool
 // calls without leaking. mcp-server.js calls these through Runtime.evaluate.
 //
 // This is a self-contained IIFE with no extension APIs — it runs as ordinary
@@ -16,23 +16,31 @@ export const PAGE_SCRIPT = String.raw`
   window.__openagentChromeLoaded = true;
 
   let refCounter = 0;
-  const elementMap = {};
+  // A ref from another tab or a previous document must never alias a fresh
+  // element merely because each page started its counter at one.
+  const refScope = Array.from(crypto.getRandomValues(new Uint32Array(4)), function (n) {
+    return n.toString(16).padStart(8, "0");
+  }).join("");
+  const elementMap = Object.create(null);
   const reverseMap = new WeakMap();
 
   function getOrAssignRef(el) {
     const existing = reverseMap.get(el);
     if (existing && elementMap[existing] && elementMap[existing].deref() === el) return existing;
-    const ref = "ref_" + (++refCounter);
+    const ref = "ref_" + refScope + "_" + (++refCounter);
     elementMap[ref] = new WeakRef(el);
     reverseMap.set(el, ref);
     return ref;
   }
 
   function resolveRef(refId) {
+    if (typeof refId !== "string") return null;
     const wr = elementMap[refId];
     if (!wr) return null;
     const el = wr.deref();
-    if (!el) { delete elementMap[refId]; return null; }
+    if (!el || !el.isConnected || el.ownerDocument !== document) {
+      delete elementMap[refId]; return null;
+    }
     return el;
   }
 
@@ -115,7 +123,7 @@ export const PAGE_SCRIPT = String.raw`
   function generateAccessibilityTree(options) {
     options = options || {};
     const filter = options.filter || "all";
-    const maxDepth = options.depth || 15;
+    const maxDepth = options.depth ?? 15;
     const maxChars = options.max_chars || 50000;
     const startRefId = options.ref_id || null;
 
@@ -233,7 +241,8 @@ export const PAGE_SCRIPT = String.raw`
   }
 
   function findElements(query) {
-    const q = String(query || "").toLowerCase();
+    const q = String(query || "").trim().toLowerCase();
+    if (!q) return [];
     const results = [];
 
     function collectAll(root) {
@@ -247,7 +256,6 @@ export const PAGE_SCRIPT = String.raw`
 
     const all = collectAll(document);
     for (const el of all) {
-      if (results.length >= 20) break;
       if (!isVisible(el)) continue;
       const tag = el.tagName.toLowerCase();
       if (["script","style","noscript","template"].includes(tag)) continue;
@@ -269,53 +277,84 @@ export const PAGE_SCRIPT = String.raw`
           role: role || tag,
           name: name || text.substring(0, 80),
           coordinates: [Math.round(rect.x + rect.width / 2), Math.round(rect.y + rect.height / 2)],
+          score: (isInteractive(el) ? 4 : 0) + (name.toLowerCase() === q ? 2 : 0),
         });
+        results.sort(function (a, b) { return b.score - a.score; });
+        if (results.length > 20) results.pop();
       }
     }
-    return results;
+    return results.map(function (result) {
+      const { score, ...value } = result;
+      return value;
+    });
   }
 
   function findInputInside(el) {
     const tag = el.tagName.toLowerCase();
-    if (["input","textarea","select"].includes(tag)) return el;
-    const root = el.shadowRoot || el;
-    const inner = root.querySelector("input, textarea, select");
-    if (inner) return inner;
-    for (const child of root.querySelectorAll("*")) {
-      if (child.shadowRoot) {
-        const deep = child.shadowRoot.querySelector("input, textarea, select");
-        if (deep) return deep;
+    if (["input","textarea","select"].includes(tag) || el.isContentEditable) return [el];
+    const found = [];
+    function collect(root) {
+      for (const child of root.querySelectorAll("*")) {
+        const tag = child.tagName.toLowerCase();
+        const editingHost = child.isContentEditable && !(child.parentElement && child.parentElement.isContentEditable);
+        if ((["input","textarea","select"].includes(tag) || editingHost) &&
+            isVisible(child) && !found.includes(child)) found.push(child);
+        if (child.shadowRoot) collect(child.shadowRoot);
       }
     }
-    return null;
+    collect(el);
+    if (el.shadowRoot) collect(el.shadowRoot);
+    return found;
   }
 
   function setFormValue(refId, value) {
     const el = resolveRef(refId);
     if (!el) return { error: "Element " + refId + " not found or was garbage collected." };
 
-    el.scrollIntoView({ block: "center", behavior: "instant" });
-    const target = findInputInside(el) || el;
+    const targets = findInputInside(el);
+    if (targets.length !== 1) return { error: targets.length ?
+      "Ambiguous form target: multiple editable fields. Use the field's own ref." :
+      "The referenced element contains no editable field." };
+    const target = targets[0];
+    if (target.disabled || target.matches(":disabled") || target.readOnly || target.getAttribute("aria-disabled") === "true") {
+      return { error: "The target field is disabled or read-only." };
+    }
+    if (!isVisible(target)) return { error: "The target field is not visible." };
     const tag = target.tagName.toLowerCase();
     const type = (target.type || "").toLowerCase();
 
     if (tag === "select") {
-      const opt = Array.from(target.options).find(function (o) { return o.value === String(value) || o.textContent.trim() === String(value); });
-      target.value = opt ? opt.value : String(value);
+      const options = Array.from(target.options);
+      let matches = options.filter(function (o) { return o.value === String(value); });
+      if (!matches.length) matches = options.filter(function (o) { return o.textContent.trim() === String(value); });
+      if (matches.length !== 1 || matches[0].disabled ||
+          (matches[0].parentElement && matches[0].parentElement.disabled)) {
+        return { error: "Select option is missing, ambiguous, or disabled." };
+      }
+      target.value = matches[0].value;
     } else if (type === "checkbox" || type === "radio") {
+      if (typeof value !== "boolean" && value !== "true" && value !== "false") {
+        return { error: "Checkbox/radio values must be boolean or true/false." };
+      }
       const shouldCheck = typeof value === "boolean" ? value : value === "true";
+      if (type === "radio" && target.checked && !shouldCheck) {
+        return { error: "Choose another radio option to change the selection." };
+      }
       if (target.checked !== shouldCheck) target.click();
+      if (target.checked !== shouldCheck) return { error: "The field did not accept the requested state." };
       return { success: true, checked: target.checked };
-    } else if (target.contentEditable === "true") {
+    } else if (target.isContentEditable) {
       target.textContent = String(value);
     } else if (["input","textarea"].includes(tag)) {
+      if (["file","button","submit","reset","image","hidden"].includes(type)) {
+        return { error: "This input type is not editable through form_input." };
+      }
       const proto = tag === "textarea" ? HTMLTextAreaElement.prototype : HTMLInputElement.prototype;
       const setter = Object.getOwnPropertyDescriptor(proto, "value") ? Object.getOwnPropertyDescriptor(proto, "value").set : null;
       if (setter) setter.call(target, String(value));
       else target.value = String(value);
     } else {
-      try { target.value = String(value); }
-      catch (e) { return { error: "Cannot set value on <" + tag + "> element. No input found inside." }; }
+      return { error: "The target is not an editable field." };
     }
 
     target.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
@@ -325,9 +364,20 @@ export const PAGE_SCRIPT = String.raw`
 
   function getRefCoordinates(refId) {
     const el = resolveRef(refId);
-    if (!el) return null;
+    if (!el || !isVisible(el) || el.disabled || el.matches(":disabled") || el.getAttribute("aria-disabled") === "true") return null;
+    el.scrollIntoView({ block: "center", behavior: "instant" });
     const rect = el.getBoundingClientRect();
-    return { x: Math.round(rect.x + rect.width / 2), y: Math.round(rect.y + rect.height / 2) };
+    if (rect.width <= 0 || rect.height <= 0) return null;
+    const x = Math.round(rect.x + rect.width / 2);
+    const y = Math.round(rect.y + rect.height / 2);
+    let hit = document.elementFromPoint(x, y);
+    while (hit && hit.shadowRoot && typeof hit.shadowRoot.elementFromPoint === "function") {
+      const inner = hit.shadowRoot.elementFromPoint(x, y);
+      if (!inner || inner === hit) break;
+      hit = inner;
+    }
+    if (!hit || (hit !== el && !el.contains(hit))) return null;
+    return { x: x, y: y };
   }
 
   function scrollToRef(refId) {

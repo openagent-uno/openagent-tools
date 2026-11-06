@@ -4,6 +4,17 @@
   — `openagent-mcp-client` 0.1.0b1 source candidate, preserving cancellation and
   programming errors independently of remote availability failures.
 
+- [Independent MCP stdio server starter](../examples/mcp-server/README.md) — installable example and real stdio contract test.
+
+## Architecture and use
+
+- [Agnostic architecture: mandatory in every OpenAgent repository](AGNOSTICISM.md)
+- [Component responsibilities, organization and communication](COMPONENTS.md)
+- [Using the kernel, clients, tools and runners](USAGE.md)
+
+
+- [Native accessibility snapshots and actions](native-accessibility.md) — device-tools `1.0.0b5` / computer-control `0.1.4` source candidate; actual owned AppKit acceptance, signed product adoption still separate.
+
 - [Native X11 typing: published Linux x64 component0.1.3 and native regression](native-x11-typing.md)
 - [Gmail central technical qualification](central-gmail-qualification-2026-10-22.md) — seven-operation composite evidence, corrected attachment limits and Google review still pending; general availability remains disabled.
 
@@ -51,8 +62,10 @@ Device-tools `1.0.0b2` adds `computer_list_windows` and
 returns current window ID, process ID, app/title, bounds and focus state; the
 second re-resolves that exact ID/process pair and returns a downsampled PNG or
 a stale-target error. They require the same verified client registration and
-OS screen-capture permission as the existing computer tool. The package still
-does not provide an accessibility tree or element-targeted native actions.
+OS screen-capture permission as the existing computer tool. The b2 package does not provide an accessibility tree or element-targeted native actions.
+The [b5 source candidate](native-accessibility.md) adds bounded macOS native AX
+snapshots and single-use element actions with explicit platform and permission
+errors; its publication and product adoption remain separate.
 Device-tools `1.0.0b3` also adds `computer_list_displays`. The `computer` tool
 accepts an exact `display_id` for pointer coordinates, cursor position and
 screenshots; call `computer_list_displays` first. Coordinates are relative to
@@ -116,3 +129,9 @@ supervised Chrome without closing that Chrome process. App and CLI behavior
 remains unchanged.
 
 - [Calendar and mail 0.1.7 prerelease](connector-calendar-mail-0.1.7-candidate.md) — operation subsets and remaining acceptance gates.
+
+- [Browser reference, form and transport reliability — source qualification, 30 October 2026](browser-reference-reliability.md).
+
+- [Browser launch, pipe transport and explicit host confinement adapters](browser-launch.md) — device-tools b9 source contract.
+
+- [Desktop execution, live media and native artifacts](desktop-tools.md)

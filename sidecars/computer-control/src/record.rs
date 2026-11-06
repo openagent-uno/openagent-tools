@@ -349,7 +349,7 @@ fn pace_to(deadline: &mut Instant, interval: Duration) {
     }
 }
 
-fn resize_rgba(
+pub(crate) fn resize_rgba(
     resizer: &mut Resizer,
     src: RgbaImage,
     out_w: u32,
@@ -417,7 +417,7 @@ impl<W: Write + Seek> MuxState<W> {
 ///
 /// Start codes are `0x00 0x00 0x00 0x01` or `0x00 0x00 0x01`. We do a simple
 /// linear scan — at the bitrates/sizes we encode at, this is fine.
-fn split_annexb(buf: &[u8]) -> Vec<&[u8]> {
+pub(crate) fn split_annexb(buf: &[u8]) -> Vec<&[u8]> {
     let mut out = Vec::new();
     let mut i = 0;
     let mut nal_start: Option<usize> = None;

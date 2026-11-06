@@ -1,0 +1,9 @@
+# Optional descriptive metadata. It grants no authority and installs no runtime.
+id: example-tools
+version: 0.2.0
+description: Independent MCP stdio example
+transport: stdio
+command: [python, -m, openagent_mcp_example]
+exports:
+  - name: hello
+    description: Return a greeting without external effects

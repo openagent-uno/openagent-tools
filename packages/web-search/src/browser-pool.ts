@@ -3,6 +3,8 @@ import { resolveChromiumExecutable } from './browser-executable.js';
 
 export class BrowserPool {
   private browsers: Map<string, Browser> = new Map();
+  private launches: Map<string, Promise<Browser>> = new Map();
+  private closing: Promise<void> | null = null;
   private maxBrowsers: number;
   private browserTypes: string[];
   private currentBrowserIndex = 0;
@@ -22,37 +24,33 @@ export class BrowserPool {
   }
 
   async getBrowser(): Promise<Browser> {
+    if (this.closing) await this.closing;
     // Rotate between browser types for variety
     const browserType = this.browserTypes[this.currentBrowserIndex % this.browserTypes.length];
     this.currentBrowserIndex++;
     this.lastUsedBrowserType = browserType;
 
-    if (this.browsers.has(browserType)) {
-      const browser = this.browsers.get(browserType)!;
-      
-      // Check if browser is still connected and healthy
-      try {
-        if (browser.isConnected()) {
-          // Quick health check by trying to create and close a context
-          // Use minimal options to avoid Firefox isMobile issues
-          const testContext = await browser.newContext({
-            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36'
-          });
-          await testContext.close();
-          return browser;
-        }
-      } catch (error) {
-        console.log(`[BrowserPool] Browser ${browserType} health check failed:`, error);
-        // Browser is unhealthy, remove it and close if possible
-        this.browsers.delete(browserType);
-        try {
-          await browser.close();
-        } catch (closeError) {
-          console.log(`[BrowserPool] Error closing unhealthy browser:`, closeError);
-        }
-      }
+    const pending = this.launches.get(browserType);
+    if (pending) return pending;
+    const previous = this.browsers.get(browserType);
+    if (previous?.isConnected()) return previous;
+    // Publish ownership before another acquisition can race the launch. A
+    // map entry containing only completed launches loses all but the last
+    // browser when a batch reaches this point concurrently.
+    const launch = this.launchBrowser(browserType, previous);
+    this.launches.set(browserType, launch);
+    try {
+      return await launch;
+    } finally {
+      if (this.launches.get(browserType) === launch) this.launches.delete(browserType);
     }
+  }
 
+  private async launchBrowser(browserType: string, previous?: Browser): Promise<Browser> {
+    if (previous) {
+      this.browsers.delete(browserType);
+      await previous.close().catch(error => console.error('Error closing disconnected browser:', error));
+    }
     // Launch new browser
     console.log(`[BrowserPool] Launching new ${browserType} browser`);
     
@@ -126,16 +124,18 @@ export class BrowserPool {
   }
 
   async closeAll(): Promise<void> {
-    console.log(`[BrowserPool] Closing ${this.browsers.size} browsers`);
-    
-    const closePromises = Array.from(this.browsers.values()).map(browser => 
-      browser.close().catch(error => 
-        console.error('Error closing browser:', error)
-      )
-    );
-    
-    await Promise.all(closePromises);
-    this.browsers.clear();
+    if (this.closing) return this.closing;
+    const closing = (async () => {
+      // A launch already belongs to this pool even before Playwright returns.
+      await Promise.allSettled([...this.launches.values()]);
+      const browsers = new Set(this.browsers.values());
+      console.log(`[BrowserPool] Closing ${browsers.size} browsers`);
+      await Promise.all([...browsers].map(browser => browser.close().catch(error =>
+        console.error('Error closing browser:', error))));
+      this.browsers.clear();
+    })();
+    this.closing = closing;
+    try { await closing; } finally { this.closing = null; }
   }
 
   getLastUsedBrowserType(): string {

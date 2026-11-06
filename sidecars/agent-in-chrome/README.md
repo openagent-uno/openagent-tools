@@ -20,6 +20,27 @@ same surface the extension wrapped, minus every failure mode above.
 
 ## Design guarantees
 
+A trusted host without a usable GPU can set `OPENAGENT_CHROME_RENDERER=software`.
+The default preserves Chromium's normal rendering selection. Software mode uses
+SwiftShader/CPU rendering explicitly; it does not retry a failed browser, expose
+a TCP debugger or change the host's confinement policy. Unknown values fail.
+The Mac ARM boundary qualification uses the official standalone headless shell
+and checks real DOM, screenshots, private pipes and denial of an outside file.
+The complete graphical application can require additional host-owned graphics
+resources even in headless mode; software rendering does not itself grant them.
+`chrome-headless-shell` and `chrome-headless-shell.exe` use their native headless
+engine on every platform, rather than requesting the separate unified engine.
+
+Before confining a macOS browser, a trusted host can invoke
+`node macos-host-requirements.js --binary /absolute/browser --profile /absolute/profile`.
+The JSON descriptor declares the exact App Shim Mach registration name derived
+from that browser's bundle identifier and profile. Chromium requires this IPC
+even for headless operation. The host owns the decision to grant this literal
+name. A separate narrow vendor rendezvous prefix is declared because Chromium
+names those per-process endpoints using the child PID. The standalone headless
+shell needs that rendezvous prefix but no App Shim service. The SDK never
+installs policy or authorizes a host; the host must review the declared resources.
+
 - **Lazy** — the browser launches on the *first browser tool call*, never at
   server startup. Nothing pops up until the agent decides to use it.
 - **Owned reuse** — reconnect only when Chrome's `DevToolsActivePort` marker in
@@ -47,6 +68,7 @@ same surface the extension wrapped, minus every failure mode above.
 | `browser.js`     | binary resolution, lazy launch, owned-CDP discovery, signed CRX3 verification. |
 | `cdp.js`         | minimal CDP-over-`ws` client (flattened sessions, id/event routing). |
 | `page-script.js` | in-page helpers (a11y tree, find, form_input, page text, ref map).   |
+| `navigation.js`  | `navigate` URL gate: http(s) and browser pages only, never local files. |
 
 ## Config (env)
 
@@ -56,19 +78,63 @@ same surface the extension wrapped, minus every failure mode above.
   browser when a product explicitly registers it as a durable host capability.
   Omitted for the normal App/CLI device capability. The flag changes only MCP
   instructions; it does not alter profile ownership or grant remote access.
+- `OPENAGENT_CHROME_PROFILE_EXCLUSIVE=1` — the embedding host guarantees a single
+  writer for this profile (for example one container at a time on a mounted
+  volume). A Chromium `SingletonLock` naming another host is then stale and is
+  removed before launch, instead of leaving the profile "in use by another
+  computer" forever. Without it, locks are left to Chromium.
+- `OPENAGENT_CHROME_CLOSE_GRACE_MS` (default 10000) — after `Browser.close`, how
+  long a launched browser may take to flush cookies and release its profile lock
+  before its process group is killed.
 - `OPENAGENT_BROWSER_EXTERNAL=1` — when the server attaches to an independently
   supervised Chrome using a verified profile marker, disconnect the MCP without
   closing that browser. The normal sidecar-owned browser still closes on exit.
-- `OPENAGENT_CHROME_PROXY` — egress proxy for page traffic, a Chrome
-  `--proxy-server` string (e.g. `socks5://127.0.0.1:1080`). Loopback is always
-  bypassed. NB: Chromium can't authenticate to SOCKS5 directly — front an
-  authenticated upstream with a local no-auth shim, or use a proxy *extension*
-  (see below) that handles its own auth.
+- `OPENAGENT_CHROME_PROXY` — egress proxy for page traffic: `http://`, `https://`
+  or `socks5://` URL. Loopback is always bypassed and WebRTC is limited to
+  proxied UDP so it cannot reveal the host address. Credentials in the URL
+  (`http://user:pass@host:port`, `socks5://user:pass@host:port`) are supported:
+  Chromium accepts none on `--proxy-server` (and cannot authenticate to SOCKS5),
+  so the sidecar starts a loopback relay (`proxy-relay.js`) that opens every
+  tunnel through the upstream with those credentials. Chrome only sees
+  `http://127.0.0.1:<cdp port + 1>`; credentials stay out of its command line
+  and logs. A proxy/VPN *extension* (see below) remains an alternative for
+  providers that only ship one.
 
 Chrome, Chromium, Brave, or Edge must already be installed on every supported
 OS/architecture unless `OPENAGENT_CHROME_BINARY` points at another trusted
 Chromium-compatible executable. This includes Linux/Windows ARM64: Agent in
 Chrome never substitutes an x64 snapshot or downloads a mutable fallback.
+
+## Interactive session and live view
+
+`openagent-browser-session` (device-tools console script, `host/browser-session.js`)
+opens the same dedicated browser without a model — same profile, flags and egress
+proxy — for a person to sign in, pass a site verification or configure the profile
+once. It serves a WebSocket live view at `/live` (and `GET /health`):
+
+- Authentication: `Authorization: Bearer $OPENAGENT_BROWSER_LIVE_TOKEN` (required,
+  ≥ 32 characters). The host that started the session proxies its own users to it.
+- Out: each frame is a **binary** WebSocket message (JPEG bytes); text messages are
+  `{"type":"viewport","width","height"}`, `{"type":"page","url"}`, `{"type":"ready"}`,
+  `{"type":"error"}`, `{"type":"closed","status"}`.
+- Flow control: after showing a frame the viewer sends `{"type":"frame_ack"}`; at most
+  `--frames-in-flight` (1–4, default 2) frames are unacknowledged and newer frames
+  replace the pending one, so a slow link never queues frames (a viewer silent for
+  5 s is resumed). `--quality` (20–95,
+  default 60) and `--max-width` (320–2560, default 1280) size the stream.
+- In: `mouse` (`press|release|move`, `x`/`y` normalized 0–1), `wheel` (`dx`, `dy`),
+  `text` (inserted text), `key` (Enter, Backspace, Tab, Escape, Delete, arrows,
+  Home/End/PageUp/PageDown with modifiers), `navigate` (http/https), `back`, `done`.
+- `done`, `--timeout` (30–86400 s) or SIGTERM close the browser cleanly so cookies
+  are flushed; stdout ends with `{"status": ...}`. The view follows popups (OAuth).
+
+```sh
+OPENAGENT_BROWSER_LIVE_TOKEN=... OPENAGENT_CHROME_PROFILE_DIR=/profiles/chrome \
+  openagent-browser-session --url https://example.com/login --listen 0.0.0.0:9300
+```
+
+Credentials typed by the person go to the site only; the session neither reads nor
+stores them, and the agent never receives the live-view token.
 
 ## Extensions
 
@@ -101,6 +167,15 @@ scroll/screenshot/drag/hover/zoom), `find`, `read_page`, `get_page_text`,
 `form_input`, `javascript_tool`, `read_console_messages`,
 `read_network_requests`, `resize_window`, `upload_image`,
 `install_extension`, `remove_extension`, `list_extensions`.
+
+`navigate` accepts http(s) URLs (a bare host gets `https://`) and the browser's
+own `about:`/`chrome:` pages. It refuses `file:`, `filesystem:`, `view-source:`,
+`blob:`, `data:` and `javascript:`: the browser runs as the host account, so a
+local-file URL would expose whatever that account can read (agent configuration,
+mounted credentials). Pages cannot open local files themselves; Chromium blocks
+page-initiated `file:` navigations, fetches and popups (covered by
+`navigation.test.mjs` against a real browser). Hosts that want a browser-wide
+backstop can also set the Chromium `URLBlocklist` policy to `["file://*"]`.
 
 Token discipline: prefer `find` + `read_page` + `get_page_text` (structured,
 cheap) to locate and read; take a `computer` screenshot only when you need to

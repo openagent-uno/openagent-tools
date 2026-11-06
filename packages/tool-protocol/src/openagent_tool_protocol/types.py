@@ -23,6 +23,8 @@ class ToolManifest:
         default_factory=dict
     )
 
+    metadata: dict[str, Any] = field(default_factory=dict)
+
     def classification_for(self, arguments: dict[str, Any]) -> ToolClassification:
         """Resolve the conservative classification for one concrete invocation.
 
@@ -58,6 +60,8 @@ class ToolManifest:
             "input_schema": self.input_schema,
             "classification": self.classification.value,
         }
+        if self.metadata:
+            value["_meta"] = self.metadata
         if self.classification_by_argument:
             value["classification_by_argument"] = {
                 argument: {
@@ -81,6 +85,7 @@ class HostMcpManifest:
     os_requirements: tuple[str, ...] = ()
     data_directory: str | None = None
     manifest_version: int = 1
+    resource_protocol: str | None = None
 
     @property
     def id(self) -> str:
@@ -95,6 +100,8 @@ class HostMcpManifest:
             "instructions": self.instructions,
             "tools": [tool.to_wire() for tool in self.tools],
         }
+        if self.resource_protocol:
+            value["resource_protocol"] = self.resource_protocol
         if not self.available:
             value["available"] = False
             if self.unavailable_reason:

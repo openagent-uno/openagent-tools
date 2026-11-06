@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
-import { Page } from 'playwright';
+import { BrowserContext, Page } from 'playwright';
+import pLimit from 'p-limit';
 import { ContentExtractionOptions, SearchResult } from './types.js';
 import { cleanText, getWordCount, getContentPreview, generateTimestamp, isPdfUrl } from './utils.js';
 import { BrowserPool } from './browser-pool.js';
@@ -12,6 +13,7 @@ export class EnhancedContentExtractor {
   private browserPool: BrowserPool;
   private fallbackThreshold: number;
   private readonly urlGuard: UrlGuardOptions;
+  private readonly browserLimit = pLimit(2);
 
   constructor(urlGuard: UrlGuardOptions = {}) {
     this.urlGuard = urlGuard;
@@ -99,10 +101,15 @@ export class EnhancedContentExtractor {
   }
 
   private async extractWithBrowser(options: ContentExtractionOptions): Promise<string> {
+    return this.browserLimit(() => this.extractBrowserRequest(options));
+  }
+
+  private async extractBrowserRequest(options: ContentExtractionOptions): Promise<string> {
     const { url, timeout = this.defaultTimeout } = options;
     
     const browser = await this.browserPool.getBrowser();
     const browserType = this.browserPool.getLastUsedBrowserType();
+    let context: BrowserContext | undefined;
     
     try {
       // Create context options based on browser capabilities
@@ -126,7 +133,7 @@ export class EnhancedContentExtractor {
         : { ...baseContextOptions, isMobile: Math.random() > 0.8 };
 
       // Create a new context for each request (isolation)
-      const context = await browser.newContext(contextOptions);
+      context = await browser.newContext(contextOptions);
 
       // Add stealth scripts to avoid detection
       await context.addInitScript(() => {
@@ -171,7 +178,6 @@ export class EnhancedContentExtractor {
         await this.navigateGuarded(page, url, Math.min(timeout, 8000));
       } catch (gotoError) {
         if (gotoError instanceof BlockedUrlError) {
-          await context.close();
           throw gotoError;
         }
         // Handle specific protocol errors
@@ -182,6 +188,7 @@ export class EnhancedContentExtractor {
           
           // Create a new context with HTTP/1.1 preference
           await context.close();
+          context = undefined;
           const http1Context = await browser.newContext({
             userAgent: this.getRandomUserAgent(),
             viewport: this.getRandomViewport(),
@@ -193,21 +200,14 @@ export class EnhancedContentExtractor {
             }
           });
           
-          const http1Page = await http1Context.newPage();
-
-          // Disable HTTP/2 by intercepting requests
           try {
+            const http1Page = await http1Context.newPage();
             await this.navigateGuarded(http1Page, url, Math.min(timeout, 6000));
-          } catch (http1Error) {
-            await http1Context.close();
-            throw http1Error;
+            const html = await http1Page.content();
+            return this.parseContent(html);
+          } finally {
+            await http1Context.close().catch(error => console.error('Error closing alternate extraction context:', error));
           }
-          
-          // Quick content extraction
-          const html = await http1Page.content();
-          const content = this.parseContent(html);
-          await http1Context.close();
-          return content;
         } else {
           throw gotoError;
         }
@@ -232,12 +232,13 @@ export class EnhancedContentExtractor {
       const html = await page.content();
       const content = this.parseContent(html);
 
-      await context.close();
       return content;
 
     } catch (error) {
       console.error(`[BrowserExtractor] Browser extraction failed for ${url}:`, error);
       throw error;
+    } finally {
+      await context?.close().catch(error => console.error('Error closing extraction context:', error));
     }
   }
 
@@ -477,17 +478,13 @@ export class EnhancedContentExtractor {
     // Process results concurrently with timeout
     const extractionPromises = resultsToProcess.map(async (result): Promise<SearchResult> => {
       try {
-        // Use a race condition with timeout to prevent hanging
-        const extractionPromise = this.extractContent({ 
+        // Await resource cleanup as part of completion. Racing a detached
+        // timer only hid slow work while its browser contexts kept running.
+        const content = await this.extractContent({
           url: result.url, 
           timeout: 6000 // Reduced timeout to 6 seconds per page
         });
         
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Content extraction timeout')), 8000);
-        });
-        
-        const content = await Promise.race([extractionPromise, timeoutPromise]);
         const cleanedContent = cleanText(content, this.maxContentLength);
         
         console.log(`[EnhancedContentExtractor] Successfully extracted: ${result.url}`);

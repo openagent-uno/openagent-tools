@@ -95,6 +95,26 @@ COMPUTER_CONTROL_MANIFEST = ServerManifest(
             ToolClassification.READ_ONLY,
         ),
         ToolManifest(
+            "computer_accessibility_snapshot",
+            "Read a bounded native accessibility tree for an exact window_id/pid. macOS only; requires Accessibility and Screen Recording permission. Element handles expire after 120 seconds and are single-use for actions.",
+            _object({"window_id": {"type": "integer", "minimum": 0},
+                     "pid": {"type": "integer", "minimum": 1},
+                     "max_depth": {"type": "integer", "minimum": 1, "maximum": 30},
+                     "max_nodes": {"type": "integer", "minimum": 1, "maximum": 1000}},
+                    ["window_id", "pid"]),
+            ToolClassification.READ_ONLY,
+        ),
+        ToolManifest(
+            "computer_accessibility_action",
+            "Use one snapshot-bound native element for press, show_menu or set_value. macOS only. Exact target and state are revalidated; an attempt consumes the snapshot even on failure, and mutations are never automatically retried.",
+            _object({"snapshot_id": {"type": "string", "maxLength": 128},
+                     "element_id": {"type": "string"},
+                     "action": {"type": "string", "enum": ["press", "show_menu", "set_value"]},
+                     "value": {"type": "string", "maxLength": 16384}},
+                    ["snapshot_id", "element_id", "action"]),
+            ToolClassification.MUTATING,
+        ),
+        ToolManifest(
             "computer_capture_window",
             "Capture one current window by exact window and process IDs.",
             _object({"window_id": {"type": "integer", "minimum": 0},
@@ -303,12 +323,21 @@ def _authoritative_catalog(base: ServerManifest) -> ServerManifest:
                 ToolManifest(
                     name=name,
                     description=str(tool.get("description") or ""),
+                    metadata=dict(tool.get("_meta") or {}),
                     input_schema=dict(tool.get("input_schema") or {"type": "object"}),
                     classification=ToolClassification(
                         tool.get("classification", ToolClassification.MUTATING.value)
                     ),
                     classification_by_argument=(
-                        fallback.classification_by_argument if fallback is not None else {}
+                        {
+                            str(argument): {
+                                str(value): ToolClassification(classification)
+                                for value, classification in options.items()
+                            }
+                            for argument, options in tool["classification_by_argument"].items()
+                        }
+                        if "classification_by_argument" in tool
+                        else fallback.classification_by_argument if fallback is not None else {}
                     ),
                 )
             )

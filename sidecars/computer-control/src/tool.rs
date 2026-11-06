@@ -1,8 +1,7 @@
-//! The single `computer` MCP tool. Dispatcher over capture + input.
+//! Native computer MCP tools. Dispatcher over capture, input and accessibility.
 //!
-//! Tool surface is byte-identical to the Node implementation at
-//! ../src/tools/computer.ts — action enum, parameter names, scroll syntax,
-//! coordinate-scaling behavior, crosshair overlay.
+//! The original coordinate actions preserve their existing protocol. Native AX
+//! snapshots/actions use a separate explicitly targeted, single-use contract.
 
 use anyhow::{Context, Result, anyhow};
 use rmcp::{
@@ -17,7 +16,7 @@ use std::collections::HashMap;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
-use crate::{capture, input, record, scaling};
+use crate::{accessibility, advanced, capture, input, record, scaling};
 
 /// All actions supported by the `computer` tool.
 /// Names are snake_case to match the MCP protocol surface (= TS enum values).
@@ -129,6 +128,12 @@ impl DisplayIdentity {
 // below because the rmcp #[tool] macro only accepts string literals (not const paths).
 // Do NOT edit the wording without discussion — it shapes Claude's prompting.
 
+// Dropping a cancelled MCP future marks both queued and active native workers.
+struct AccessibilityCancellationGuard(Arc<std::sync::atomic::AtomicBool>);
+impl Drop for AccessibilityCancellationGuard {
+    fn drop(&mut self) { self.0.store(true, std::sync::atomic::Ordering::SeqCst); }
+}
+
 /// The rmcp server struct that holds the tool router and shared input controller.
 ///
 /// The `InputController` is lazily initialized on the first tool call that needs it,
@@ -145,6 +150,8 @@ pub struct ComputerControlServer {
     recording: Arc<Mutex<Option<record::RecordingSession>>>,
     /// Exact display identities last returned by computer_list_displays.
     discovered_displays: Arc<std::sync::Mutex<HashMap<u32, DisplayIdentity>>>,
+    accessibility: Arc<std::sync::Mutex<accessibility::AccessibilityService>>,
+    native_requests: Arc<std::sync::Mutex<()>>,
 }
 
 #[tool_router(router = tool_router)]
@@ -156,6 +163,8 @@ impl ComputerControlServer {
             input: Arc::new(Mutex::new(None)),
             recording: Arc::new(Mutex::new(None)),
             discovered_displays: Arc::new(std::sync::Mutex::new(HashMap::new())),
+            accessibility: Arc::new(std::sync::Mutex::new(accessibility::AccessibilityService::default())),
+            native_requests: Arc::new(std::sync::Mutex::new(())),
         }
     }
 
@@ -187,6 +196,70 @@ impl ComputerControlServer {
         }
     }
 
+    /// Read native elements with references bound to this exact window/process.
+    #[tool(annotations(read_only_hint = true), description = "Read a bounded native accessibility tree of one exact window_id/pid from computer_list_windows. macOS only; other systems return accessibility_unsupported_platform. Requires Accessibility and Screen Recording permission. Returns element_id handles, supported actions, truncation and a snapshot_id expiring in 120 seconds. Each snapshot is single-use for actions. A fresh snapshot supersedes the previous snapshot of that window. Secure field values are omitted. No coordinate fallback.")]
+    pub async fn computer_accessibility_snapshot(&self, params: Parameters<accessibility::SnapshotArgs>) -> CallToolResult {
+        let service = self.accessibility.clone();
+        let cancelled = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let _guard = AccessibilityCancellationGuard(cancelled.clone());
+        let result = tokio::task::spawn_blocking(move || service.lock().map_err(|_| anyhow!("accessibility state lock poisoned"))?.snapshot(params.0, cancelled)).await;
+        match result {
+            Ok(Ok(value)) => CallToolResult::success(vec![Content::text(value.to_string())]),
+            Ok(Err(error)) => CallToolResult::error(vec![Content::text(format!("{error:#}"))]),
+            Err(error) => CallToolResult::error(vec![Content::text(format!("accessibility_worker_failed: {error}"))]),
+        }
+    }
+
+    /// Native actions never target an inferred coordinate or a replacement app.
+    #[tool(description = "Perform press, show_menu or set_value on an element from computer_accessibility_snapshot. Pass its snapshot_id and element_id. macOS only. Exact window, process, element ownership and observed state are revalidated before acting. set_value requires an editable non-secure field and a value of at most 16 KiB. The snapshot is consumed once an attempt starts, including failures; inspect a fresh snapshot before any follow-up or retry. Actions are never automatically retried or replaced with mouse/keyboard input.")]
+    pub async fn computer_accessibility_action(&self, params: Parameters<accessibility::ActionArgs>) -> CallToolResult {
+        let service = self.accessibility.clone();
+        let cancelled = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        // Dropping an MCP future cannot stop an in-flight native IPC call. Mark
+        // cancellation so a queued/validating worker cannot mutate afterwards.
+        let _guard = AccessibilityCancellationGuard(cancelled.clone());
+        let result = tokio::task::spawn_blocking(move || {
+            if cancelled.load(std::sync::atomic::Ordering::SeqCst) { return Err(anyhow!("accessibility_cancelled")); }
+            service.lock().map_err(|_| anyhow!("accessibility state lock poisoned"))?.action(params.0, cancelled)
+        }).await;
+        match result {
+            Ok(Ok(value)) => CallToolResult::success(vec![Content::text(value.to_string())]),
+            Ok(Err(error)) => CallToolResult::error(vec![Content::text(format!("{error:#}"))]),
+            Err(error) => CallToolResult::error(vec![Content::text(format!("accessibility_worker_failed: {error}"))]),
+        }
+    }
+
+    #[tool(annotations(read_only_hint = true), description = "List launchable macOS application bundles from standard application directories and running apps. Returns fresh opaque app_ref handles bound to exact canonical bundle/executable versions and expiring after10minutes; the host must bind each handle to the originating principal. Coverage/truncation are explicit; no private LaunchServices enumeration or executable path argument.")]
+    pub async fn computer_list_apps(&self)->CallToolResult { self.native_request_tool(serde_json::json!({"op":"list_apps"})).await }
+
+    #[tool(description = "Launch/activate exactly one observed macOS app_ref. Its canonical bundle/executable identity is revalidated and the ref consumed before submitting to NSWorkspace. Returns a fresh app_ref and confirmed PID. A timeout is indeterminate: inspect current apps before another launch; never automatically replay.")]
+    pub async fn computer_launch_app(&self,params:Parameters<advanced::LaunchArgs>)->CallToolResult {let a=params.0;self.native_request_tool(serde_json::json!({"op":"launch_app","app_ref":a.app_ref,"activate":a.activate})).await}
+
+    #[tool(annotations(read_only_hint = true),description = "Report native macOS OS grants, exact app identity and actual input/clipboard/system-audio backend support. Optional app_ref must belong to this host principal. This is capability/permission reporting, not an OpenAI risk/approval service; current host authorization is always required and no tool argument grants it.")]
+    pub async fn computer_app_policy(&self,params:Parameters<advanced::PolicyArgs>)->CallToolResult {let mut a=serde_json::json!({"op":"app_policy"});if let Some(id)=params.0.app_ref{a["app_ref"]=serde_json::json!(id);}self.native_request_tool(a).await}
+
+    #[tool(description = "Send bounded native input to one exact single-use window snapshot. input.action is explicit focus, key, type, click, drag or scroll. Other actions require that same app/window already focused; events target its PID and never another app. Coordinates are window-relative logical points. Physical key chords are explicit macOS key names. Snapshot/process/window/state are revalidated; partial/uncertain input is not replayed.")]
+    pub async fn computer_window_input(&self,params:Parameters<advanced::WindowInputArgs>)->CallToolResult {let a=params.0;self.native_mutation(a.snapshot_id,a.element_id.unwrap_or_else(||"element-0".into()),accessibility::Mutation::Input(a.input)).await}
+
+    #[tool(description = "Select text in one observed native non-secure field. Pass either UTF-16 start+length or one exact text match optionally disambiguated by adjacent prefix/suffix; mode text/before/after selects the match or caret. Surrogate-splitting, out-of-range and ambiguous matches fail. Requires exact app/window focus and a writable native selection range; no clipboard or coordinate fallback. Consumes snapshot.")]
+    pub async fn computer_select_text(&self,params:Parameters<advanced::SelectArgs>)->CallToolResult {let a=params.0;self.native_mutation(a.snapshot_id,a.element_id,accessibility::Mutation::Select(a.selection)).await}
+
+    #[tool(description = "Perform exactly one native_action advertised on the observed element, including secondary actions such as AXRaise/AXIncrement/AXDecrement when available. Exact identity/state/ownership are revalidated and snapshot consumed. Never guess action names or repeat an uncertain mutation.")]
+    pub async fn computer_perform_action(&self,params:Parameters<advanced::PerformArgs>)->CallToolResult {let a=params.0;self.native_mutation(a.snapshot_id,a.element_id,accessibility::Mutation::ObservedAction(a.native_action)).await}
+
+    #[tool(description = "Paste explicit rich clipboard representations into an exact observed focused field. items contains1..4 unique MIME/base64 representations: text/plain,text/html,text/rtf,image/png,8MiB total. Saves all existing clipboard items/types privately before mutation, sends Cmd+V to the selected PID, and restores previous content only if no external clipboard change intervened. Original clipboard data is never returned. Restoration/resource limits fail before writing. Crash/uncertain paste is never automatically replayed; inspect result/target.")]
+    pub async fn computer_paste(&self,params:Parameters<advanced::PasteArgs>)->CallToolResult {let a=params.0;self.native_mutation(a.snapshot_id,a.element_id,accessibility::Mutation::Paste(a.items)).await}
+
+    #[tool(description = "Start authorized native loopback/system-output audio capture on macOS13+ using ScreenCaptureKit; never uses microphone. source must be system_output and choose exactly one owned app_ref or explicit all_system_output:true. Missing source never widens capture. Requires current host audio consent and Screen Recording/System Audio OS grant. Returns owned recording_id,source provenance,24kHz stereo WAV metadata; max_duration_ms default60000,max300000 auto-stops. No video frames are saved.")]
+    pub async fn computer_audio_start(&self,params:Parameters<advanced::AudioStartArgs>)->CallToolResult {
+        let a=params.0;
+        if a.source!="system_output"||a.app_ref.is_some()==a.all_system_output||!(1..=300000).contains(&a.max_duration_ms){return CallToolResult::error(vec![Content::text("invalid_audio_source: source=system_output and exactly one app_ref or all_system_output:true required; duration1..300000ms")]);}
+        let mut value=serde_json::json!({"op":"audio_start","source":a.source,"all_system_output":a.all_system_output,"max_duration_ms":a.max_duration_ms});if let Some(id)=a.app_ref{value["app_ref"]=serde_json::json!(id);}self.native_request_tool(value).await
+    }
+
+    #[tool(description = "Stop exactly one owned native recording_id and return provenance plus MCP WAV audio. return_audio:false stops/releases the resource without emitting audio content (owned artifact is retained). Unknown,wrong-owner or consumed resources fail; missing/no-sample/OS capture errors are explicit and are not claimed as successful recordings.")]
+    pub async fn computer_audio_stop(&self,params:Parameters<advanced::AudioStopArgs>)->CallToolResult {let a=params.0;self.native_request_tool(serde_json::json!({"op":"audio_stop","recording_id":a.recording_id,"return_audio":a.return_audio})).await}
+
     /// Capture an exact window rather than guessing screen coordinates.
     #[tool(annotations(read_only_hint = true), description = "Capture a PNG of one window on this verified client computer. Use the exact window_id and pid returned by computer_list_windows; the call fails if the pair no longer exists. The image is downsampled to model limits. Requires Screen Recording permission where the OS does.")]
     pub async fn computer_capture_window(&self, params: Parameters<WindowArgs>) -> CallToolResult {
@@ -212,6 +285,16 @@ impl ServerHandler for ComputerControlServer {
 }
 
 impl ComputerControlServer {
+    async fn native_request_tool(&self,arguments:serde_json::Value)->CallToolResult {
+        let serial=self.native_requests.clone();let cancelled=Arc::new(std::sync::atomic::AtomicBool::new(false));let _guard=AccessibilityCancellationGuard(cancelled.clone());
+        let result=tokio::task::spawn_blocking(move||{let _serial=serial.lock().map_err(|_|anyhow!("native request lock poisoned"))?;advanced::request(arguments,cancelled,None)}).await;
+        native_result(result)
+    }
+    async fn native_mutation(&self,snapshot:String,element:String,mutation:accessibility::Mutation)->CallToolResult {
+        let service=self.accessibility.clone();let cancelled=Arc::new(std::sync::atomic::AtomicBool::new(false));let _guard=AccessibilityCancellationGuard(cancelled.clone());
+        let result=tokio::task::spawn_blocking(move||service.lock().map_err(|_|anyhow!("accessibility state lock poisoned"))?.mutate(snapshot,element,mutation,cancelled)).await;
+        native_result(result)
+    }
     fn list_displays(&self) -> Result<CallToolResult> {
         let monitors = xcap::Monitor::all().context("list desktop displays")?;
         let mut rows = Vec::new();
@@ -600,4 +683,15 @@ fn ok() -> CallToolResult {
 fn base64_encode(bytes: &[u8]) -> String {
     use base64::{Engine, engine::general_purpose::STANDARD};
     STANDARD.encode(bytes)
+}
+
+fn native_result(result:std::result::Result<anyhow::Result<serde_json::Value>,tokio::task::JoinError>)->CallToolResult {
+ match result {
+  Ok(Ok(mut value))=>{
+   let audio=value.as_object_mut().and_then(|m|m.remove("data_base64")).and_then(|v|v.as_str().map(str::to_owned));
+   let mut content=vec![Content::text(value.to_string())];
+   if let Some(data)=audio {match serde_json::from_value(serde_json::json!({"type":"audio","data":data,"mimeType":"audio/wav"})){Ok(audio)=>content.push(audio),Err(error)=>return CallToolResult::error(vec![Content::text(format!("audio_encoding_failed:{error}"))])}}
+   CallToolResult::success(content)
+  },Ok(Err(error))=>CallToolResult::error(vec![Content::text(format!("{error:#}"))]),Err(error)=>CallToolResult::error(vec![Content::text(format!("native_worker_failed:{error}"))])
+ }
 }
