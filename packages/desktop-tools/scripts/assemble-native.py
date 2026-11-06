@@ -22,7 +22,7 @@ def main():
             root=manifest.parent/role['root'];entries=list(root.rglob('*'));assert not any(path.is_symlink() for path in entries)
             actual={path.relative_to(root).as_posix():digest(path) for path in entries if path.is_file()}
             assert actual==role['files'],'Native inventory changed in artifact transport'
-        notice=(manifest.parent/'THIRD_PARTY_NOTICES.txt').read_bytes()
+        notice=(manifest.parent/'THIRD_PARTY_NOTICES.txt').read_bytes().replace(b'\r\n',b'\n')
         if notices is None:notices=notice
         assert notice==notices,'Native dependency notices differ across targets'
         manifests[target]=artifact;payloads[target]=manifest.parent/target
