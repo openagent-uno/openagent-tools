@@ -159,6 +159,7 @@ var catalogEntries = []CatalogEntry{
 		SetupURL: "https://os.spicysparks.com", SetupInstructions: "Use a company API key. Accounting actions require a matching company ID and an accounting grant configured by the host.",
 		ReadTools: []string{
 			"commerce.buddybooks.documents.list", "commerce.buddybooks.invoices.list", "commerce.buddybooks.parties.list",
+			"commerce.buddybooks.documents.status",
 			"commerce.buddybooks.receipts.preview", "commerce.buddybooks.purchases.preview", "commerce.buddybooks.us_purchases.preview",
 		},
 		AgentTools: []string{

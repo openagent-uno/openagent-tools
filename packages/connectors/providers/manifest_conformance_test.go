@@ -60,7 +60,7 @@ func TestBuiltInManifestConformance(t *testing.T) {
 				}
 				arguments := conformanceArguments(specification)
 				invocation := testInvocation(t, manifest, operation, arguments)
-				if manifest.Provider == "buddybooks" && specification.Method == http.MethodPost {
+				if manifest.Provider == "buddybooks" && (specification.Method == http.MethodPost || specification.Name == buddyBooksDocumentStatus) {
 					invocation.Connection.ExternalID = "11111111-1111-4111-8111-111111111111"
 					invocation.Idempotency = "33333333-3333-4333-8333-333333333333"
 				}
@@ -689,6 +689,8 @@ func TestFixedOriginsRejectInternalAndAmbiguousHosts(t *testing.T) {
 
 func conformanceArguments(specification OperationManifest) json.RawMessage {
 	switch specification.Name {
+	case buddyBooksDocumentStatus:
+		return json.RawMessage(`{"documentId":"22222222-2222-4222-8222-222222222222"}`)
 	case buddyBooksPrefix + "suppliers.upsert":
 		return json.RawMessage(`{"name":"Example Supplier","country":"IT","address":"Example Street 1","postalCode":"01234","city":"Example City","taxCode":"EXAMPLE"}`)
 	case buddyBooksPrefix + "receipts.preview", buddyBooksPrefix + "receipts.register":

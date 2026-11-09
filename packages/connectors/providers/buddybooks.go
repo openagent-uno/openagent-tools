@@ -15,6 +15,7 @@ import (
 )
 
 const buddyBooksPrefix = "commerce.buddybooks."
+const buddyBooksDocumentStatus = buddyBooksPrefix + "documents.status"
 
 var (
 	buddyBooksKey      = regexp.MustCompile(`^sps_live_[a-zA-Z0-9_-]{32,128}$`)
@@ -55,6 +56,11 @@ func buddyBooksManifest() Manifest {
 		return op
 	}
 	attachmentFields := map[string]any{"documentId": buddyBooksString(36), "contentBase64": buddyBooksString(base64.StdEncoding.EncodedLen(buddyBooksMaxPDF))}
+	documentStatus := getOp(buddyBooksDocumentStatus,
+		"Read the receipt and settlement status of an exact accounting document in the connected company. Returns only document identity, totals and status, including evidence of a processed inbound electronic invoice. Does not change the document or its payment.",
+		"/api/documents/{documentId}", map[string]string{"tenant": "tenant"}, nil, "documentId")
+	documentStatus.RequiredScopes = []string{"api"}
+	documentStatus.InputSchema = json.RawMessage(`{"type":"object","additionalProperties":false,"required":["documentId"],"properties":{"documentId":{"type":"string","format":"uuid"}}}`)
 	purchase := func(action, description string, risk domain.Risk, confirm string, us bool) OperationManifest {
 		fields := map[string]any{"partyId": buddyBooksString(36), "date": buddyBooksString(10), "number": buddyBooksString(64), "dueDate": buddyBooksString(10)}
 		required := []string{"partyId", "date", "number"}
@@ -91,6 +97,7 @@ func buddyBooksManifest() Manifest {
 		CredentialHeader: "X-API-Key", TypedOnly: true,
 		MaxRequestBytes: int64(base64.StdEncoding.EncodedLen(buddyBooksMaxPDF)) + 4096, MaxResponseBytes: 2 << 20,
 		Operations: []OperationManifest{
+			documentStatus,
 			list("documents", "List one page of accounting documents for the connected company. Use incoming for purchases. A document's status alone does not confirm payment.", "direction", "incoming", "outgoing"),
 			list("invoices", "List one page of electronic invoices for the connected company, with SdI identifiers and transmission states. Use incoming for received invoices.", "direction", "incoming", "outgoing"),
 			list("parties", "List one page of customer or supplier records for the connected company. Use supplier for payee records and handle returned tax identifiers as confidential.", "role", "customer", "supplier"),
@@ -126,6 +133,18 @@ func buddyBooksPost(action, description string, risk domain.Risk, path string, r
 }
 
 func validateBuddyBooksArguments(operation OperationManifest, arguments map[string]json.RawMessage, invocation domain.Invocation) error {
+	if operation.Name == buddyBooksDocumentStatus {
+		if !validBuddyBooksID(jsonString(arguments["documentId"])) || !validBuddyBooksID(invocation.Connection.ExternalID) {
+			return domain.ErrInvalidArguments
+		}
+		for key := range arguments {
+			if key != "documentId" && (key != "connection_id" || jsonString(arguments[key]) != invocation.Connection.ID) {
+				return domain.ErrInvalidArguments
+			}
+		}
+		arguments["tenant"], _ = json.Marshal(invocation.Connection.ExternalID)
+		return nil
+	}
 	if operation.Method == http.MethodPost {
 		return prepareBuddyBooksAccounting(operation, arguments, invocation)
 	}
@@ -159,6 +178,50 @@ func validateBuddyBooksArguments(operation OperationManifest, arguments map[stri
 		return domain.ErrInvalidArguments
 	}
 	return nil
+}
+
+// Keep provider bank details, raw XML references and party profiles outside the
+// host result. The provider verifies company ownership against its key.
+func projectBuddyBooksDocument(data []byte) (map[string]any, error) {
+	var response struct {
+		ID                  string       `json:"id"`
+		TenantID            string       `json:"tenantId"`
+		PartyID             string       `json:"partyId"`
+		DisplayNumber       string       `json:"displayNumber"`
+		Date                string       `json:"date"`
+		DocumentType        string       `json:"documentType"`
+		Direction           string       `json:"direction"`
+		Currency            string       `json:"currency"`
+		Status              string       `json:"status"`
+		SdiStatus           string       `json:"sdiStatus"`
+		PaymentStatus       string       `json:"paymentStatus"`
+		Outstanding         *json.Number `json:"outstanding"`
+		GrandTotal          *json.Number `json:"grandTotal"`
+		PayableAmount       *json.Number `json:"payableAmount"`
+		IncomingNeedsReview bool         `json:"incomingReviewRequired"`
+		Notifications       []struct {
+			Kind      string `json:"tipo"`
+			Processed bool   `json:"processed"`
+		} `json:"notifiche"`
+	}
+	if json.Unmarshal(data, &response) != nil || !validBuddyBooksID(response.ID) || !validBuddyBooksID(response.TenantID) {
+		return nil, domain.ErrInvalidArguments
+	}
+	passiveReceipt := false
+	for _, notification := range response.Notifications {
+		if notification.Kind == "RicevutaPassiva" && notification.Processed {
+			passiveReceipt = true
+			break
+		}
+	}
+	return map[string]any{
+		"documentId": response.ID, "companyId": response.TenantID, "partyId": response.PartyID,
+		"number": response.DisplayNumber, "date": response.Date, "documentType": response.DocumentType,
+		"direction": response.Direction, "currency": response.Currency, "status": response.Status,
+		"sdiStatus": response.SdiStatus, "processedPassiveReceipt": passiveReceipt, "paymentStatus": response.PaymentStatus,
+		"outstanding": response.Outstanding, "grandTotal": response.GrandTotal, "payableAmount": response.PayableAmount,
+		"incomingReviewRequired": response.IncomingNeedsReview,
+	}, nil
 }
 
 func prepareBuddyBooksAccounting(operation OperationManifest, arguments map[string]json.RawMessage, invocation domain.Invocation) error {

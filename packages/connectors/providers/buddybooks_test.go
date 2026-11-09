@@ -117,3 +117,40 @@ func TestBuddyBooksRequestsStayWithinTheCompanyPublicAPI(t *testing.T) {
 		})
 	}
 }
+
+func TestBuddyBooksDocumentStatusBindsCompanyAndProjectsPrivateDetails(t *testing.T) {
+	const company = "11111111-1111-4111-8111-111111111111"
+	const document = "22222222-2222-4222-8222-222222222222"
+	manifest := buddyBooksManifest()
+	calls := 0
+	adapter, err := NewHTTPAdapter(manifest, doerFunc(func(req *http.Request) (*http.Response, error) {
+		calls++
+		if req.Method != http.MethodGet || req.URL.Path != "/api/documents/"+document ||
+			req.URL.Query().Get("tenant") != company {
+			t.Fatal("document read escaped its company binding")
+		}
+		return jsonResponse(200, `{"id":"`+document+`","tenantId":"`+company+`","sdiStatus":"Received","grandTotal":122.01,"outstanding":22.01,"notifiche":[{"tipo":"RicevutaPassiva","processed":true}],"counterparty":{"iban":"private"},"paymentEvidence":[{"raw":"private"}]}`, nil), nil
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	inv := testInvocation(t, manifest, domain.Operation{Name: buddyBooksDocumentStatus}, []byte(`{"documentId":"`+document+`"}`))
+	inv.Connection.ExternalID = company
+	inv.Credential, err = domain.NewCredential(domain.CredentialAPIToken, "sps_live_"+strings.Repeat("a", 43), "", "", "", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := adapter.Invoke(context.Background(), inv)
+	if err != nil {
+		t.Fatal(err)
+	}
+	body, err := json.Marshal(result.Data)
+	if err != nil || !strings.Contains(string(body), `"processedPassiveReceipt":true`) ||
+		!strings.Contains(string(body), `"outstanding":22.01`) || strings.Contains(string(body), "private") {
+		t.Fatal("invalid document projection")
+	}
+	inv.Arguments = []byte(`{"documentId":"` + document + `","tenant":"` + document + `"}`)
+	if _, err = adapter.Invoke(context.Background(), inv); !errors.Is(err, domain.ErrInvalidArguments) || calls != 1 {
+		t.Fatal("caller-selected tenant reached document lookup")
+	}
+}

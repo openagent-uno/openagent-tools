@@ -57,6 +57,9 @@ the provider's duplicate check by supplier, number and date. Hosts must authoriz
 use an approved route to the provider's accounting API. The public v1 route
 serves the list operations. PDF uploads accept up to 5 MiB. No operation
 sends a receipt, issues an electronic invoice or records a payment.
+The private document status read uses an exact document UUID and the bound
+company. It reports a processed inbound receipt and settlement status, and
+omits bank details, original payloads and payment evidence rows.
 
 ## Ownership and compatibility
 

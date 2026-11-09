@@ -256,6 +256,14 @@ func (a *HTTPAdapter) Invoke(ctx context.Context, invocation domain.Invocation) 
 			}
 		}
 		decoded := decodeProviderBody(data, response.Header.Get("Content-Type"))
+		if plan.operation.Name == buddyBooksDocumentStatus {
+			projected, err := projectBuddyBooksDocument(data)
+			if err != nil || !strings.EqualFold(projected["companyId"].(string), invocation.Connection.ExternalID) ||
+				!strings.EqualFold(plan.target.Path, "/api/documents/"+projected["documentId"].(string)) {
+				return domain.Result{}, &domain.ProviderError{Kind: "invalid_response", StatusCode: response.StatusCode}
+			}
+			decoded = projected
+		}
 		if shopifyGraphQLPermissionDenied(a.manifest.Provider, plan, data) {
 			providerErr := &domain.ProviderError{
 				Kind: "provider_permission", StatusCode: response.StatusCode, ProviderID: providerID,
