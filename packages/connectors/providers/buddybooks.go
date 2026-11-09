@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"time"
 
@@ -47,6 +48,7 @@ func buddyBooksManifest() Manifest {
 			"gross":   map[string]any{"type": "number", "exclusiveMinimum": 0, "maximum": 99999999.99},
 			"subject": buddyBooksString(512), "workFrom": buddyBooksString(10), "workTo": buddyBooksString(10),
 			"taxCodeRef":       buddyBooksString(64),
+			"withholdingRate":  map[string]any{"type": "number", "minimum": 0, "maximum": 99.99, "description": "Explicit reviewed percentage, expressed as 20 for 20 percent."},
 			"stampDutyBorneBy": map[string]any{"type": "string", "enum": []string{"payee", "company"}},
 		})
 		op.FixedQuery = map[string]string{"confirm": confirm}
@@ -185,6 +187,12 @@ func prepareBuddyBooksAccounting(operation OperationManifest, arguments map[stri
 		if field.Type == "number" {
 			if !validBuddyBooksAmount(raw, key == "gross" || key == "total") {
 				return domain.ErrInvalidArguments
+			}
+			if key == "withholdingRate" {
+				rate, err := strconv.ParseFloat(string(raw), 64)
+				if err != nil || rate > 99.99 {
+					return domain.ErrInvalidArguments
+				}
 			}
 			continue
 		}

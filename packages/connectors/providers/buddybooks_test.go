@@ -14,7 +14,7 @@ import (
 func TestBuddyBooksPreviewAndRegistrationHaveDistinctFixedConfirmation(t *testing.T) {
 	const company = "11111111-1111-4111-8111-111111111111"
 	const requestID = "33333333-3333-4333-8333-333333333333"
-	const args = `{"partyId":"22222222-2222-4222-8222-222222222222","number":"TEST-1","date":"2026-11-09","gross":350,"subject":"Example video","workFrom":"2026-11-02","workTo":"2026-11-06","stampDutyBorneBy":"payee"}`
+	const args = `{"partyId":"22222222-2222-4222-8222-222222222222","number":"TEST-1","date":"2026-11-09","gross":350,"subject":"Example video","workFrom":"2026-11-02","workTo":"2026-11-06","stampDutyBorneBy":"payee","withholdingRate":20}`
 
 	manifest := buddyBooksManifest()
 	for _, confirm := range []string{"false", "true"} {
@@ -33,7 +33,8 @@ func TestBuddyBooksPreviewAndRegistrationHaveDistinctFixedConfirmation(t *testin
 					json.NewDecoder(req.Body).Decode(&body) != nil {
 					t.Fatal("unexpected receipt request")
 				}
-				if body["tenantId"] != company || body["kind"] != "occasionalWork" || body["gross"] != float64(350) {
+				if body["tenantId"] != company || body["kind"] != "occasionalWork" ||
+					body["gross"] != float64(350) || body["withholdingRate"] != float64(20) {
 					t.Fatal("receipt request lost its binding or terms")
 				}
 				if confirm == "true" && body["requestId"] != requestID || confirm == "false" && body["requestId"] != nil {
