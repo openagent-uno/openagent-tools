@@ -45,9 +45,18 @@ Version 0.1.3 is a Postiz protocol correction: its registered app determines the
 Use a company API key with the `read` scope issued for the intended company.
 The typed operations list one page of accounting documents, electronic
 invoices, or customer and supplier records through the provider's public v1
-API. The provider derives company scope from the key. Hosts should restrict
-financial and contact data to authorized users. The connector exposes no
-registration, issuance, or payment action.
+API at `https://api.spicysparks.com`. The provider derives company scope from
+the key. Hosts should restrict financial and contact data to authorized users.
+
+The accounting adapter adds typed calls for supplier upsert, occasional-work
+receipts, incoming EUR invoices, US company purchases, and PDF archive. These operations
+require a host-owned company UUID in the connection's external ID and the
+provider's `api` and `write` scopes. Receipt registration and EUR purchase
+entry require a UUID idempotency key supplied by the host. US purchases use
+the provider's duplicate check by supplier, number and date. Hosts must authorize each write and
+use an approved route to the provider's accounting API. The public v1 route
+serves the list operations. PDF uploads accept up to 5 MiB. No operation
+sends a receipt, issues an electronic invoice or records a payment.
 
 ## Ownership and compatibility
 

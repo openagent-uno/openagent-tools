@@ -189,7 +189,7 @@ func (a *HTTPAdapter) Invoke(ctx context.Context, invocation domain.Invocation) 
 		if err := validatePlatformCredential(a.manifest.Provider, request.Header.Get("Authorization")); err != nil {
 			return domain.Result{}, err
 		}
-		if a.manifest.Provider == "buddybooks" && !validBuddyBooksAuthorization(request.Header.Get("Authorization")) {
+		if a.manifest.Provider == "buddybooks" && !buddyBooksKey.MatchString(request.Header.Get("X-API-Key")) {
 			return domain.Result{}, domain.ErrProviderPermission
 		}
 		if a.manifest.Provider == "replio" {
@@ -342,7 +342,7 @@ func (a *HTTPAdapter) buildPlan(invocation domain.Invocation) (requestPlan, erro
 		}
 	}
 	if a.manifest.Provider == "buddybooks" {
-		if err := validateBuddyBooksArguments(operation, arguments); err != nil {
+		if err := validateBuddyBooksArguments(operation, arguments, invocation); err != nil {
 			return requestPlan{}, err
 		}
 	}
