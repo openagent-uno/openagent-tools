@@ -5,7 +5,7 @@ import (
 	"github.com/openagent-uno/openagent-tools/packages/connectors/providers"
 )
 
-const Version = "0.1.14"
+const Version = "0.1.15"
 
 type Item struct {
 	ID                string   `json:"id"`
@@ -151,6 +151,13 @@ var catalogEntries = []CatalogEntry{
 		ID: "billingbear", Name: "BillingBear", Description: "Read project revenue and customer billing statistics and history.",
 		Category: "Commerce", Auth: "token", Icon: "credit-card", Capability: "commerce", Provider: "billingbear",
 		ReadTools:  []string{"commerce.billingbear.project.stats", "commerce.billingbear.customers.stats", "commerce.billingbear.customers.history"},
+		AgentTools: []string{},
+	}},
+	{Item: Item{
+		ID: "buddybooks", Name: "BuddyBooks", Description: "Read accounting documents, electronic invoices and suppliers for the connected company.",
+		Category: "Commerce", Auth: "token", Icon: "receipt", Capability: "commerce", Provider: "buddybooks",
+		SetupURL: "https://os.spicysparks.com", SetupInstructions: "Use a company API key for the company you intend to connect.",
+		ReadTools:  []string{"commerce.buddybooks.documents.list", "commerce.buddybooks.invoices.list", "commerce.buddybooks.parties.list"},
 		AgentTools: []string{},
 	}},
 	{Item: Item{

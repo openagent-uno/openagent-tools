@@ -189,6 +189,9 @@ func (a *HTTPAdapter) Invoke(ctx context.Context, invocation domain.Invocation) 
 		if err := validatePlatformCredential(a.manifest.Provider, request.Header.Get("Authorization")); err != nil {
 			return domain.Result{}, err
 		}
+		if a.manifest.Provider == "buddybooks" && !validBuddyBooksAuthorization(request.Header.Get("Authorization")) {
+			return domain.Result{}, domain.ErrProviderPermission
+		}
 		if a.manifest.Provider == "replio" {
 			sent, received, err := a.validateReplioContext(ctx, invocation, request.Header.Get("Authorization"))
 			requestBytes += sent
@@ -335,6 +338,11 @@ func (a *HTTPAdapter) buildPlan(invocation domain.Invocation) (requestPlan, erro
 	}
 	if a.manifest.Provider == "atlassian" {
 		if err := validateAtlassianArguments(operation, arguments, invocation.Connection.Config); err != nil {
+			return requestPlan{}, err
+		}
+	}
+	if a.manifest.Provider == "buddybooks" {
+		if err := validateBuddyBooksArguments(operation, arguments); err != nil {
 			return requestPlan{}, err
 		}
 	}
