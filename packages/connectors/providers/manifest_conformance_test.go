@@ -60,6 +60,10 @@ func TestBuiltInManifestConformance(t *testing.T) {
 				}
 				arguments := conformanceArguments(specification)
 				invocation := testInvocation(t, manifest, operation, arguments)
+				if manifest.Provider == "buddybooks" && (specification.Method == http.MethodPost || specification.Name == buddyBooksDocumentStatus) {
+					invocation.Connection.ExternalID = "11111111-1111-4111-8111-111111111111"
+					invocation.Idempotency = "33333333-3333-4333-8333-333333333333"
+				}
 				preview, previewErr := adapter.Preview(invocation)
 				if previewErr != nil {
 					t.Errorf("operation %q cannot build a validated request: %v", specification.Name, previewErr)
@@ -684,6 +688,20 @@ func TestFixedOriginsRejectInternalAndAmbiguousHosts(t *testing.T) {
 }
 
 func conformanceArguments(specification OperationManifest) json.RawMessage {
+	switch specification.Name {
+	case buddyBooksDocumentStatus:
+		return json.RawMessage(`{"documentId":"22222222-2222-4222-8222-222222222222"}`)
+	case buddyBooksPrefix + "suppliers.upsert":
+		return json.RawMessage(`{"name":"Example Supplier","country":"IT","address":"Example Street 1","postalCode":"01234","city":"Example City","taxCode":"EXAMPLE"}`)
+	case buddyBooksPrefix + "receipts.preview", buddyBooksPrefix + "receipts.register":
+		return json.RawMessage(`{"partyId":"22222222-2222-4222-8222-222222222222","number":"TEST-1","date":"2026-11-09","gross":350,"subject":"Example service","workFrom":"2026-11-02","workTo":"2026-11-06"}`)
+	case buddyBooksPrefix + "purchases.preview", buddyBooksPrefix + "purchases.register":
+		return json.RawMessage(`{"partyId":"22222222-2222-4222-8222-222222222222","number":"TEST-2","date":"2026-11-09","lines":[{"description":"Example service","quantity":1,"unitPrice":280,"taxCode":"FC"}]}`)
+	case buddyBooksPrefix + "us_purchases.preview", buddyBooksPrefix + "us_purchases.register":
+		return json.RawMessage(`{"partyId":"22222222-2222-4222-8222-222222222222","number":"TEST-3","date":"2026-11-09","total":280,"currency":"USD","description":"Example service"}`)
+	case buddyBooksPrefix + "receipts.signed.attach", buddyBooksPrefix + "purchases.pdf.attach":
+		return json.RawMessage(`{"documentId":"22222222-2222-4222-8222-222222222222","contentBase64":"JVBERi0xLjQK"}`)
+	}
 	if strings.HasPrefix(specification.Name, "social.slack_import.") {
 		arguments := map[string]any{}
 		for _, required := range specification.Required {

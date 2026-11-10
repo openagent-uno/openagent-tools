@@ -79,7 +79,7 @@ func TestLoadServiceAllCatalogEntriesAreDisabledByDefault(t *testing.T) {
 	if strictJSON(snapshot.Payload, &catalog) != nil {
 		t.Fatal("invalid generated catalog")
 	}
-	if len(catalog.Connectors) != 115 || len(catalog.Connectors) != len(connectors.Catalog()) {
+	if len(catalog.Connectors) != 116 || len(catalog.Connectors) != len(connectors.Catalog()) {
 		t.Fatalf("compiled catalog coverage changed: %d", len(catalog.Connectors))
 	}
 	for _, descriptor := range catalog.Connectors {

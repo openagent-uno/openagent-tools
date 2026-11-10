@@ -40,6 +40,27 @@ Version 0.1.2 adds a durable fence for the calling installation/provider/app gra
 
 Version 0.1.3 is a Postiz protocol correction: its registered app determines the callback, authorization/token requests omit `redirect_uri`, and the confidential code exchange uses JSON. The [official Postiz OAuth contract](https://docs.postiz.com/oauth) returns non-expiring access tokens; refresh is not applicable, and account holders revoke access through Postiz Approved Apps. The historical test incorrectly modeled Postiz as an expiring PKCE/form provider. Dedicated fixtures now verify exact request fields/content type, callback omission, sanitized failures and no retry/redirect of code exchange. Catalog IDs, tools, scopes and product credentials are unchanged. That protocol qualification did not establish a user grant. The existing Postiz registration is now recorded as staged and disabled, with credential rotation required before activation; see the [metadata-only registration](../../deploy/connector-auth/registrations/postiz.json). Public common enrollment remains closed. Version 0.1.2 artifacts and existing host pins remain immutable until consumers explicitly adopt a qualified 0.1.3 release.
 
+## BuddyBooks
+
+Use a company API key with the `read` scope issued for the intended company.
+The typed operations list one page of accounting documents, electronic
+invoices, or customer and supplier records through the provider's public v1
+API at `https://api.spicysparks.com`. The provider derives company scope from
+the key. Hosts should restrict financial and contact data to authorized users.
+
+The accounting adapter adds typed calls for supplier upsert, occasional-work
+receipts, incoming EUR invoices, US company purchases, and PDF archive. These operations
+require a host-owned company UUID in the connection's external ID and the
+provider's `api` and `write` scopes. Receipt registration and EUR purchase
+entry require a UUID idempotency key supplied by the host. US purchases use
+the provider's duplicate check by supplier, number and date. Hosts must authorize each write and
+use an approved route to the provider's accounting API. The public v1 route
+serves the list operations. PDF uploads accept up to 5 MiB. No operation
+sends a receipt, issues an electronic invoice or records a payment.
+The private document status read uses an exact document UUID and the bound
+company. It reports a processed inbound receipt and settlement status, and
+omits bank details, original payloads and payment evidence rows.
+
 ## Ownership and compatibility
 
 The module includes the complete implemented adapter set, its schemas, pagination, controlled egress, scope gates and tests. `provenance.json` identifies the extraction source and original file digests. Existing catalog IDs and tool names are preserved; GitHub fills its existing ID, Notion and Atlassian add new IDs, and Slack implements the existing `slack-import` catalog ID with provider identity `slack_import`. Slack is no longer an unimplemented placeholder in the 0.1.4 source candidate; this does not change immutable published 0.1.3 catalogs. An implemented OAuth adapter still requires the receiving host to enable a qualified registration; the server marks unavailable authorizations accordingly. Custom MCP management remains a host capability.
