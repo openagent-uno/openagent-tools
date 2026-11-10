@@ -1,5 +1,11 @@
 # OpenAgent official connectors
 
+SDK 0.1.15 adds BuddyBooks to the Go catalog, the runner and the bundled Python
+catalog. The public list operations use a read-only company token. Accounting
+previews and writes require their own company-bound grant and explicit approval
+for write operations. A catalog entry does not create a provider connection.
+
+
 Shared Go module `github.com/openagent-uno/openagent-tools/packages/connectors`.
 The [published SDK/runner **0.1.12**](https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.12)
 is a contract-qualified prerelease with **114 official entries plus Custom MCP**,
