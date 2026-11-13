@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 from openagent_tool_protocol.context import current_principal
-from .shell_core import BackgroundShell
+from .shell_core import BackgroundShell, user_environment
 from openagent_tool_protocol.types import HostError, ServerManifest, ToolClassification, ToolManifest, ToolResult
 from openagent_tool_protocol.util import integer_arg, json_result, require_string
 
@@ -155,7 +155,7 @@ class ShellServer:
     )
 
     def __init__(self, cwd: str | Path | None = None, *, event_sink=None, environment: dict[str, str] | None = None):
-        self.environment = dict(os.environ if environment is None else environment)
+        self.environment = user_environment() if environment is None else dict(environment)
         self.cwd = Path(cwd or Path.cwd()).expanduser().resolve()
         self._background: dict[str, _Background] = {}
         self._guard = asyncio.Lock()

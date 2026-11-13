@@ -41,6 +41,14 @@ stdout as a human terminal. Set an owned working directory and host policy;
 the convenience filesystem entry point does not supply a user/tenant boundary.
 See [independent transport fixtures](../tests/test_independent_mcp.py).
 
+On macOS a shell server started without an explicit environment (for example
+inside an App launched from Finder or the Dock, which only inherits launchd's
+`/usr/bin:/bin:/usr/sbin:/sbin`) asks the user's interactive login shell for
+`PATH` once, with stdin closed and a five-second limit, and puts those entries
+first. If the probe fails it appends the existing Homebrew and `/usr/local/bin`
+directories. Only `PATH` changes. Set `OPENAGENT_SHELL_LOGIN_PATH=0` to keep the
+inherited value; an environment passed explicitly to `ShellServer` is never altered.
+
 ## Register tools with an agent runtime
 
 The host creates a CapabilitySource/executor adapter or configures an explicitly
