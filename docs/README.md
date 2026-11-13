@@ -128,6 +128,14 @@ identify itself in MCP instructions and disconnect from an independently
 supervised Chrome without closing that Chrome process. App and CLI behavior
 remains unchanged.
 
+Release `v1.0.0-beta.7` publishes shell `1.0.0b4` and execution `1.0.0b4`
+(which depends on that shell). A shell server started without an explicit
+environment on macOS resolves `PATH` from the user's login shell, so a GUI
+App host finds the same programs as the user's terminal; `shell_exec` refuses
+sub-second timeouts with an error naming the millisecond unit instead of
+terminating the command after a few milliseconds. The other wheels are reused
+byte for byte from `v1.0.0-beta.6`.
+
 - [Calendar and mail 0.1.7 prerelease](connector-calendar-mail-0.1.7-candidate.md) — operation subsets and remaining acceptance gates.
 
 - [Browser reference, form and transport reliability — source qualification, 30 October 2026](browser-reference-reliability.md).
