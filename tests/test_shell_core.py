@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import subprocess
 import sys
@@ -197,3 +198,18 @@ def test_shell_server_keeps_explicit_environment(monkeypatch: pytest.MonkeyPatch
     )
     server = ShellServer(environment={"PATH": "/x"})
     assert server.environment == {"PATH": "/x"}
+
+
+@pytest.mark.asyncio
+async def test_shell_exec_rejects_timeout_given_in_seconds(tmp_path) -> None:
+    from openagent_shell.server import ShellServer
+    from openagent_tool_protocol.types import HostError
+
+    server = ShellServer(tmp_path, environment={"PATH": os.environ.get("PATH", "")})
+    with pytest.raises(HostError) as caught:
+        await server.call("shell_exec", {"command": "printf ok", "timeout": 30})
+    assert "milliseconds" in str(caught.value)
+    assert "30000" in str(caught.value)
+
+    result = await server.call("shell_exec", {"command": "printf ok", "timeout": 5000})
+    assert "ok" in json.dumps(result.__dict__ if hasattr(result, "__dict__") else result, default=str)

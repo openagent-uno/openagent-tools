@@ -20,6 +20,7 @@ from openagent_tool_protocol.types import HostError, ServerManifest, ToolClassif
 from openagent_tool_protocol.util import integer_arg, json_result, require_string
 
 DEFAULT_TIMEOUT_MS = 120_000
+MIN_TIMEOUT_MS = 1_000
 MAX_TIMEOUT_MS = 1_800_000
 _MAX_STREAM_BYTES = 1_000_000
 
@@ -77,10 +78,13 @@ class ShellServer:
                         "env": {"type": "object", "additionalProperties": {"type": "string"}},
                         "timeout": {
                             "type": "integer",
-                            "minimum": 1,
+                            "minimum": MIN_TIMEOUT_MS,
                             "maximum": MAX_TIMEOUT_MS,
                             "default": DEFAULT_TIMEOUT_MS,
-                            "description": "Timeout in milliseconds.",
+                            "description": (
+                                "Timeout in MILLISECONDS (not seconds), 1000-1800000; "
+                                "omit for 120000. Example: 300000 for five minutes."
+                            ),
                         },
                         "run_in_background": {"type": "boolean", "default": False},
                         "stdin": {"type": "string"},
@@ -197,8 +201,23 @@ class ShellServer:
             isinstance(key, str) and isinstance(value, str) for key, value in env_arg.items()
         ):
             raise HostError("invalid_arguments", "env must be an object of string values")
+        raw_timeout = args.get("timeout")
+        if (
+            isinstance(raw_timeout, (int, float))
+            and not isinstance(raw_timeout, bool)
+            and 0 < raw_timeout < MIN_TIMEOUT_MS
+        ):
+            # Models routinely pass seconds here. Running a command for 30 ms
+            # and then terminating it looks like a broken host, so refuse
+            # with the unit spelled out instead of killing the process.
+            raise HostError(
+                "invalid_arguments",
+                f"timeout is in milliseconds (minimum {MIN_TIMEOUT_MS}); "
+                f"{raw_timeout:g} looks like seconds, pass {int(raw_timeout * 1000)} "
+                "for that many seconds or omit it for the default",
+            )
         timeout_ms = integer_arg(
-            args, "timeout", DEFAULT_TIMEOUT_MS, minimum=1, maximum=MAX_TIMEOUT_MS
+            args, "timeout", DEFAULT_TIMEOUT_MS, minimum=MIN_TIMEOUT_MS, maximum=MAX_TIMEOUT_MS
         )
         stdin_text = args.get("stdin")
         if stdin_text is not None and not isinstance(stdin_text, str):
