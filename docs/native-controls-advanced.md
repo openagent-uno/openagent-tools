@@ -34,7 +34,7 @@ Public references: [NSWorkspace exact app launch](https://developer.apple.com/do
 
 ## Acceptance
 
-`tests/native_advanced.py` creates a disposable owned AppKit bundle, discovers/cold-launches that exact app, and checks real AX selection, Unicode input, native actions, rich paste/clipboard restoration and app-filtered loopback using only its generated tone. It writes `target/native-advanced-evidence.json` and an owned synthetic WAV only after a successful capture. OS grant/backend denials are recorded explicitly; denied audio does not count as captured-audio acceptance. The fixture reads no personal app contents and never records arbitrary user audio.
+`tests/native_advanced.py` creates a disposable owned AppKit bundle, discovers/cold-launches that exact app, and checks real AX selection, Unicode input, native actions, rich paste/clipboard restoration and app-filtered loopback using only its generated tone. It writes `target/native-advanced-evidence.json` and an owned synthetic WAV only after a successful capture. The receipt's `adopter` field is `OPENAGENT_NATIVE_QA_ADOPTER` when set (the host product that launched the sidecar), `OpenAgent` when the MCP command ends with it, and `direct_mcp` otherwise. OS grant/backend denials are recorded explicitly; denied audio does not count as captured-audio acceptance. The fixture reads no personal app contents and never records arbitrary user audio.
 
 Run from the Tools root:
 

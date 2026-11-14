@@ -19,7 +19,7 @@ import (
 	"github.com/openagent-uno/openagent-tools/packages/connectors/oauth"
 )
 
-// A synthetic receiver enforces the checked-in GlassPalace wire contract.
+// A synthetic receiver enforces the checked-in legacy receiver wire contract.
 // This does not claim Shopify delivery or production receiver acceptance.
 func TestLegacyShopifyReceiverVersionAndMinimalUninstallContract(t *testing.T) {
 	for _, tc := range []struct{ topic, body string }{
