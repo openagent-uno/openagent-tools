@@ -27,6 +27,31 @@ _OBJECT = {"type": "object", "additionalProperties": False}
 _MAX_INLINE_BYTES = 25 * 1024 * 1024
 
 
+def _sniff_media_mime(data: bytes) -> str | None:
+    """Media type from the leading bytes, for names without an extension.
+
+    Content-addressed stores keep files as ``<digest>`` with no suffix.
+    """
+    head = data[:16]
+    if head.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if head.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if head.startswith((b"GIF87a", b"GIF89a")):
+        return "image/gif"
+    if head[:4] == b"RIFF" and head[8:12] == b"WEBP":
+        return "image/webp"
+    if head[:4] == b"RIFF" and head[8:12] == b"WAVE":
+        return "audio/wav"
+    if head.startswith(b"OggS"):
+        return "audio/ogg"
+    if head.startswith(b"fLaC"):
+        return "audio/flac"
+    if head.startswith(b"ID3") or head[:2] in (b"\xff\xfb", b"\xff\xf3", b"\xff\xf2"):
+        return "audio/mpeg"
+    return None
+
+
 def _schema(properties: dict[str, Any], required: list[str] | None = None) -> dict[str, Any]:
     return {**_OBJECT, "properties": properties, "required": required or []}
 
@@ -57,7 +82,7 @@ class FilesystemServer:
             ),
             ToolManifest(
                 "read_media_file",
-                "Read a local image or audio file as an MCP media content block.",
+                "Read a local image or audio file as an MCP media content block; the type comes from the extension or, without one, from the file content.",
                 _schema({"path": {"type": "string"}}, ["path"]),
             ),
             ToolManifest(
@@ -235,7 +260,7 @@ class FilesystemServer:
             data = path.read_bytes()
         except OSError as exc:
             raise HostError("filesystem_error", f"cannot read {path}: {exc}") from exc
-        mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+        mime = mimetypes.guess_type(path.name)[0] or _sniff_media_mime(data) or "application/octet-stream"
         if mime.startswith("image/"):
             block_type = "image"
         elif mime.startswith("audio/"):
