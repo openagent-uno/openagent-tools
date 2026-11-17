@@ -12,6 +12,7 @@ import { SearchEngine } from './search-engine.js';
 import { EnhancedContentExtractor } from './enhanced-content-extractor.js';
 import { WebSearchToolInput, WebSearchToolOutput, SearchResult } from './types.js';
 import { isPdfUrl } from './utils.js';
+import { formatPageContent } from './page-content.js';
 
 class WebSearchMCPServer {
   private server: McpServer;
@@ -284,33 +285,12 @@ class WebSearchMCPServer {
 
           console.log(`[MCP] Starting single page content extraction for: ${obj.url}`);
           
-          // Use existing content extractor to get page content
-          const content = await this.contentExtractor.extractContent({
+          const page = await this.contentExtractor.extractPage({
             url: obj.url,
             maxContentLength,
           });
-
-          // Get page title from URL (simple extraction)
-          const urlObj = new URL(obj.url);
-          const title = urlObj.hostname + urlObj.pathname;
-
-          // Create content preview and word count
-          // const contentPreview = content.length > 200 ? content.substring(0, 200) + '...' : content; // Unused for now
-          const wordCount = content.split(/\s+/).filter(word => word.length > 0).length;
-
-          console.log(`[MCP] Single page content extraction completed, extracted ${content.length} characters`);
-
-          // Format the result as text
-          let responseText = `**Page Content from: ${obj.url}**\n\n`;
-          responseText += `**Title:** ${title}\n`;
-          responseText += `**Word Count:** ${wordCount}\n`;
-          responseText += `**Content Length:** ${content.length} characters\n\n`;
-          
-          if (maxContentLength && maxContentLength > 0 && content.length > maxContentLength) {
-            responseText += `**Content (truncated at ${maxContentLength} characters):**\n${content.substring(0, maxContentLength)}\n\n[Content truncated at ${maxContentLength} characters]`;
-          } else {
-            responseText += `**Content:**\n${content}`;
-          }
+          console.log(`[MCP] Single page content extraction completed, extracted ${page.content.length} characters`);
+          const responseText = formatPageContent(obj.url, page, maxContentLength);
 
           return {
             content: [

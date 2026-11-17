@@ -2,8 +2,9 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { BrowserContext, Page } from 'playwright';
 import pLimit from 'p-limit';
-import { ContentExtractionOptions, SearchResult } from './types.js';
+import { ContentExtractionOptions, ExtractedPage, SearchResult } from './types.js';
 import { cleanText, getWordCount, getContentPreview, generateTimestamp, isPdfUrl } from './utils.js';
+import { documentTitle } from './page-content.js';
 import { BrowserPool } from './browser-pool.js';
 import { BlockedUrlError, MAX_REDIRECTS, UrlGuardOptions, assertPublicHttpUrl, fetchPublicPage } from './url-guard.js';
 
@@ -36,6 +37,11 @@ export class EnhancedContentExtractor {
   }
 
   async extractContent(options: ContentExtractionOptions): Promise<string> {
+    return (await this.extractPage(options)).content;
+  }
+
+  /** Extract title and body from the same guarded HTTP response or browser DOM. */
+  async extractPage(options: ContentExtractionOptions): Promise<ExtractedPage> {
     const { url } = options;
     
     console.log(`[EnhancedContentExtractor] Starting extraction for: ${url}`);
@@ -48,9 +54,9 @@ export class EnhancedContentExtractor {
 
     // First, try with regular HTTP client (faster)
     try {
-      const content = await this.extractWithAxios(options);
-      console.log(`[EnhancedContentExtractor] Successfully extracted with axios: ${content.length} chars`);
-      return content;
+      const page = await this.extractPageWithAxios(options);
+      console.log(`[EnhancedContentExtractor] Successfully extracted with axios: ${page.content.length} chars`);
+      return page;
     } catch (error) {
       console.log(`[EnhancedContentExtractor] Axios failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       if (error instanceof BlockedUrlError) {
@@ -61,9 +67,9 @@ export class EnhancedContentExtractor {
       if (this.shouldUseBrowser(error, url)) {
         console.log(`[EnhancedContentExtractor] Falling back to headless browser for: ${url}`);
         try {
-          const content = await this.extractWithBrowser(options);
-          console.log(`[EnhancedContentExtractor] Successfully extracted with browser: ${content.length} chars`);
-          return content;
+          const page = await this.extractPageWithBrowser(options);
+          console.log(`[EnhancedContentExtractor] Successfully extracted with browser: ${page.content.length} chars`);
+          return page;
         } catch (browserError) {
           console.error(`[EnhancedContentExtractor] Browser extraction also failed:`, browserError);
           throw new Error(`Both axios and browser extraction failed for ${url}`);
@@ -74,7 +80,7 @@ export class EnhancedContentExtractor {
     }
   }
 
-  private async extractWithAxios(options: ContentExtractionOptions): Promise<string> {
+  private async extractPageWithAxios(options: ContentExtractionOptions): Promise<ExtractedPage> {
     const { url, timeout = this.defaultTimeout, maxContentLength = this.maxContentLength } = options;
     
     const response = await fetchPublicPage(url, {
@@ -97,14 +103,18 @@ export class EnhancedContentExtractor {
       throw new Error('Low quality content detected - likely bot detection');
     }
     
-    return content;
+    return { content, title: documentTitle(response.data) };
   }
 
   private async extractWithBrowser(options: ContentExtractionOptions): Promise<string> {
+    return (await this.extractPageWithBrowser(options)).content;
+  }
+
+  private async extractPageWithBrowser(options: ContentExtractionOptions): Promise<ExtractedPage> {
     return this.browserLimit(() => this.extractBrowserRequest(options));
   }
 
-  private async extractBrowserRequest(options: ContentExtractionOptions): Promise<string> {
+  private async extractBrowserRequest(options: ContentExtractionOptions): Promise<ExtractedPage> {
     const { url, timeout = this.defaultTimeout } = options;
     
     const browser = await this.browserPool.getBrowser();
@@ -204,7 +214,7 @@ export class EnhancedContentExtractor {
             const http1Page = await http1Context.newPage();
             await this.navigateGuarded(http1Page, url, Math.min(timeout, 6000));
             const html = await http1Page.content();
-            return this.parseContent(html);
+            return { content: this.parseContent(html), title: documentTitle(html) };
           } finally {
             await http1Context.close().catch(error => console.error('Error closing alternate extraction context:', error));
           }
@@ -232,7 +242,7 @@ export class EnhancedContentExtractor {
       const html = await page.content();
       const content = this.parseContent(html);
 
-      return content;
+      return { content, title: documentTitle(html) };
 
     } catch (error) {
       console.error(`[BrowserExtractor] Browser extraction failed for ${url}:`, error);

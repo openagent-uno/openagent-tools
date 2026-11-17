@@ -14,3 +14,19 @@ Batch extraction awaits each operation and its cleanup instead of reporting a
 timeout while leaving browser work running in the background. HTTP and navigation
 operations retain their own configured timeouts; this is not an eight-second
 deadline for an entire batch. See [resource lifecycle](https://github.com/openagent-uno/openagent-tools/blob/main/docs/web-search-browser-resources.md).
+
+## Page title metadata
+
+Version `1.0.0-beta.4` returns the HTML document title in
+`get-single-web-page-content`, from the same guarded HTTP response or rendered
+DOM as the body. Entity decoding and whitespace normalization apply; titles
+are bounded to 1,024 characters. A missing/blank title is explicitly unavailable,
+not inferred from the URL or a heading. `EnhancedContentExtractor.extractPage`
+returns `{content, title}` with `title: null` when absent; the existing
+`extractContent` API still returns only a string. Public-address/redirect guards,
+browser limits and owned context cleanup remain unchanged.
+
+`test/page-content.test.mjs` exercises a local reserved-domains HTML fixture,
+one-fetch metadata/body consistency, legacy text/truncation, entities, absent
+titles, rendered metadata and blocked-address refusal. Source tests do not
+qualify a receiving host or an agent's final answer.

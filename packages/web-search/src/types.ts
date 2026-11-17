@@ -25,6 +25,12 @@ export interface SearchOptions {
   timeout?: number;
 }
 
+export interface ExtractedPage {
+  content: string;
+  /** HTML document title, or null when the source has no non-empty title. */
+  title: string | null;
+}
+
 export interface ContentExtractionOptions {
   url: string;
   timeout?: number;
