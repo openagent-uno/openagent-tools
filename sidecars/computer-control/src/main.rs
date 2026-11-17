@@ -1,3 +1,7 @@
+#[cfg(target_os="macos")]
+mod live_macos;
+mod desktop;
+mod live;
 mod accessibility;
 mod advanced;
 mod capture;
@@ -11,8 +15,21 @@ use anyhow::Result;
 use rmcp::{ServiceExt, transport::stdio};
 use tracing_subscriber::{EnvFilter, fmt};
 
-#[tokio::main]
-async fn main() -> Result<()> {
+fn main() -> anyhow::Result<()> {
+    #[cfg(target_os="macos")]
+    {
+        // Cocoa owns the real main thread. Capture callbacks keep a live
+        // application connection while protocol/encoder work runs off-thread.
+        live_macos::application_initialize();
+        let worker=std::thread::spawn(||tokio::runtime::Builder::new_multi_thread().enable_all().build()?.block_on(run()));
+        while !worker.is_finished(){live_macos::application_pump();}
+        worker.join().map_err(|_|anyhow::anyhow!("native host worker failed"))?
+    }
+    #[cfg(not(target_os="macos"))]
+    tokio::runtime::Builder::new_multi_thread().enable_all().build()?.block_on(run())
+}
+
+async fn run() -> Result<()> {
     fmt()
         .with_env_filter(
             EnvFilter::try_from_default_env()
@@ -21,6 +38,8 @@ async fn main() -> Result<()> {
         .with_writer(std::io::stderr)
         .init();
 
+    if std::env::args().any(|arg| arg == "--desktop-stdio") { return desktop::serve(); }
+    if std::env::args().any(|arg| arg == "--desktop-stream") { return live::serve(); }
     let server = tool::ComputerControlServer::new();
     let service = server.serve(stdio()).await?;
     service.waiting().await?;

@@ -1,0 +1,29 @@
+{
+  "date": "2026-11-06",
+  "desktop_sdk": "0.1.0",
+  "device_tools": "1.0.0b18",
+  "native_helper": "0.1.7",
+  "native_source_commit": "7c967930dbc00215437f888422bef928e7c09c87",
+  "ci_run": "https://github.com/openagent-uno/openagent/actions/runs/42213315802",
+  "ci_targets": [
+    "darwin-arm64",
+    "darwin-x64",
+    "linux-arm64",
+    "linux-x64",
+    "win32-arm64",
+    "win32-x64"
+  ],
+  "ci_native_launch": "all six passed openagent-desktop/1 hello",
+  "signing": {
+    "macos": "Developer ID signed, notarized, stapled and assessed on both architectures",
+    "windows": "no Authenticode claim; statically linked CRT"
+  },
+  "local_tests": {
+    "rust": 55,
+    "rust_ignored": 3,
+    "sdk": 7,
+    "native_media": 5
+  },
+  "local_capture": "macOS installed-wheel MCP screenshot and continuous H.264 simultaneously, including same-source renewal and cancellation; frames retained only in memory",
+  "physical_remote_device_acceptance": false
+}

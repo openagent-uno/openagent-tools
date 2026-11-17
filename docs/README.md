@@ -1,5 +1,18 @@
 # Independent OpenAgent tools
 
+- [Operation-scoped MCP client and typed errors](../packages/mcp-client/README.md)
+  — `openagent-mcp-client` 0.1.0b1 source candidate, preserving cancellation and
+  programming errors independently of remote availability failures.
+
+- [Independent MCP stdio server starter](../examples/mcp-server/README.md) — installable example and real stdio contract test.
+
+## Architecture and use
+
+- [Agnostic architecture: mandatory in every OpenAgent repository](AGNOSTICISM.md)
+- [Component responsibilities, organization and communication](COMPONENTS.md)
+- [Using the kernel, clients, tools and runners](USAGE.md)
+
+
 - [Native accessibility snapshots and actions](native-accessibility.md) — device-tools `1.0.0b5` / computer-control `0.1.4` source candidate; actual owned AppKit acceptance, signed product adoption still separate.
 
 - [Native X11 typing: published Linux x64 component0.1.3 and native regression](native-x11-typing.md)
@@ -115,6 +128,18 @@ identify itself in MCP instructions and disconnect from an independently
 supervised Chrome without closing that Chrome process. App and CLI behavior
 remains unchanged.
 
+Release `v1.0.0-beta.7` publishes shell `1.0.0b4` and execution `1.0.0b4`
+(which depends on that shell). A shell server started without an explicit
+environment on macOS resolves `PATH` from the user's login shell, so a GUI
+App host finds the same programs as the user's terminal; `shell_exec` refuses
+sub-second timeouts with an error naming the millisecond unit instead of
+terminating the command after a few milliseconds. The other wheels are reused
+byte for byte from `v1.0.0-beta.6`.
+
 - [Calendar and mail 0.1.7 prerelease](connector-calendar-mail-0.1.7-candidate.md) — operation subsets and remaining acceptance gates.
 
 - [Browser reference, form and transport reliability — source qualification, 30 October 2026](browser-reference-reliability.md).
+
+- [Browser launch, pipe transport and explicit host confinement adapters](browser-launch.md) — device-tools b9 source contract.
+
+- [Desktop execution, live media and native artifacts](desktop-tools.md)

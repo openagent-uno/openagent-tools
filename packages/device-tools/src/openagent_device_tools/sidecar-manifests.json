@@ -176,7 +176,7 @@
       },
       {
         "classification": "read_only",
-        "description": "Find elements by natural-language description or visible text (e.g. \"search box\", \"log in button\", \"post title containing cats\"). Returns up to 20 matches with refs usable by computer/form_input. The cheapest way to locate something — prefer it over screenshots.",
+        "description": "Find elements by natural-language description or visible text (e.g. \"search box\", \"log in button\", \"post title containing cats\"). Returns up to 20 matches with refs usable by computer/form_input. The cheapest way to locate something \u2014 prefer it over screenshots.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
           "properties": {
@@ -480,12 +480,12 @@
       },
       {
         "classification": "mutating",
-        "description": "Install a Chromium extension into the agent's browser from its Chrome Web Store ID (the 32-char id in the store URL), or a path to an unpacked extension. It persists across restarts and loads on every launch. Use for capabilities like a VPN/proxy extension — after installing, open it and sign in / pick options once. Restarts the browser to apply.",
+        "description": "Install a Chromium extension into the agent's browser from its Chrome Web Store ID (the 32-char id in the store URL), or a path to an unpacked extension. It persists across restarts and loads on every launch. Use for capabilities like a VPN/proxy extension \u2014 after installing, open it and sign in / pick options once. Restarts the browser to apply.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
           "properties": {
             "source": {
-              "description": "Chrome Web Store extension ID (32 chars a–p) or a path to an unpacked extension directory.",
+              "description": "Chrome Web Store extension ID (32 chars a\u2013p) or a path to an unpacked extension directory.",
               "type": "string"
             }
           },
@@ -1057,7 +1057,7 @@
             "get_screenshot": "read_only"
           }
         },
-        "description": "Use a mouse and keyboard to interact with a computer, take screenshots, and record the screen.\n* This is an interface to a desktop GUI. You do not have access to a terminal or applications menu. You must click on desktop icons to start applications.\n* Always prefer using keyboard shortcuts rather than clicking, where possible.\n* If you see boxes with two letters in them, typing these letters will click that element. Use this instead of other shortcuts or clicking, where possible.\n* Some applications may take time to start or process actions, so you may need to wait and take successive screenshots to see the results of your actions. E.g. if you click on Firefox and a window doesn't open, try taking another screenshot.\n* Whenever you intend to move the cursor to click on an element like an icon, you should consult a screenshot to determine the coordinates of the element before moving the cursor.\n* If you tried clicking on a program or link but it failed to load, even after waiting, try adjusting your cursor position so that the tip of the cursor visually falls on the element that you want to click.\n* Make sure to click any buttons, links, icons, etc with the cursor tip in the center of the element. Don't click boxes on their edges unless asked.\n\nUsing the crosshair:\n* Screenshots show a red crosshair at the current cursor position.\n* After clicking, check where the crosshair appears vs your target. If it missed, adjust coordinates proportionally to the distance - start with large adjustments and refine. Avoid small incremental changes when the crosshair is far from the target (distances are often further than you expect).\n* Consider display dimensions when estimating positions. E.g. if it's 90% to the bottom of the screen, the coordinates should reflect this.\n* For another display, call computer_list_displays and pass its exact display_id. Coordinates and screenshot regions are relative to that display. Keyboard focus and recording cannot be bound to a display.\n\nRegion-of-interest (ROI):\n* `get_screenshot` and `start_screen_recording` accept an optional `region: [x, y, width, height]` in API image space. When set, the captured image/video is cropped to that rectangle before being downsampled, letting you focus the model on one pane or an animating element without capturing the whole screen.\n\nScreen recording:\n* `start_screen_recording` begins capturing the primary display to an `.mp4` file and returns immediately with the output path. Optional params: `fps` (1-60, default 30), `region` (ROI), `path` (defaults to a timestamped file in the OS temp dir), `max_duration_seconds` (auto-stop after N seconds).\n* `stop_screen_recording` stops the active recording and returns the final file path, frame count, and duration. Only one recording can be active at a time; starting a second before stopping the first returns an error.\n* Use recording to review animations, transitions, video playback, or any behavior that a single screenshot can't capture. Prefer a small `region` when possible — it keeps file size down and focuses the recording on the element under test.",
+        "description": "Use a mouse and keyboard to interact with a computer, take screenshots, and record the screen.\n* This is an interface to a desktop GUI. You do not have access to a terminal or applications menu. You must click on desktop icons to start applications.\n* Always prefer using keyboard shortcuts rather than clicking, where possible.\n* If you see boxes with two letters in them, typing these letters will click that element. Use this instead of other shortcuts or clicking, where possible.\n* Some applications may take time to start or process actions, so you may need to wait and take successive screenshots to see the results of your actions. E.g. if you click on Firefox and a window doesn't open, try taking another screenshot.\n* Whenever you intend to move the cursor to click on an element like an icon, you should consult a screenshot to determine the coordinates of the element before moving the cursor.\n* If you tried clicking on a program or link but it failed to load, even after waiting, try adjusting your cursor position so that the tip of the cursor visually falls on the element that you want to click.\n* Make sure to click any buttons, links, icons, etc with the cursor tip in the center of the element. Don't click boxes on their edges unless asked.\n\nUsing the crosshair:\n* Screenshots show a red crosshair at the current cursor position.\n* After clicking, check where the crosshair appears vs your target. If it missed, adjust coordinates proportionally to the distance - start with large adjustments and refine. Avoid small incremental changes when the crosshair is far from the target (distances are often further than you expect).\n* Consider display dimensions when estimating positions. E.g. if it's 90% to the bottom of the screen, the coordinates should reflect this.\n* For another display, call computer_list_displays and pass its exact display_id. Coordinates and screenshot regions are relative to that display. Keyboard focus and recording cannot be bound to a display.\n\nRegion-of-interest (ROI):\n* `get_screenshot` and `start_screen_recording` accept an optional `region: [x, y, width, height]` in API image space. When set, the captured image/video is cropped to that rectangle before being downsampled, letting you focus the model on one pane or an animating element without capturing the whole screen.\n\nScreen recording:\n* `start_screen_recording` begins capturing the primary display to an `.mp4` file and returns immediately with the output path. Optional params: `fps` (1-60, default 30), `region` (ROI), `path` (defaults to a timestamped file in the OS temp dir), `max_duration_seconds` (auto-stop after N seconds).\n* `stop_screen_recording` stops the active recording and returns the final file path, frame count, and duration. Only one recording can be active at a time; starting a second before stopping the first returns an error.\n* Use recording to review animations, transitions, video playback, or any behavior that a single screenshot can't capture. Prefer a small `region` when possible \u2014 it keeps file size down and focuses the recording on the element under test.",
         "input_schema": {
           "$defs": {
             "Action": {
@@ -1164,7 +1164,7 @@
             },
             "fps": {
               "default": null,
-              "description": "Frames per second for `start_screen_recording`. 1–60, default 30.",
+              "description": "Frames per second for `start_screen_recording`. 1\u201360, default 30.",
               "format": "uint32",
               "minimum": 0,
               "type": [
@@ -1192,7 +1192,7 @@
             },
             "region": {
               "default": null,
-              "description": "Optional region-of-interest `[x, y, width, height]` in API image space.\nSupported by `get_screenshot` and `start_screen_recording` — the\ncaptured image / video is cropped to this rectangle before downsampling.\nUseful for focusing the model on a specific panel, a video player,\na toast, or isolating an animating element for frame-by-frame review.",
+              "description": "Optional region-of-interest `[x, y, width, height]` in API image space.\nSupported by `get_screenshot` and `start_screen_recording` \u2014 the\ncaptured image / video is cropped to this rectangle before downsampling.\nUseful for focusing the model on a specific panel, a video player,\na toast, or isolating an animating element for frame-by-frame review.",
               "items": {
                 "format": "int32",
                 "type": "integer"
@@ -1278,7 +1278,7 @@
           "additionalProperties": false,
           "properties": {
             "max_depth": {
-              "description": "Maximum tree depth (1–30, default 12).",
+              "description": "Maximum tree depth (1\u201330, default 12).",
               "format": "uint8",
               "maximum": 30,
               "minimum": 1,
@@ -1288,7 +1288,7 @@
               ]
             },
             "max_nodes": {
-              "description": "Maximum elements (1–1000, default 300). Responses identify truncation.",
+              "description": "Maximum elements (1\u20131000, default 300). Responses identify truncation.",
               "format": "uint16",
               "maximum": 1000,
               "minimum": 1,
@@ -1751,6 +1751,6 @@
         "name": "computer_window_input"
       }
     ],
-    "version": "0.1.5"
+    "version": "0.1.7"
   }
 }

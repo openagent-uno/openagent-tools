@@ -1,5 +1,11 @@
 # OpenAgent official connectors
 
+SDK 0.1.15 adds BuddyBooks to the Go catalog, the runner and the bundled Python
+catalog. The public list operations use a read-only company token. Accounting
+previews and writes require their own company-bound grant and explicit approval
+for write operations. A catalog entry does not create a provider connection.
+
+
 Shared Go module `github.com/openagent-uno/openagent-tools/packages/connectors`.
 The [published SDK/runner **0.1.12**](https://github.com/openagent-uno/openagent-tools/releases/tag/connectors-v0.1.12)
 is a contract-qualified prerelease with **114 official entries plus Custom MCP**,
@@ -39,6 +45,27 @@ registrations.
 Version 0.1.2 adds a durable fence for the calling installation/provider/app grant during revocation and explicit installation/store admission for real-provider QA. This fence does not correlate other Google aliases, consents or servers by account; those bindings depend on Google's project-wide revocation and local handling of `401`/`invalid_grant`. No additional account-identity scopes are requested. The QA mode is unavailable to public enrollment and reports `/readyz` as 503. See [the operator procedure and exact revocation limits](../../deploy/connector-auth/qa-enrollment.md). Rollback must retain the new broker and its metadata; an older broker can lose revocation tombstones. Artifacts use the exact Go 1.26.9 toolchain, record it in their manifests and pin `golang.org/x/text` 0.41.0. The versioned library does not activate provider apps or bypass product privacy/release gates.
 
 Version 0.1.3 is a Postiz protocol correction: its registered app determines the callback, authorization/token requests omit `redirect_uri`, and the confidential code exchange uses JSON. The [official Postiz OAuth contract](https://docs.postiz.com/oauth) returns non-expiring access tokens; refresh is not applicable, and account holders revoke access through Postiz Approved Apps. The historical test incorrectly modeled Postiz as an expiring PKCE/form provider. Dedicated fixtures now verify exact request fields/content type, callback omission, sanitized failures and no retry/redirect of code exchange. Catalog IDs, tools, scopes and product credentials are unchanged. That protocol qualification did not establish a user grant. The existing Postiz registration is now recorded as staged and disabled, with credential rotation required before activation; see the [metadata-only registration](../../deploy/connector-auth/registrations/postiz.json). Public common enrollment remains closed. Version 0.1.2 artifacts and existing host pins remain immutable until consumers explicitly adopt a qualified 0.1.3 release.
+
+## BuddyBooks
+
+Use a company API key with the `read` scope issued for the intended company.
+The typed operations list one page of accounting documents, electronic
+invoices, or customer and supplier records through the provider's public v1
+API at `https://api.spicysparks.com`. The provider derives company scope from
+the key. Hosts should restrict financial and contact data to authorized users.
+
+The accounting adapter adds typed calls for supplier upsert, occasional-work
+receipts, incoming EUR invoices, US company purchases, and PDF archive. These operations
+require a host-owned company UUID in the connection's external ID and the
+provider's `api` and `write` scopes. Receipt registration and EUR purchase
+entry require a UUID idempotency key supplied by the host. US purchases use
+the provider's duplicate check by supplier, number and date. Hosts must authorize each write and
+use an approved route to the provider's accounting API. The public v1 route
+serves the list operations. PDF uploads accept up to 5 MiB. No operation
+sends a receipt, issues an electronic invoice or records a payment.
+The private document status read uses an exact document UUID and the bound
+company. It reports a processed inbound receipt and settlement status, and
+omits bank details, original payloads and payment evidence rows.
 
 ## Ownership and compatibility
 

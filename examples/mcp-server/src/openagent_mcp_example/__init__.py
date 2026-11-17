@@ -1,0 +1,1 @@
+"""Independent OpenAgent MCP example."""

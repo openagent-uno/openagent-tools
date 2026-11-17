@@ -54,7 +54,7 @@ Debug qualification on 21 October 2026:
   replacement-failure-without-stale-fallback. No macOS input or TCC operation
   was invoked by those tests.
 
-The original ICS QA screenshot showed the same missing-colon symptom, but the
+The original embedding-host QA screenshot showed the same missing-colon symptom, but the
 historical keyboard-map body was not retained. A historical reset in that exact
 run is therefore an inference, not a directly observed fact. The controlled
 regression proves the dependency-cache failure and the correction independently.

@@ -1,5 +1,5 @@
 {
-  "version": "0.1.12",
+  "version": "0.1.15",
   "connectors": [
     {
       "id": "onedrive",
@@ -427,6 +427,36 @@
         "commerce.billingbear.customers.history"
       ],
       "agentTools": [],
+      "available": true
+    },
+    {
+      "id": "buddybooks",
+      "name": "BuddyBooks",
+      "description": "Read company accounting documents, preview receipts and purchases, and register approved accounting records.",
+      "category": "Commerce",
+      "auth": "token",
+      "icon": "receipt",
+      "setupUrl": "https://os.spicysparks.com",
+      "setupInstructions": "Use a company API key. Accounting actions require a matching company ID and an accounting grant configured by the host.",
+      "capability": "commerce",
+      "provider": "buddybooks",
+      "readTools": [
+        "commerce.buddybooks.documents.list",
+        "commerce.buddybooks.invoices.list",
+        "commerce.buddybooks.parties.list",
+        "commerce.buddybooks.documents.status",
+        "commerce.buddybooks.receipts.preview",
+        "commerce.buddybooks.purchases.preview",
+        "commerce.buddybooks.us_purchases.preview"
+      ],
+      "agentTools": [
+        "commerce.buddybooks.suppliers.upsert",
+        "commerce.buddybooks.receipts.register",
+        "commerce.buddybooks.receipts.signed.attach",
+        "commerce.buddybooks.purchases.register",
+        "commerce.buddybooks.us_purchases.register",
+        "commerce.buddybooks.purchases.pdf.attach"
+      ],
       "available": true
     },
     {

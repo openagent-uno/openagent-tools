@@ -11,6 +11,7 @@ import asyncio
 import os
 import platform
 import signal as signal_module
+import subprocess
 import time
 from dataclasses import dataclass
 from typing import Literal
@@ -29,6 +30,82 @@ def pick_shell(environment: dict[str, str] | None = None) -> tuple[str, str]:
     if system == "darwin":
         return (environment.get("SHELL", "/bin/zsh"), "-c")
     return (environment.get("SHELL", "/bin/bash"), "-c")
+
+
+_LOGIN_PATH_START = "__OPENAGENT_LOGIN_PATH_START__"
+_LOGIN_PATH_END = "__OPENAGENT_LOGIN_PATH_END__"
+_LOGIN_PATH_TIMEOUT = 5.0
+_MACOS_WELL_KNOWN_PATHS = ("/opt/homebrew/bin", "/opt/homebrew/sbin", "/usr/local/bin")
+_login_path_cache: dict[tuple[str, str, str], str | None] = {}
+
+
+def _probe_login_path(environment: dict[str, str]) -> str | None:
+    """Return ``PATH`` as the user's interactive login shell defines it.
+
+    A macOS app started from Finder, the Dock or launchd inherits only the
+    launchd default ``/usr/bin:/bin:/usr/sbin:/sbin``. Commands that work in
+    the user's terminal (Homebrew, SDKs, version managers configured in
+    ``.zprofile``/``.zshrc``) are then missing. The interactive login shell is
+    asked once, with stdin closed and a short timeout; output outside the
+    markers (banners, prompts) is ignored. Any failure returns ``None``.
+    """
+    shell, _flag = pick_shell(environment)
+    key = (shell, environment.get("PATH", ""), environment.get("HOME", ""))
+    if key in _login_path_cache:
+        return _login_path_cache[key]
+    script = f"printf '%s%s%s' '{_LOGIN_PATH_START}' \"$PATH\" '{_LOGIN_PATH_END}'"
+    resolved: str | None = None
+    try:
+        completed = subprocess.run(
+            [shell, "-ilc", script],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            env=dict(environment),
+            timeout=_LOGIN_PATH_TIMEOUT,
+            start_new_session=True,
+            check=False,
+        )
+        output = completed.stdout.decode("utf-8", "replace")
+        start = output.rfind(_LOGIN_PATH_START)
+        end = output.rfind(_LOGIN_PATH_END)
+        if start != -1 and end > start:
+            value = output[start + len(_LOGIN_PATH_START):end].strip()
+            resolved = value or None
+    except (OSError, subprocess.SubprocessError, ValueError):
+        resolved = None
+    _login_path_cache[key] = resolved
+    return resolved
+
+
+def user_environment(environment: dict[str, str] | None = None) -> dict[str, str]:
+    """Return ``environment`` with the user's login-shell ``PATH`` on macOS.
+
+    Entries already present keep working; the login-shell entries come first
+    so the shell resolves programs as the user's terminal does. When the probe
+    fails, the standard Homebrew/``/usr/local`` directories that exist are
+    appended instead. Set ``OPENAGENT_SHELL_LOGIN_PATH=0`` to disable it.
+    Other platforms and other variables are returned unchanged.
+    """
+    result = dict(os.environ if environment is None else environment)
+    if platform.system().lower() != "darwin":
+        return result
+    if result.get("OPENAGENT_SHELL_LOGIN_PATH", "1").strip().lower() in {"0", "false", "no", "off"}:
+        return result
+    current = [entry for entry in result.get("PATH", "").split(os.pathsep) if entry]
+    login = _probe_login_path(result)
+    if login:
+        preferred = [entry for entry in login.split(os.pathsep) if entry]
+    else:
+        preferred = [entry for entry in _MACOS_WELL_KNOWN_PATHS if os.path.isdir(entry)]
+        preferred = current + preferred
+    merged: list[str] = []
+    for entry in [*preferred, *current]:
+        if entry not in merged:
+            merged.append(entry)
+    if merged:
+        result["PATH"] = os.pathsep.join(merged)
+    return result
 
 
 @dataclass

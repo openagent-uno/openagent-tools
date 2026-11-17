@@ -1,0 +1,4 @@
+# CPU-only codecs, vision and speech; resolved wheel hashes in requirements.lock.
+faster-whisper==1.2.1
+pypdfium2>=5,<6
+Pillow>=12,<13

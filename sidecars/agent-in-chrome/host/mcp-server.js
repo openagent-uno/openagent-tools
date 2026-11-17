@@ -29,6 +29,7 @@ import {
   installExtension, removeManagedExtension, listManagedExtensions, getBrowserVersion,
 } from "./browser.js";
 import { PAGE_SCRIPT } from "./page-script.js";
+import { navigationTarget } from "./navigation.js";
 import { AdvancedBrowser, configuredBrowserSlots, jsonToZod } from "./browser-advanced.js";
 
 const MAX_BUFFER = 1000;
@@ -477,9 +478,15 @@ const tools = {
   async tabs_context_mcp(args) {
     let tabs = await controller.listTabs();
     if (tabs.length === 0 && args.createIfEmpty) {
-      await controller.cdp.send("Target.createTarget", { url: "about:blank" });
-      await sleep(150);
-      tabs = await controller.listTabs();
+      const { targetId } = await controller.cdp.send("Target.createTarget", { url: "about:blank" });
+      const deadline = Date.now() + 5000;
+      do {
+        tabs = await controller.listTabs();
+        if (tabs.some(tab => controller.targetForTab(tab.tabId) === targetId)) break;
+        await sleep(50);
+      } while (Date.now() < deadline);
+      if (!tabs.some(tab => controller.targetForTab(tab.tabId) === targetId))
+        throw new Error("Browser page target did not become ready before the deadline");
     }
     if (tabs.length === 0) return text("No tabs open. Call again with createIfEmpty: true to open one.");
     let out = "Tab Context:\n- Available tabs:\n";
@@ -509,11 +516,9 @@ const tools = {
       await controller.send("Page.navigateToHistoryEntry", { entryId }, sess);
       await p;
     } else {
-      let target = url;
-      if (!/^https?:\/\//i.test(target) && !/^(about|chrome|edge|brave):/i.test(target)) {
-        target = "https://" + target.replace(/^[a-z]{1,6}:\/+/i, "");
-      }
-      try { new URL(target); } catch { return text(`Invalid URL: "${url}".`); }
+      const resolved = navigationTarget(url);
+      if (resolved.error) return toolError(resolved.error);
+      const target = resolved.url;
       const p = waitForLoad(sess, 15000);
       const nav = await controller.send("Page.navigate", { url: target }, sess);
       if (nav.errorText && nav.errorText !== "net::ERR_ABORTED") {

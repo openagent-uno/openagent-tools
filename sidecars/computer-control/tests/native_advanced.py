@@ -132,7 +132,7 @@ async def main():
       audio_evidence={'sample_rate':24000,'channels':2,'frames':frames,'peak':energy,'source':'owned_fixture_app_only','artifact':str(artifact)}
       checks.extend(['exact app-filtered loopback start/stop','24kHz stereo WAV contains owned synthetic tone'])
       replay=await call('computer_audio_stop',{'recording_id':audio_start['recording_id']});assert any(code in replay.get('error','') for code in ('stale_recording_id','resource_owner_mismatch','recording belongs to another local interaction')),replay;checks.append('consumed audio resource rejects replay')
-     result={'platform':'macos','sidecar_version':initialized.serverInfo.version,'checks':checks,'passed':len(checks),'audio_boundary':audio_boundary,'fixture_only':True,'audio':audio_evidence,'adopter':command[-1] if command[-1] in {'OpenAgent','GlassPalace','ICS'} else 'direct_mcp','elapsed_seconds':round(time.monotonic()-started,3)}
+     result={'platform':'macos','sidecar_version':initialized.serverInfo.version,'checks':checks,'passed':len(checks),'audio_boundary':audio_boundary,'fixture_only':True,'audio':audio_evidence,'adopter':os.environ.get('OPENAGENT_NATIVE_QA_ADOPTER') or ('OpenAgent' if command[-1]=='OpenAgent' else 'direct_mcp'),'elapsed_seconds':round(time.monotonic()-started,3)}
      Path(os.environ.get('OPENAGENT_NATIVE_QA_RECEIPT',str(ROOT/'target/native-advanced-evidence.json'))).write_text(json.dumps(result,indent=2)+'\n');print(json.dumps(result,indent=2))
   finally:
    try:control.write_text('quit');await asyncio.sleep(.3)

@@ -30,6 +30,10 @@ pub struct CaptureResult {
 /// region) — callers need the full logical extents to map cursor / click
 /// coordinates back to API space via [`crate::scaling::api_to_logical`].
 pub fn capture_primary_display_region(region: Option<LogicalRegion>) -> Result<CaptureResult> {
+    #[cfg(target_os="macos")]
+    if crate::live_macos::ScreenStream::supported(){
+        return capture_display_region(primary_or_first_monitor()?,region);
+    }
     #[cfg(target_os = "macos")]
     require_screen_recording_permission()?;
 
@@ -57,13 +61,25 @@ pub fn capture_primary_display_region(region: Option<LogicalRegion>) -> Result<C
 pub fn capture_display_region(monitor: xcap::Monitor, region: Option<LogicalRegion>) -> Result<CaptureResult> {
     #[cfg(target_os = "macos")]
     require_screen_recording_permission()?;
-    let rgba = monitor.capture_image().context("capture selected display")?;
+    let rgba = capture_display_frame_rgba(&monitor)?;
     let logical_width = rgba.width();
     let logical_height = rgba.height();
     let cropped = match region { None => rgba, Some(value) => crop_rgba(&rgba, value)? };
     let (png_bytes, reported_width, reported_height) = downsample_and_encode(cropped)?;
     Ok(CaptureResult { png_bytes, reported_width, reported_height,
         logical_width, logical_height })
+}
+
+/// Raw exact-display frame, without a primary-display fallback.
+pub fn capture_display_frame_rgba(monitor:&xcap::Monitor)->Result<RgbaImage>{
+    #[cfg(target_os="macos")]
+    {
+        require_screen_recording_permission()?;
+        if crate::live_macos::ScreenStream::supported(){
+            return crate::live_macos::ScreenStream::start(monitor.id()?,monitor.width()?,monitor.height()?,30)?.frame();
+        }
+    }
+    monitor.capture_image().context("capture selected display")
 }
 
 pub fn monitor_by_id(display_id: u32) -> Result<xcap::Monitor> {

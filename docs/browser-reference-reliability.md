@@ -67,7 +67,7 @@ No browser is downloaded by the test or sidecar.
 ## Receiving products and remaining boundaries
 
 The shared Agent-in-Chrome source is the upstream implementation consumed by
-OpenAgent's host-tools facade. OpenAgent App, GlassPalace and ICS must acquire
+OpenAgent's host-tools facade. OpenAgent App and embedding hosts must acquire
 and verify a newly built device-tools/host-tools bundle through their existing
 capability adapters. These source tests do not modify an installed or published
 bundle, forge release hashes or qualify any deployed consumer.

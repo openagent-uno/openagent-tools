@@ -5,7 +5,7 @@ import (
 	"github.com/openagent-uno/openagent-tools/packages/connectors/providers"
 )
 
-const Version = "0.1.14"
+const Version = "0.1.15"
 
 type Item struct {
 	ID                string   `json:"id"`
@@ -152,6 +152,20 @@ var catalogEntries = []CatalogEntry{
 		Category: "Commerce", Auth: "token", Icon: "credit-card", Capability: "commerce", Provider: "billingbear",
 		ReadTools:  []string{"commerce.billingbear.project.stats", "commerce.billingbear.customers.stats", "commerce.billingbear.customers.history"},
 		AgentTools: []string{},
+	}},
+	{Item: Item{
+		ID: "buddybooks", Name: "BuddyBooks", Description: "Read company accounting documents, preview receipts and purchases, and register approved accounting records.",
+		Category: "Commerce", Auth: "token", Icon: "receipt", Capability: "commerce", Provider: "buddybooks",
+		SetupURL: "https://os.spicysparks.com", SetupInstructions: "Use a company API key. Accounting actions require a matching company ID and an accounting grant configured by the host.",
+		ReadTools: []string{
+			"commerce.buddybooks.documents.list", "commerce.buddybooks.invoices.list", "commerce.buddybooks.parties.list",
+			"commerce.buddybooks.documents.status",
+			"commerce.buddybooks.receipts.preview", "commerce.buddybooks.purchases.preview", "commerce.buddybooks.us_purchases.preview",
+		},
+		AgentTools: []string{
+			"commerce.buddybooks.suppliers.upsert", "commerce.buddybooks.receipts.register", "commerce.buddybooks.receipts.signed.attach",
+			"commerce.buddybooks.purchases.register", "commerce.buddybooks.us_purchases.register", "commerce.buddybooks.purchases.pdf.attach",
+		},
 	}},
 	{Item: Item{
 		ID: "google-analytics", Name: "Google Analytics", Description: "Explore GA4 properties, reports and realtime analytics with read-only Google access.",

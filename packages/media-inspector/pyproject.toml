@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+[project]
+name = "openagent-media-inspector"
+version = "0.1.0"
+requires-python = ">=3.11"
+description = "Bounded OpenAgent attachment previews and local speech transcription"
+dependencies = ["faster-whisper==1.2.1", "pypdfium2>=5,<6", "Pillow>=12,<13"]
+[tool.setuptools.packages.find]
+where = ["src"]

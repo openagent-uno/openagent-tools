@@ -1,5 +1,8 @@
 # OpenAgent Tools
 
+Read [agnostic architecture](docs/AGNOSTICISM.md), [components](docs/COMPONENTS.md)
+and [usage](docs/USAGE.md) before integration or development.
+
 Independent, reusable filesystem, editor, shell, web search, Meta Ads and
 device capabilities. Hosts may call them as Python packages, expose them
 through the neutral tool protocol or register them as MCP servers where
