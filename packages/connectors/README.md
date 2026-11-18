@@ -76,8 +76,8 @@ omits bank details, original payloads and payment evidence rows.
 The SMTP send result keeps `data.message_id` as the submitted RFC Message-ID.
 For a recognized bounded `Ok <receipt>` or `queued as <receipt>` acknowledgement,
 it additionally returns `data.smtp_acceptance_id` and uses that value as
-`provider_id`, with `metadata.provider_id_kind=smtp_acceptance_id`. Otherwise
-`provider_id` falls back to the submission ID and the kind is
+`provider_request_id`, with `metadata.provider_id_kind=smtp_acceptance_id`. Otherwise
+`provider_request_id` falls back to the submission ID and the kind is
 `submission_message_id`. Arbitrary SMTP response text is not returned or logged.
 An acceptance/queue receipt is useful for provider delivery/bounce events; it is
 not proof of the Message-ID eventually seen by a recipient. Relays can rewrite
