@@ -1,6 +1,8 @@
 # OpenAgent official connectors
 
-SDK 0.1.15 adds BuddyBooks to the Go catalog, the runner and the bundled Python
+SDK 0.1.16 adds a shared host SMTP transport with MIME, attachment, TLS-pool and
+acceptance-identity contracts. Host adoption and live-provider qualification remain
+separate. SDK 0.1.15 adds BuddyBooks to the Go catalog, the runner and the bundled Python
 catalog. The public list operations use a read-only company token. Accounting
 previews and writes require their own company-bound grant and explicit approval
 for write operations. A catalog entry does not create a provider connection.
@@ -185,3 +187,32 @@ native macOS runner/broker fixtures. Windows/Linux remain cross-compilation
 only. Artifacts and evidence stay in workflow staging pending operator review.
 The legacy public host keeps its existing SDK pin in a separate environment.
 This describes the staged recipe, not an executed or approved 0.1.4 run.
+
+## Host SMTP transport (0.1.16 source candidate)
+
+Trusted hosts call `providers.NewSMTPTransport().Deliver` with `SMTPConfig`,
+`SMTPMessage` and a separately constructed `providers.NewSMTPCredential`. It does
+not require IMAP settings, does not create an account or grant, and is independent
+from the existing model-facing text-only send schema. The host authorizes the exact
+account, sender, recipients and content, and keeps durable effect receipts.
+
+The same implementation serves the existing SMTP tool. It supports plain text and
+HTML alternatives, up to five arbitrary MIME attachments totaling 10,000,000 decoded
+bytes, sender display names, Reply-To, Message-ID, In-Reply-To, References, language
+and one-click unsubscribe headers. Each text/HTML body is bounded to 1 MiB. Header
+injection and invalid attachment metadata fail before dialing. Credentials are not
+message arguments, and MIME bodies/passwords are absent from results.
+
+Each instance owns bounded connection/rate gates and authenticated TLS sessions;
+call `Close` on shutdown. Certificates/hostnames are verified, with no plaintext or
+insecure bypass. Idle sessions expire after five minutes. NOOP checks a reusable
+session before MAIL; a dead session may be replaced before submission, but DATA is
+never automatically repeated. Changed credentials use a separate pool. Reply-read
+bounds apply per delivery rather than to the session lifetime.
+
+`SMTPDeliveryError` exposes a sanitized code, `Temporary` and `Uncertain`. An explicit
+negative verdict means refused; lost acknowledgement after DATA means uncertain.
+Hosts may defer known temporary refusals under their own policies, but must reconcile
+uncertain outcomes. A relay receipt is acceptance, not recipient delivery. Synthetic
+verified-TLS fixtures cover MIME roundtrip, pooling and failure boundaries; publication
+and each host's real-provider adoption require separate evidence.

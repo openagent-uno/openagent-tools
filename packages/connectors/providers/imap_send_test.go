@@ -31,6 +31,7 @@ type smtpCapture struct {
 	sender        string
 	recipients    []string
 	message       []byte
+	messages      [][]byte
 	err           error
 }
 type smtpTestOptions struct {
@@ -219,6 +220,7 @@ func serveSMTPFixture(socket net.Conn, certificate tls.Certificate, options smtp
 				return
 			}
 			capture.message, err = io.ReadAll(text.DotReader())
+			capture.messages = append(capture.messages, capture.message)
 			if err != nil {
 				capture.err = err
 				return
@@ -231,6 +233,8 @@ func serveSMTPFixture(socket net.Conn, certificate tls.Certificate, options smtp
 				response = "Accepted message"
 			}
 			err = text.PrintfLine("250 %s", response)
+		case line == "NOOP":
+			err = text.PrintfLine("250 Ready")
 		case line == "QUIT":
 			_ = text.PrintfLine("221 Bye")
 			return

@@ -4,17 +4,12 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	"crypto/tls"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"mime"
-	"net"
 	"net/mail"
-	"net/smtp"
-	"strconv"
 	"strings"
 	"time"
 	"unicode/utf8"
@@ -122,128 +117,9 @@ func (a *imapAdapter) sendSMTP(ctx context.Context, input domain.Invocation, con
 	if err != nil || !validSMTPConfig(config) || args.ConnectionID != "" && args.ConnectionID != input.Connection.ID {
 		return domain.Result{}, domain.ErrInvalidArguments
 	}
-	from := effectiveSMTPFrom(config)
-	message, messageID, err := buildSMTPMessage(from, args, time.Now().UTC())
-	if err != nil {
-		return domain.Result{}, imapFailure("smtp_message_failed")
-	}
-	defer clear(message)
-	ctx, cancel := context.WithTimeout(ctx, 45*time.Second)
-	defer cancel()
-	socket, err := a.dial(ctx, "tcp", net.JoinHostPort(config.SMTPHost, strconv.Itoa(config.SMTPPort)))
-	if err != nil {
-		return domain.Result{}, imapFailure("smtp_connection_failed")
-	}
-	defer socket.Close()
-	deadline, _ := ctx.Deadline()
-	_ = socket.SetDeadline(deadline)
-	stop := context.AfterFunc(ctx, func() { _ = socket.Close() })
-	defer stop()
-	tlsConfig := a.tlsConfig(config.SMTPHost).Clone()
-	tlsConfig.ServerName = config.SMTPHost
-	tlsConfig.MinVersion = max(tlsConfig.MinVersion, tls.VersionTLS12)
-	tlsConfig.InsecureSkipVerify = false
-	// Bound the underlying socket before TLS wrapping. net/smtp then sees the
-	// actual *tls.Conn, so PLAIN authentication cannot mistake TLS for plaintext.
-	var transport net.Conn = &imapBoundedConn{Conn: socket, remaining: 4 << 20}
-	if config.SMTPTLSMode == "implicit_tls" {
-		secure := tls.Client(transport, tlsConfig)
-		if secure.HandshakeContext(ctx) != nil {
-			return domain.Result{}, imapFailure("smtp_tls_failed")
-		}
-		transport = secure
-	}
-	client, err := smtp.NewClient(transport, config.SMTPHost)
-	if err != nil {
-		return domain.Result{}, imapFailure("smtp_greeting_failed")
-	}
-	defer client.Close()
-	if config.SMTPTLSMode == "starttls" {
-		if ok, _ := client.Extension("STARTTLS"); !ok {
-			return domain.Result{}, imapFailure("smtp_tls_required")
-		}
-		if client.StartTLS(tlsConfig) != nil {
-			return domain.Result{}, imapFailure("smtp_tls_failed")
-		}
-	}
-	if state, ok := client.TLSConnectionState(); !ok || !state.HandshakeComplete || len(state.VerifiedChains) == 0 {
-		return domain.Result{}, imapFailure("smtp_tls_failed")
-	}
-	if ok, methods := client.Extension("AUTH"); !ok || !containsString(strings.Fields(methods), "PLAIN") {
-		return domain.Result{}, imapFailure("smtp_authentication_unsupported")
-	}
-	err = input.Credential.WithSecret(time.Now().UTC(), func(kind domain.CredentialKind, secret []byte) error {
-		if kind != domain.CredentialAPIToken || !bytes.HasPrefix(secret, []byte("gp_imap_v1.")) {
-			return domain.ErrDenied
-		}
-		decoded, err := base64.RawURLEncoding.DecodeString(string(secret[len("gp_imap_v1."):]))
-		if err != nil {
-			return domain.ErrDenied
-		}
-		defer clear(decoded)
-		var bundle struct {
-			IMAPPassword string `json:"imap_password"`
-			SMTPPassword string `json:"smtp_password"`
-		}
-		if len(decoded) > 64<<10 || strictJSON(decoded, &bundle) != nil || !validIMAPText(bundle.SMTPPassword, 16384) {
-			return domain.ErrDenied
-		}
-		defer func() { bundle.IMAPPassword = ""; bundle.SMTPPassword = "" }()
-		if client.Auth(smtp.PlainAuth("", config.Username, bundle.SMTPPassword, config.SMTPHost)) != nil {
-			return errors.Join(domain.ErrProviderPermission, imapFailure("smtp_authentication_failed"))
-		}
-		return nil
-	})
-	if err != nil {
-		return domain.Result{}, err
-	}
-	if client.Mail(from) != nil {
-		return domain.Result{}, imapFailure("smtp_sender_rejected")
-	}
-	for _, list := range [][]string{args.To, args.CC, args.BCC} {
-		for _, recipient := range list {
-			if client.Rcpt(recipient) != nil {
-				return domain.Result{}, imapFailure("smtp_recipient_rejected")
-			}
-		}
-	}
-	// net/smtp.Data hides the final acknowledgement. Keep the same public
-	// textproto transaction so submission Message-ID and relay receipt stay distinct.
-	requestID, err := client.Text.Cmd("DATA")
-	if err != nil {
-		return domain.Result{}, imapFailure("smtp_data_rejected")
-	}
-	client.Text.StartResponse(requestID)
-	_, _, err = client.Text.ReadResponse(354)
-	client.Text.EndResponse(requestID)
-	if err != nil {
-		return domain.Result{}, imapFailure("smtp_data_rejected")
-	}
-	writer := client.Text.DotWriter()
-	if _, err := writer.Write(message); err != nil {
-		// Do not Close the DATA writer after a failed write: that could submit
-		// a truncated message. Closing the socket aborts this SMTP transaction.
-		return domain.Result{}, imapFailure("smtp_delivery_unknown")
-	}
-	if writer.Close() != nil {
-		return domain.Result{}, imapFailure("smtp_delivery_unknown")
-	}
-	_, acknowledgement, err := client.Text.ReadResponse(250)
-	if err != nil {
-		return domain.Result{}, imapFailure("smtp_delivery_unknown")
-	}
-	acceptanceID := smtpAcceptanceID(acknowledgement)
-	providerID, idKind := messageID, "submission_message_id"
-	data := map[string]any{"status": "accepted", "message_id": messageID, "accepted_recipients": len(args.To) + len(args.CC) + len(args.BCC)}
-	if acceptanceID != "" {
-		providerID, idKind = acceptanceID, "smtp_acceptance_id"
-		data["smtp_acceptance_id"] = acceptanceID
-	}
-	return domain.Result{
-		Data:       data,
-		ProviderID: providerID, Attempts: 1, RequestBytes: int64(len(message)),
-		Metadata: map[string]string{"provider": "imap_smtp", "operation": "outreach.imap.messages.send", "delivery": "accepted_by_smtp_server", "retry_safe": "false", "provider_id_kind": idKind},
-	}, nil
+	transport := &SMTPTransport{mail: a}
+	defer transport.Close()
+	return transport.Deliver(ctx, SMTPConfig{Host: config.SMTPHost, Port: config.SMTPPort, TLSMode: config.SMTPTLSMode, Username: config.Username, From: effectiveSMTPFrom(config)}, input.Credential, SMTPMessage{To: args.To, CC: args.CC, BCC: args.BCC, Subject: args.Subject, Text: args.Text})
 }
 
 // Extract only a bounded opaque receipt from recognized acceptance syntax. Never
