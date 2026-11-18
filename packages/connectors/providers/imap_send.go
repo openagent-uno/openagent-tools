@@ -207,10 +207,19 @@ func (a *imapAdapter) sendSMTP(ctx context.Context, input domain.Invocation, con
 			}
 		}
 	}
-	writer, err := client.Data()
+	// net/smtp.Data hides the final acknowledgement. Keep the same public
+	// textproto transaction so submission Message-ID and relay receipt stay distinct.
+	requestID, err := client.Text.Cmd("DATA")
 	if err != nil {
 		return domain.Result{}, imapFailure("smtp_data_rejected")
 	}
+	client.Text.StartResponse(requestID)
+	_, _, err = client.Text.ReadResponse(354)
+	client.Text.EndResponse(requestID)
+	if err != nil {
+		return domain.Result{}, imapFailure("smtp_data_rejected")
+	}
+	writer := client.Text.DotWriter()
 	if _, err := writer.Write(message); err != nil {
 		// Do not Close the DATA writer after a failed write: that could submit
 		// a truncated message. Closing the socket aborts this SMTP transaction.
@@ -219,11 +228,56 @@ func (a *imapAdapter) sendSMTP(ctx context.Context, input domain.Invocation, con
 	if writer.Close() != nil {
 		return domain.Result{}, imapFailure("smtp_delivery_unknown")
 	}
+	_, acknowledgement, err := client.Text.ReadResponse(250)
+	if err != nil {
+		return domain.Result{}, imapFailure("smtp_delivery_unknown")
+	}
+	acceptanceID := smtpAcceptanceID(acknowledgement)
+	providerID, idKind := messageID, "submission_message_id"
+	data := map[string]any{"status": "accepted", "message_id": messageID, "accepted_recipients": len(args.To) + len(args.CC) + len(args.BCC)}
+	if acceptanceID != "" {
+		providerID, idKind = acceptanceID, "smtp_acceptance_id"
+		data["smtp_acceptance_id"] = acceptanceID
+	}
 	return domain.Result{
-		Data:       map[string]any{"status": "accepted", "message_id": messageID, "accepted_recipients": len(args.To) + len(args.CC) + len(args.BCC)},
-		ProviderID: messageID, Attempts: 1, RequestBytes: int64(len(message)),
-		Metadata: map[string]string{"provider": "imap_smtp", "operation": "outreach.imap.messages.send", "delivery": "accepted_by_smtp_server", "retry_safe": "false"},
+		Data:       data,
+		ProviderID: providerID, Attempts: 1, RequestBytes: int64(len(message)),
+		Metadata: map[string]string{"provider": "imap_smtp", "operation": "outreach.imap.messages.send", "delivery": "accepted_by_smtp_server", "retry_safe": "false", "provider_id_kind": idKind},
 	}, nil
+}
+
+// Extract only a bounded opaque receipt from recognized acceptance syntax. Never
+// retain arbitrary server text, and never claim this is the delivered RFC Message-ID.
+func smtpAcceptanceID(response string) string {
+	if len(response) > 1024 || containsControl(response) {
+		return ""
+	}
+	fields := strings.Fields(response)
+	candidate := ""
+	if len(fields) == 2 && strings.EqualFold(fields[0], "Ok") {
+		candidate = fields[1]
+	}
+	if len(fields) >= 3 && strings.EqualFold(fields[len(fields)-3], "queued") && strings.EqualFold(fields[len(fields)-2], "as") {
+		candidate = fields[len(fields)-1]
+	}
+	if len(candidate) < 3 || len(candidate) > 200 {
+		return ""
+	}
+	hasDigit := false
+	for _, c := range candidate {
+		if c >= '0' && c <= '9' {
+			hasDigit = true
+			continue
+		}
+		if c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '.' || c == '_' || c == '-' {
+			continue
+		}
+		return ""
+	}
+	if !hasDigit {
+		return ""
+	}
+	return candidate
 }
 
 func buildSMTPMessage(from string, args smtpArguments, now time.Time) ([]byte, string, error) {

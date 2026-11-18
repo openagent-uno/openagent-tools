@@ -36,6 +36,7 @@ type smtpCapture struct {
 type smtpTestOptions struct {
 	mode                                                                    string
 	username, from                                                          string
+	acceptanceResponse                                                      string
 	imapPassword, smtpPassword                                              string
 	disableSTARTTLS, wrongCertificate, rejectRecipient, disconnectAfterDATA bool
 }
@@ -225,7 +226,11 @@ func serveSMTPFixture(socket net.Conn, certificate tls.Certificate, options smtp
 			if options.disconnectAfterDATA {
 				return
 			}
-			err = text.PrintfLine("250 Accepted message")
+			response := options.acceptanceResponse
+			if response == "" {
+				response = "Accepted message"
+			}
+			err = text.PrintfLine("250 %s", response)
 		case line == "QUIT":
 			_ = text.PrintfLine("221 Bye")
 			return
@@ -277,6 +282,38 @@ func TestSMTPSendsWithVerifiedTLSAndNoBccHeader(t *testing.T) {
 				t.Fatal("secret or message body leaked into result")
 			}
 		})
+	}
+}
+
+func TestSMTPPreservesSubmissionIdentityAndProviderAcceptanceSeparately(t *testing.T) {
+	for _, response := range []string{"Ok fixture-acceptance-42", "2.0.0 Ok: queued as fixture-acceptance-42"} {
+		t.Run(response, func(t *testing.T) {
+			result, err, capture, dials := runSMTPFixture(t, smtpTestOptions{mode: "implicit_tls", acceptanceResponse: response})
+			if err != nil || capture.err != nil || dials != 1 {
+				t.Fatalf("accepted SMTP fixture failed: %v %v", err, capture.err)
+			}
+			message, err := mail.ReadMessage(strings.NewReader(string(capture.message)))
+			if err != nil {
+				t.Fatal(err)
+			}
+			data, _ := result.Data.(map[string]any)
+			if result.ProviderID != "fixture-acceptance-42" || data["smtp_acceptance_id"] != "fixture-acceptance-42" || data["message_id"] != message.Header.Get("Message-ID") || result.Metadata["provider_id_kind"] != "smtp_acceptance_id" {
+				t.Fatalf("submission identity conflated with provider acknowledgement: %+v", result)
+			}
+		})
+	}
+}
+
+func TestSMTPAcceptanceReceiptRejectsUnrecognizedOrUnboundedServerText(t *testing.T) {
+	for _, text := range []string{"Accepted message", "Ok smtp-only-test", "Ok person@example.com", "Ok credential=123", "Ok queue-42\r\nprivate", "Ok " + strings.Repeat("q", 201) + "1", strings.Repeat(" ", 1025)} {
+		if receipt := smtpAcceptanceID(text); receipt != "" {
+			t.Fatalf("retained unsafe or unrecognized acknowledgement %q", receipt)
+		}
+	}
+	for _, text := range []string{"Ok queue-42", "2.0.0 Ok: queued as queue-42"} {
+		if receipt := smtpAcceptanceID(text); receipt != "queue-42" {
+			t.Fatalf("lost opaque receipt: %q", receipt)
+		}
 	}
 }
 

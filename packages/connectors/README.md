@@ -69,6 +69,23 @@ omits bank details, original payloads and payment evidence rows.
 
 ## Ownership and compatibility
 
+### SMTP acceptance and message identity
+
+The SMTP send result keeps `data.message_id` as the submitted RFC Message-ID.
+For a recognized bounded `Ok <receipt>` or `queued as <receipt>` acknowledgement,
+it additionally returns `data.smtp_acceptance_id` and uses that value as
+`provider_id`, with `metadata.provider_id_kind=smtp_acceptance_id`. Otherwise
+`provider_id` falls back to the submission ID and the kind is
+`submission_message_id`. Arbitrary SMTP response text is not returned or logged.
+An acceptance/queue receipt is useful for provider delivery/bounce events; it is
+not proof of the Message-ID eventually seen by a recipient. Relays can rewrite
+that header. Hosts retain both identities and reconcile actual inbound references
+within the authorized account rather than treating a queue ID as an RFC header.
+No automatic retry is introduced: an absent final DATA acknowledgement remains
+`smtp_delivery_unknown`, including after the complete body was transmitted.
+This source contract has synthetic verified-TLS fixture evidence; package
+publication, host adoption and real-provider reply qualification remain separate.
+
 The module includes the complete implemented adapter set, its schemas, pagination, controlled egress, scope gates and tests. `provenance.json` identifies the extraction source and original file digests. Existing catalog IDs and tool names are preserved; GitHub fills its existing ID, Notion and Atlassian add new IDs, and Slack implements the existing `slack-import` catalog ID with provider identity `slack_import`. Slack is no longer an unimplemented placeholder in the 0.1.4 source candidate; this does not change immutable published 0.1.3 catalogs. An implemented OAuth adapter still requires the receiving host to enable a qualified registration; the server marks unavailable authorizations accordingly. Custom MCP management remains a host capability.
 
 The consuming host supplies a previously authorized `Binding`, credential, operation ID and audit. It owns users, tenant/project ACLs, grants, budgets, durable encrypted credential storage, local privacy actions and concurrency with revocation. `Runtime.Tools` applies catalog/scope/write gates; tool arguments cannot choose another credential or installation. Normal provider API traffic originates at the consuming host, never the broker. Existing provider-specific retry budgets stay in the adapters. Token exchange, refresh and mutating calls are not blindly retried.
