@@ -79,7 +79,7 @@ def av_open(body):
     })
 
 
-def frames(body):
+def frames(body, max_seconds=MAX_SECONDS):
     content = []
     with av_open(body) as media:
         if not media.streams.video:
@@ -87,30 +87,26 @@ def frames(body):
         stream = media.streams.video[0]
         if not stream.width or not stream.height or stream.width * stream.height > PIXELS:
             return [text("Video frame size is outside the supported bounds.")]
-        seconds = min(MAX_SECONDS, (media.duration or 0) / 1_000_000)
-        targets = [0.0, seconds / 2, max(0.0, seconds - min(0.5, seconds / 4))] if seconds > 1 else [0.0]
-        last = None
-        for frame in islice(media.decode(stream), 3600):
-            at = float(frame.time or 0)
-            if at > MAX_SECONDS:
-                break
-            if frame.width * frame.height > PIXELS:
-                break
-            if last is None or at >= targets[0]:
-                content.extend((text(f"Sampled video frame at {at:.2f}s."), jpeg(frame.to_image())))
-                last = at
-                targets.pop(0)
-                if not targets:
+        seconds = min(max_seconds, (media.duration or 0) / 1_000_000)
+        targets = sorted(set([0.0, min(2.0, seconds / 4), min(5.0, seconds / 3), seconds / 2, max(0.0, seconds - 1.0)])) if max_seconds > 60 else ([0.0, seconds / 2, max(0.0, seconds - min(0.5, seconds / 4))] if seconds > 1 else [0.0])
+        for target in targets:
+            media.seek(int(target * 1_000_000), backward=True)
+            for frame in islice(media.decode(stream), 1000):
+                at = float(frame.time or 0)
+                if at > max_seconds or frame.width * frame.height > PIXELS:
+                    break
+                if at + .05 >= target:
+                    content.extend((text(f"Sampled video frame at {at:.2f}s."), jpeg(frame.to_image())))
                     break
     return content
 
 
-def speech(body):
+def speech(body, max_seconds=MAX_SECONDS):
     import av
     import numpy as np
 
     samples = []
-    remaining = MAX_SECONDS * 16000
+    remaining = max_seconds * 16000
     with av_open(body) as media:
         if not media.streams.audio:
             return None, False, "No audio track."
@@ -140,8 +136,10 @@ def speech(body):
     from faster_whisper import WhisperModel
 
     model = WhisperModel(str(model_path), device="cpu", compute_type="int8", cpu_threads=2, local_files_only=True)
-    segments, _ = model.transcribe(audio, beam_size=2, vad_filter=True, condition_on_previous_text=False)
-    transcript = " ".join(s.text.strip() for s in segments if s.text.strip()).strip()
+    segments, info = model.transcribe(audio, beam_size=2, vad_filter=True, condition_on_previous_text=False)
+    transcript = "\n".join(f"[{s.start:.2f}–{s.end:.2f}s] {s.text.strip()}" for s in segments if s.text.strip()).strip()
+    if transcript:
+        transcript = f"Detected language: {info.language} (machine estimate).\n" + transcript
     return transcript or None, not remaining, "No intelligible speech detected."
 
 
@@ -186,25 +184,33 @@ def office(body):
         return result("partial", text("Office document text/cached values; visual layout, signatures and formulas not verified."), text(value)) if value.strip() else result("unreadable", text("Document has no accessible text."))
 
 
-def inspect(body, mime):
+def inspect(body, mime, *, large_media=False):
     """Return MCP text and image content with an explicit coverage status."""
-    if not 0 < len(body) <= MAX_BYTES:
+    if not 0 < len(body) <= (150_000_000 if large_media else MAX_BYTES):
         return result("unreadable", text("Attachment is empty or exceeds the byte limit."))
     mime = mime.split(";", 1)[0].lower().strip()
+    max_seconds = 180 if large_media else MAX_SECONDS
     try:
+        if large_media:
+            with av_open(body) as media:
+                duration = (media.duration or 0) / 1_000_000
+                if not 0 < duration <= max_seconds or not (media.streams.video or media.streams.audio):
+                    return result("unreadable", text("Media duration is unknown or exceeds 180 seconds."))
         if mime.startswith("image/") or body.startswith((b"\x89PNG\r\n\x1a\n", b"\xff\xd8\xff", b"GIF8")):
             return picture(body)
         if mime == "application/pdf" or body.startswith(b"%PDF-"):
             return pdf(body)
         if mime.startswith(("audio/", "video/")) or body[4:8] == b"ftyp" or body.startswith((b"OggS", b"ID3", b"fLaC")) or body[8:12] == b"WAVE":
             video = mime.startswith("video/") or body[4:8] == b"ftyp"
-            parts = frames(body) if video else []
+            parts = frames(body, max_seconds) if video else []
+            if large_media:
+                parts.insert(0, text(f"Media duration: {duration:.2f}s; {len(body)} bytes. Sampled frames do not cover every moment."))
             try:
-                transcript, clipped, reason = speech(body)
+                transcript, clipped, reason = speech(body, max_seconds)
             except Exception:
                 transcript, clipped, reason = None, False, "Audio track could not be transcribed."
             if transcript:
-                parts.append(text("Machine transcript" + (f" (first {MAX_SECONDS}s)" if clipped else "") + ":\n" + transcript))
+                parts.append(text("Machine transcript" + (f" (first {max_seconds}s)" if clipped else "") + ":\n" + transcript))
             else:
                 parts.append(text(reason))
             has_evidence = bool(transcript) or any(p["type"] == "image" for p in parts)
