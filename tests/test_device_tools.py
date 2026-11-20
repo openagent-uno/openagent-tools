@@ -33,7 +33,8 @@ def test_agent_in_chrome_sources_and_manifest_ship_with_device_tools() -> None:
     assert window_tools["computer_capture_window"].classification.value == "read_only"
     assert set(window_tools["computer_capture_window"].input_schema["required"]) == {"window_id", "pid"}
     assert "display_id" in window_tools["computer"].input_schema["properties"]
-    assert COMPUTER_CONTROL_MANIFEST.version == "0.1.5"
+    assert COMPUTER_CONTROL_MANIFEST.version == "0.1.7"
+    assert (source / "host" / "browser-read.js").is_file()
 
 
 def test_agent_in_chrome_lock_excludes_known_moderate_advisories() -> None:

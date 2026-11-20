@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "openagent-device-tools"
-version = "1.0.0b18"
+version = "1.0.0b19"
 description = "Independent OpenAgent capability package"
 requires-python = ">=3.11"
 license = "MIT"
@@ -12,6 +12,7 @@ dependencies = ["openagent-tool-protocol==1.0.0b2"]
 
 [project.scripts]
 openagent-browser-session = "openagent_device_tools.browser_session:main"
+openagent-browser-read = "openagent_device_tools.browser_read:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/openagent_device_tools"]
@@ -48,6 +49,7 @@ packages = ["src/openagent_device_tools"]
 "../../sidecars/agent-in-chrome/host/proxy-relay.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/proxy-relay.js"
 "../../sidecars/agent-in-chrome/host/navigation.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/navigation.js"
 "../../sidecars/agent-in-chrome/host/browser-session.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/browser-session.js"
+"../../sidecars/agent-in-chrome/host/browser-read.js" = "openagent_device_tools/sidecars/agent-in-chrome/host/browser-read.js"
 "../../sidecars/agent-in-chrome/host/windows-browser.py" = "openagent_device_tools/sidecars/agent-in-chrome/host/windows-browser.py"
 
 "../../sidecars/computer-control/src/desktop.rs" = "openagent_device_tools/sidecars/computer-control/src/desktop.rs"

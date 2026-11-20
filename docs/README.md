@@ -1,5 +1,8 @@
 # Independent OpenAgent tools
 
+- [Bounded model-free DOM reads](browser-read.md) — device-tools b19 source contract,
+  explicit URLs/selectors, existing profile ownership and stop conditions.
+
 - [Operation-scoped MCP client and typed errors](../packages/mcp-client/README.md)
   — `openagent-mcp-client` 0.1.0b1 source candidate, preserving cancellation and
   programming errors independently of remote availability failures.
