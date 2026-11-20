@@ -45,13 +45,14 @@ for (const candidate of [process.env.OPENAGENT_TEST_CHROME_BINARY, '/Application
   try { await access(candidate); binary = candidate; break; } catch {}
 }
 test('real browser reads delayed counters before load ends, preserves auth and stops at checkpoint', { skip: !binary, timeout: 60000 }, async (t) => {
-  let visits = [];
+  let visits = [], authenticatedVisits = [];
   const site = http.createServer((req, res) => {
     visits.push(req.url);
+    if (req.headers.cookie?.includes('authorized=fixture')) authenticatedVisits.push(req.url);
     if (req.url === '/never') return; // The page load event never fires.
     if (req.url === '/checkpoint/') { res.writeHead(200, { 'content-type': 'text/html' }); res.end('<h1>Checkpoint</h1>'); return; }
     if (req.url === '/blocked') { res.writeHead(302, { location: '/checkpoint/' }); res.end(); return; }
-    res.writeHead(200, { 'content-type': 'text/html', 'set-cookie': 'authorized=fixture; Path=/; SameSite=Lax' });
+    res.writeHead(200, { 'content-type': 'text/html', 'set-cookie': 'authorized=fixture; Path=/; Max-Age=3600; SameSite=Lax' });
     res.end(`<title>Grid</title><img src="/never"><a href="/item/hidden" style="display:none">999</a><script>setTimeout(()=>{document.body.insertAdjacentHTML('beforeend','<a href="/item/one">166K</a><a href="/item/two">8,208</a>')},350)</script>`);
   });
   site.listen(0, '127.0.0.1'); await once(site, 'listening');
@@ -77,4 +78,17 @@ test('real browser reads delayed counters before load ends, preserves auth and s
   assert.deepEqual(result.pages[1].rows, []); assert.equal(visits.includes('/forbidden'), false);
   await assert.rejects(access(requestFile));
   await access(path.join(directory, 'profile', 'Default', 'Cookies'));
+  // A persisted authentication cookie must survive a separate reader process,
+  // not merely leave a Cookies database on disk. Session-only cookies expire
+  // when their browser closes, so the fixture above supplies an explicit expiry.
+  await writeFile(requestFile, JSON.stringify({ pages: [{ url: origin + '/reuse/', selector: 'a', targets: ['/item/one', '/item/two'] }], pageTimeoutMs: 5000, settleMs: 200 }));
+  const again = spawn(process.execPath, [path.join(here, 'browser-read.js'), '--request-file', requestFile], { env: { ...process.env,
+    OPENAGENT_CHROME_PROFILE_DIR: path.join(directory, 'profile'), OPENAGENT_CHROME_BINARY: binary,
+    OPENAGENT_CHROME_CDP_PORT: String(20000 + Math.floor(Math.random() * 20000)), OPENAGENT_CHROME_HEADLESS: 'true' }, stdio: ['ignore', 'pipe', 'pipe'] });
+  let repeated = '', repeatedErrors = '';
+  again.stdout.on('data', c => { repeated += c; }); again.stderr.on('data', c => { repeatedErrors += c; });
+  t.after(() => { if (again.exitCode === null) again.kill('SIGKILL'); });
+  const [repeatedCode] = await once(again, 'exit'); assert.equal(repeatedCode, 0, repeatedErrors + repeated);
+  assert.equal(JSON.parse(repeated).pages[0].status, 'ok');
+  assert.ok(authenticatedVisits.includes('/reuse/'));
 });

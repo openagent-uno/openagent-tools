@@ -46,7 +46,7 @@ no page source, credential material or model transcript.
 
 ## Source qualification
 
-Device-tools b19 candidate: 13 Node tests passed, including real Chromium DOM
+Published device-tools b19: 13 Node tests passed, including real Chromium DOM
 reading with an unfinished page load, checkpoint stop, live-session profile reuse
 and local-file navigation rejection. The installed wheel passed seven device
 manifest/package tests; two optional native MCP bundle probes were not selected.
@@ -58,3 +58,11 @@ device-tools b18 (wheel SHA-256
 `b061071fe0098e2c0160cbc0ee13775baf6e2d7d87a50c441dfea783b6fa8f20`).
 Existing native signatures, manifest hashes and version 0.1.7 are preserved.
 These tests do not qualify any live provider account or external site's availability.
+
+The Linux amd64 reader image also passed an isolated container fixture with two
+CPUs, a non-root user and a read-only system filesystem. Two fresh processes read
+the delayed grid in 2,040 ms and 2,147 ms, and the second reused the first process's
+persistent cookie. The fixture also verified checkpoint stop and consumed input.
+The cookie has an explicit expiry: a session-only cookie correctly expires when
+its browser closes. The source browser fixture now checks the repeated-process
+cookie value as well as the on-disk database.
