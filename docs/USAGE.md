@@ -103,3 +103,36 @@ stdio scaffold. It is installed independently and does not require the engine.
 Its hello-tool regression uses the actual MCP initialize/list/call protocol.
 
 - [Desktop execution, live media and native artifacts](desktop-tools.md)
+
+## Direct terminal and preview on a task computer
+
+The optional Linux guest surfaces in `openagent-shell 1.0.0b5` require a dedicated
+guest account and a capability transport that authenticates the human account,
+network, device and task allocation on every call. Configure the guest capability
+host with `OPENAGENT_TASK_SURFACE_WORKSPACE=/srv/workspace`. The optional
+`OPENAGENT_TASK_PREVIEW=18285:/` selects one exact guest loopback port and path.
+An ordinary shell installation exposes its existing catalog by default.
+
+The shell manifest advertises available operations in the `openagent/task-surfaces`
+metadata on `shell_exec`. A trusted host mounts the exact assigned computer
+and uses the originating capability's app-only siblings through
+`call_source_tool`. Grant terminal observation, input and preview separately.
+Check membership, lifecycle epoch, connection generation and grants before the
+operation and before returning any data. A client-supplied terminal ID identifies
+a process within an authorized assignment.
+
+| Guest operation | Result |
+| --- | --- |
+| `task_surface_open` | Start the interactive PTY in the configured workspace or reattach to its existing session. Opening requires input authority. |
+| `task_surface_attach` | Attach to a terminal that already exists with read authority. |
+| `task_surface_read` | Read up to 32 KiB from a byte cursor. The latest 256 KiB are retained. Read the next page from `next_cursor`. A truncated prefix advances `offset`. `output_base64` preserves exact bytes. |
+| `task_surface_input` | Queue one input of up to 4 KiB for the exact PTY. A request UUID binds to the exact input. Reusing it with different bytes returns an error. The caller can observe the command's output separately. |
+| `task_surface_preview` | Return a bounded static HTML or PNG representation from the configured guest endpoint. The host supplies its configured endpoint for an exact match. The reader sends no cookies and follows no redirects. |
+
+The Linux PTY lives inside the assigned guest. Closing a client or replacing
+the capability-host process preserves a running shell. A normal shell exit
+records its exit code and last output on the guest disk. A lost guest process
+reports an unknown outcome. Control resumes only after enrollment and current
+authorization. HTML previews retain text and structural elements. Render them
+in a sandboxed frame with an opaque origin. The enrolled guest browser and
+desktop viewer provide interactive access to applications.

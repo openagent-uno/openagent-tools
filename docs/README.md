@@ -131,6 +131,10 @@ identify itself in MCP instructions and disconnect from an independently
 supervised Chrome without closing that Chrome process. App and CLI behavior
 remains unchanged.
 
+The shell and execution `1.0.0b5` packages support an explicitly enrolled Linux
+task guest. Human clients can reconnect to its terminal and read its registered
+preview endpoint. See the [guest setup and capability contract](USAGE.md#direct-terminal-and-preview-on-a-task-computer).
+
 Release `v1.0.0-beta.7` publishes shell `1.0.0b4` and execution `1.0.0b4`
 (which depends on that shell). A shell server started without an explicit
 environment on macOS resolves `PATH` from the user's login shell, so a GUI

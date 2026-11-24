@@ -10,7 +10,7 @@ import re
 import shutil
 import time
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any
 
@@ -161,11 +161,21 @@ class ShellServer:
     def __init__(self, cwd: str | Path | None = None, *, event_sink=None, environment: dict[str, str] | None = None):
         self.environment = user_environment() if environment is None else dict(environment)
         self.cwd = Path(cwd or Path.cwd()).expanduser().resolve()
+        self.task_surfaces = None
+        if workspace := self.environment.get("OPENAGENT_TASK_SURFACE_WORKSPACE"):
+            from .task_surfaces import GuestSurfaces
+            self.task_surfaces = GuestSurfaces(Path(workspace), self.environment.get("OPENAGENT_TASK_PREVIEW"))
+            ops = [t.name.removeprefix("task_surface_") for t in self.task_surfaces.tools]
+            tools = tuple(replace(t, metadata={**t.metadata, "openagent/task-surfaces": {"version": 1, "operations": ops}})
+                          if t.name == "shell_exec" else t for t in self.manifest.tools)
+            self.manifest = replace(self.manifest, tools=tools + self.task_surfaces.tools)
         self._background: dict[str, _Background] = {}
         self._guard = asyncio.Lock()
         self._event_sink = event_sink
 
     async def call(self, tool: str, args: dict[str, Any]) -> ToolResult:
+        if self.task_surfaces and tool.startswith("task_surface_"):
+            return await self.task_surfaces.call(tool, args)
         handler = getattr(self, f"_tool_{tool}", None)
         if handler is None:
             raise HostError("tool_not_found", f"shell has no tool {tool!r}")
