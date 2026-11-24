@@ -9,6 +9,7 @@ This optional service has its own namespace/PVC. Receiving hosts and the public 
 - Namespace-local Kubernetes Secret `connector-auth-secrets`: `event-key` is a persistent 32-byte random key represented as hex. Back it up with metadata. Mount provider secrets by filename; never put values into this repository, environment logs or manifests.
 - Build the pinned `packages/connectors/Dockerfile`, push a uniquely versioned image, and replace the overlay image with its digest. Inspect the rendered overlay and server dry-run before apply.
 - Exactly one writer, including rollouts. Preserve the PVC and event key. Process memory (OAuth transactions/envelopes) is intentionally not backed up.
+- Keep site-specific placement in the operator's deployment overlay. For an existing local PVC, verify its bound PV's node affinity and keep any required node selector or tolerations in that overlay. Retain the existing volume on upgrades.
 
 ## App registrations and activation
 

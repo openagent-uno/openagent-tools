@@ -24,11 +24,10 @@ PUBLIC_BASELINES = (
 HOST_TOOLS_INDEX = "a0f85b84e6d98f525c466126df7a5de9437d9628127607517a94f1b61b1889e0"
 PROTOCOL = "openagent_tool_protocol-1.0.0b1-py3-none-any.whl"
 PROTOCOL_SHA = "3d4c266eb8e51552408c70448ad7c466a6cb8fa7263939412ce4069c8b73cef2"
-SDK15_OFFICIAL_IDS = frozenset({
-    "atlassian", "billingbear", "clickup", "exa", "firecrawl", "github", "gmail",
-    "google-analytics", "google-drive", "imap_smtp", "notion", "pipeboard", "postiz",
-    "replio", "shopify", "slack-import",
-})
+# Bind old artifacts to the exact original base identity set without copying
+# retired catalog entries back into maintained source. The digest covers sorted,
+# compact JSON strings and is independent of catalog order.
+HISTORICAL_BASE_IDS_SHA256 = "3162c760ded98bf6accf85d276ce368928929679ec67e86a509e898fe9c7082c"
 SDK16_KEYLESS = {
     "parallel-search": ("parallel_search", {"files.parallel.search", "files.parallel.fetch"}),
     "context7": ("context7", {"files.context7.resolve_library", "files.context7.query_docs"}),
@@ -174,17 +173,23 @@ def verify_catalog_cohort(version, catalog):
     if len(custom) != 1 or custom[0].get("id") != "custom-mcp" or custom[0]["nativeKind"] != "custom_mcp":
         raise ValueError("custom MCP catalog contract mismatch")
     official = {row["id"]: row for row in catalog if not row.get("nativeKind")}
-    expected = {"0.1.5": SDK15_OFFICIAL_IDS,
-                "0.1.6": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS),
-                "0.1.7": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS) | set(SDK17_OAUTH),
-                "0.1.8": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS) | set(SDK17_OAUTH) | set(SDK18_GRAPH) | set(SDK18_MANUAL),
-                "0.1.9": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS) | set(SDK17_OAUTH) | set(SDK18_GRAPH) | set(SDK18_MANUAL),
-                "0.1.10": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS) | set(SDK17_OAUTH) | set(SDK18_GRAPH) | set(SDK18_MANUAL),
-                "0.1.11": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS) | set(SDK17_OAUTH) | set(SDK18_GRAPH) | set(SDK18_MANUAL),
-                "0.1.12": SDK15_OFFICIAL_IDS | set(SDK16_KEYLESS) | set(SDK17_OAUTH) | set(SDK18_GRAPH) | set(SDK18_MANUAL)}.get(version)
-    if expected is not None and set(official) != expected:
-        raise ValueError("release catalog identities differ from the reviewed cohort")
-    if version in {"0.1.6", "0.1.7", "0.1.8", "0.1.9", "0.1.10", "0.1.11", "0.1.12"}:
+    expanded_versions = {"0.1.8", "0.1.9", "0.1.10", "0.1.11", "0.1.12"}
+    oauth_versions = expanded_versions | {"0.1.7"}
+    keyless_versions = oauth_versions | {"0.1.6"}
+    exact_versions = keyless_versions | {"0.1.5"}
+    additions = set()
+    if version in keyless_versions:
+        additions.update(SDK16_KEYLESS)
+    if version in oauth_versions:
+        additions.update(SDK17_OAUTH)
+    if version in expanded_versions:
+        additions.update(SDK18_GRAPH, SDK18_MANUAL)
+    if version in exact_versions:
+        base = sorted(set(official) - additions)
+        base_digest = sha(json.dumps(base, separators=(",", ":")).encode())
+        if not additions <= official.keys() or base_digest != HISTORICAL_BASE_IDS_SHA256:
+            raise ValueError("release catalog identities differ from the reviewed cohort")
+    if version in keyless_versions:
         for identifier, (provider, tools) in SDK16_KEYLESS.items():
             row = official[identifier]
             reads = row.get("readTools")
@@ -194,7 +199,7 @@ def verify_catalog_cohort(version, catalog):
                     or any(not isinstance(tool, str) for tool in reads)
                     or len(reads) != len(tools) or set(reads) != tools):
                 raise ValueError("new keyless connector contract differs from the reviewed cohort")
-    if version in {"0.1.7", "0.1.8", "0.1.9", "0.1.10", "0.1.11", "0.1.12"}:
+    if version in oauth_versions:
         for identifier, (provider, capability, prefix, reads, writes, _) in SDK17_OAUTH.items():
             row = official[identifier]
             if (row.get("provider") != provider or row.get("auth") != "oauth"
@@ -206,7 +211,7 @@ def verify_catalog_cohort(version, catalog):
                 if (not isinstance(values, list) or any(not isinstance(value, str) for value in values)
                         or len(values) != len(operations) or set(values) != {prefix + op for op in operations}):
                     raise ValueError("new OAuth connector tools differ from the reviewed cohort")
-    if version in {"0.1.8", "0.1.9", "0.1.10", "0.1.11", "0.1.12"}:
+    if version in expanded_versions:
         for identifier, (provider, capability, reads) in SDK18_MANUAL.items():
             verify_read_catalog(official[identifier], provider, capability, "token", set(reads))
             verify_setup_brandmark(official[identifier], provider)
@@ -214,7 +219,7 @@ def verify_catalog_cohort(version, catalog):
             verify_read_catalog(official[provider], provider, "files", "oauth",
                                 {"files." + provider + "." + op for op in operations})
     return {"sdk_version": version, "official_ids": sorted(official), "official_count": len(official),
-            "custom_ids": ["custom-mcp"], "exact_version_cohort": expected is not None}
+            "custom_ids": ["custom-mcp"], "exact_version_cohort": version in exact_versions}
 
 
 def verify_read_catalog(row, provider, capability, auth, reads):

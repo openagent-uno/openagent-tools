@@ -188,11 +188,22 @@ class CalendarMailMetadataTests(unittest.TestCase):
             REMOTE.verify_calendar_mail_tools("outlook-mail", rows, send_authorized=True)
 
 
+HISTORICAL_BASE_FIXTURE = frozenset({
+    "atlassian", "billingbear", "clickup", "exa", "firecrawl", "github", "gmail",
+    "google-analytics", "google-drive", "imap_smtp", "notion", "pipeboard", "postiz",
+    "retired-connector-fixture", "shopify", "slack-import",
+})
+HISTORICAL_BASE_FIXTURE_SHA256 = REMOTE.sha(
+    json.dumps(sorted(HISTORICAL_BASE_FIXTURE), separators=(",", ":")).encode()
+)
+
+
+@patch.object(REMOTE, "HISTORICAL_BASE_IDS_SHA256", HISTORICAL_BASE_FIXTURE_SHA256)
 class ReleaseCohortTests(unittest.TestCase):
     """Pure catalog/source fixtures; no build, provider or package installation."""
 
     def catalog(self, version="0.1.6"):
-        rows = [{"id": name, "available": True} for name in sorted(REMOTE.SDK15_OFFICIAL_IDS)]
+        rows = [{"id": name, "available": True} for name in sorted(HISTORICAL_BASE_FIXTURE)]
         rows.append({"id": "custom-mcp", "available": True, "nativeKind": "custom_mcp"})
         if version in {"0.1.6", "0.1.7", "0.1.8"}:
             for identifier, (provider, tools) in REMOTE.SDK16_KEYLESS.items():
@@ -255,7 +266,7 @@ class ReleaseCohortTests(unittest.TestCase):
     def test_sdk16_binds_nineteen_identities_and_one_custom_entry(self):
         cohort = REMOTE.verify_catalog_cohort("0.1.6", self.catalog())
         self.assertEqual(cohort["official_count"], 19)
-        self.assertEqual(set(cohort["official_ids"]), REMOTE.SDK15_OFFICIAL_IDS | set(REMOTE.SDK16_KEYLESS))
+        self.assertEqual(set(cohort["official_ids"]), HISTORICAL_BASE_FIXTURE | set(REMOTE.SDK16_KEYLESS))
         self.assertEqual(cohort["custom_ids"], ["custom-mcp"])
         self.assertTrue(cohort["exact_version_cohort"])
 
@@ -333,6 +344,7 @@ class ReleaseCohortTests(unittest.TestCase):
             REMOTE.verify_source_python_catalog(root, "0.1.5", self.catalog("0.1.5"))
 
 
+@patch.object(REMOTE, "HISTORICAL_BASE_IDS_SHA256", HISTORICAL_BASE_FIXTURE_SHA256)
 class SDK18MetadataTests(unittest.TestCase):
     """Designed offline metadata fixtures; none attest live provider acceptance."""
 

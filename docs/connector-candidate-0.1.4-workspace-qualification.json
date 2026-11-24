@@ -1,4 +1,10 @@
 {
+  "evidence_projection": {
+    "kind": "maintained_projection",
+    "original_sha256": "9957601f3071df783162447e289eb24f3785f6e86e5eebc4ce19ccfba201c354",
+    "omitted_paths": 3,
+    "scope": "The original source receipt or extraction inventory is preserved in version control. Source archive and artifact digests still identify the original bytes."
+  },
   "format": 1,
   "candidate_version": "0.1.4",
   "status": "source-contract-qualified-not-released",
@@ -77,9 +83,6 @@
     "providers/platform_read.go": "60238597b5ea7f9b59755d4f3ab511bf0140c09e49e0dd016eee8eee46346bd4",
     "providers/platform_read_test.go": "f61c905215fc3c7d2a8348ffa3ccad2287990c7550236684ec8733ef9d5f0203",
     "providers/provider_contract_test.go": "8cc33205046241880509946e61d95fa66354b8b8099469f0f0b1aca1aa194a90",
-    "providers/replio.go": "bafa4c27417e296be59be73ed3b0621e9cbd15bc993ce3e6c269c1cd23135483",
-    "providers/replio_context.go": "52d1d9fbb6951648eed105247cc2ff010ed9043e2bd2019b27105e84e12d2748",
-    "providers/replio_context_test.go": "c3b7d75324128551455ba6f98a2a4715db651389fc78091811d284a7478bd99b",
     "providers/shopify_scope_contract_test.go": "e4c1671ddd84a7b1ecf734724e572d68c1505ec2c75a2d9298af58d3b8f1047a",
     "providers/shopify_semantic_binding_test.go": "54739d572648c1921fa0426e34a7c92a648b2304a98b1308c5cca5ab56aec955",
     "providers/shopify_variants_pagination_test.go": "4655c4a10717685c85c0331ba3e33b89d51c234aff601eede262584fed5c6dc0",

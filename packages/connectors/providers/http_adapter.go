@@ -186,20 +186,9 @@ func (a *HTTPAdapter) Invoke(ctx context.Context, invocation domain.Invocation) 
 		if credentialErr := invocation.Credential.Apply(request.Header, a.manifest.CredentialHeader, a.manifest.CredentialScheme, a.now().UTC()); credentialErr != nil {
 			return domain.Result{}, &domain.ProviderError{Kind: "credential_error", Attempts: attempt, RequestBytes: requestBytes, ResponseBytes: responseBytes}
 		}
-		if err := validatePlatformCredential(a.manifest.Provider, request.Header.Get("Authorization")); err != nil {
-			return domain.Result{}, err
-		}
-		if a.manifest.Provider == "buddybooks" && !buddyBooksKey.MatchString(request.Header.Get("X-API-Key")) {
-			return domain.Result{}, domain.ErrProviderPermission
-		}
-		if a.manifest.Provider == "replio" {
-			sent, received, err := a.validateReplioContext(ctx, invocation, request.Header.Get("Authorization"))
-			requestBytes += sent
-			responseBytes += received
-			if err != nil {
-				return domain.Result{}, errors.Join(err, &domain.ProviderError{
-					Kind: "credential_scope_error", Attempts: attempt, RequestBytes: requestBytes, ResponseBytes: responseBytes,
-				})
+		if a.manifest.Provider == "billingbear" {
+			if err := validateBillingBearCredential(request.Header.Get("Authorization")); err != nil {
+				return domain.Result{}, err
 			}
 		}
 
@@ -256,14 +245,6 @@ func (a *HTTPAdapter) Invoke(ctx context.Context, invocation domain.Invocation) 
 			}
 		}
 		decoded := decodeProviderBody(data, response.Header.Get("Content-Type"))
-		if plan.operation.Name == buddyBooksDocumentStatus {
-			projected, err := projectBuddyBooksDocument(data)
-			if err != nil || !strings.EqualFold(projected["companyId"].(string), invocation.Connection.ExternalID) ||
-				!strings.EqualFold(plan.target.Path, "/api/documents/"+projected["documentId"].(string)) {
-				return domain.Result{}, &domain.ProviderError{Kind: "invalid_response", StatusCode: response.StatusCode}
-			}
-			decoded = projected
-		}
 		if shopifyGraphQLPermissionDenied(a.manifest.Provider, plan, data) {
 			providerErr := &domain.ProviderError{
 				Kind: "provider_permission", StatusCode: response.StatusCode, ProviderID: providerID,
@@ -319,8 +300,8 @@ func (a *HTTPAdapter) buildPlan(invocation domain.Invocation) (requestPlan, erro
 			return requestPlan{}, err
 		}
 	}
-	if a.manifest.Provider == "replio" || a.manifest.Provider == "billingbear" {
-		if err := validatePlatformArguments(operation, arguments, invocation.Connection.Config); err != nil {
+	if a.manifest.Provider == "billingbear" {
+		if err := validateBillingBearArguments(operation, arguments, invocation.Connection.Config); err != nil {
 			return requestPlan{}, err
 		}
 	}
@@ -346,11 +327,6 @@ func (a *HTTPAdapter) buildPlan(invocation domain.Invocation) (requestPlan, erro
 	}
 	if a.manifest.Provider == "atlassian" {
 		if err := validateAtlassianArguments(operation, arguments, invocation.Connection.Config); err != nil {
-			return requestPlan{}, err
-		}
-	}
-	if a.manifest.Provider == "buddybooks" {
-		if err := validateBuddyBooksArguments(operation, arguments, invocation); err != nil {
 			return requestPlan{}, err
 		}
 	}

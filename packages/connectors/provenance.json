@@ -1,4 +1,10 @@
 {
+  "evidence_projection": {
+    "kind": "maintained_projection",
+    "original_sha256": "6d0ca011f315bdde03af53c9ca731bc3fe12116303c814efe65dca75a5e8acdc",
+    "omitted_paths": 3,
+    "scope": "The original source receipt or extraction inventory is preserved in version control. Source archive and artifact digests still identify the original bytes."
+  },
   "source": "original host connector-gateway extraction",
   "source_sha": "143715e85125af122e3a6dc7df7b85dac4f655b9",
   "files": {
@@ -9,13 +15,10 @@
     "internal/providers/provider_contract_test.go": "782d803945a8c8fde1c29f95da86fe36bde7db1082cd5215e7e2adcf233e23dc",
     "internal/providers/budgeted_adapter_test.go": "c22ab9f5e00edf5255d7485fe1312735d0569afe4b9188f5f7ffb85a00607be5",
     "internal/providers/imap_stream_test.go": "bc012b3fa3a54ed44a82ae59b860649f58056de59833c1b4f56302ea5c2c00ac",
-    "internal/providers/replio.go": "b376eca2fb15b87688a1a4cff676cdead262ee85b43020449f13f79b04cb35f9",
     "internal/providers/shopify_semantic_binding_test.go": "54739d572648c1921fa0426e34a7c92a648b2304a98b1308c5cca5ab56aec955",
     "internal/providers/clickup_test.go": "5ef959d2176bef81668978913bc74909ce82a48e254fd1b011b5d56b0630b73b",
-    "internal/providers/replio_context.go": "8acbe5d22a5dcb287c01eb75c9151c51f3e9bc67da32278edab4e99f6f8ba909",
     "internal/providers/shopify_scope_contract_test.go": "25932d6fd98ac270a8734ddf9f03ef5462a46b446d6783e6d9a0c5852a3820cd",
     "internal/providers/google_analytics_test.go": "d698e02d361f62b9f6682af58ab64cff4071e55e0ed34b0a9986de8996b0e9f1",
-    "internal/providers/replio_context_test.go": "be9b5a23a94ba4f453b962aae5546d8ef7fd8e45e7bb19d319c72e1f04107551",
     "internal/providers/imap_stream.go": "c092b411f772173cc9a0a8f6aaa8c4477948d2b5978b315a8bb90effcb55a530",
     "internal/providers/gmail_test.go": "f2ac59bf755a2cff2ac05d1517d29b7ce5e3a86b6541404eb9d17eb4f83ce7eb",
     "internal/providers/drive_upload.go": "888b0fe3587d79694bee682cb27745127f5ecd51e4445e2c5a5f616dafb99a88",

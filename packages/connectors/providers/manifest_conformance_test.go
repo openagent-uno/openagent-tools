@@ -60,10 +60,6 @@ func TestBuiltInManifestConformance(t *testing.T) {
 				}
 				arguments := conformanceArguments(specification)
 				invocation := testInvocation(t, manifest, operation, arguments)
-				if manifest.Provider == "buddybooks" && (specification.Method == http.MethodPost || specification.Name == buddyBooksDocumentStatus) {
-					invocation.Connection.ExternalID = "11111111-1111-4111-8111-111111111111"
-					invocation.Idempotency = "33333333-3333-4333-8333-333333333333"
-				}
 				preview, previewErr := adapter.Preview(invocation)
 				if previewErr != nil {
 					t.Errorf("operation %q cannot build a validated request: %v", specification.Name, previewErr)
@@ -519,12 +515,12 @@ func TestWritesRetryOnlyWithIdempotencyAndOmitRetiredSyncMetadata(t *testing.T) 
 	adapter.sleep = func(context.Context, time.Duration) error { return nil }
 	operation := findOperation(t, adapter, "social.postiz.posts.create")
 	invocation := testInvocation(t, manifest, operation, json.RawMessage(`{"type":"schedule","date":"2026-07-23T12:00:00Z","shortLink":false,"tags":[],"posts":[{"integration":{"id":"integration-1"},"value":[{"content":"hello","image":[]}],"settings":{"__type":"bluesky"}}]}`))
-	invocation.Idempotency = "gp-stable-key"
+	invocation.Idempotency = "stable-test-key"
 	result, err := adapter.Invoke(context.Background(), invocation)
 	if err != nil {
 		t.Fatalf("Invoke: %v", err)
 	}
-	if calls != 2 || result.Attempts != 2 || len(seenKeys) != 2 || seenKeys[0] != "gp-stable-key" || seenKeys[1] != "gp-stable-key" {
+	if calls != 2 || result.Attempts != 2 || len(seenKeys) != 2 || seenKeys[0] != "stable-test-key" || seenKeys[1] != "stable-test-key" {
 		t.Fatalf("retry observations: calls=%d attempts=%d keys=%v", calls, result.Attempts, seenKeys)
 	}
 	if result.Metadata["idempotency_applied"] != "true" {
@@ -688,20 +684,6 @@ func TestFixedOriginsRejectInternalAndAmbiguousHosts(t *testing.T) {
 }
 
 func conformanceArguments(specification OperationManifest) json.RawMessage {
-	switch specification.Name {
-	case buddyBooksDocumentStatus:
-		return json.RawMessage(`{"documentId":"22222222-2222-4222-8222-222222222222"}`)
-	case buddyBooksPrefix + "suppliers.upsert":
-		return json.RawMessage(`{"name":"Example Supplier","country":"IT","address":"Example Street 1","postalCode":"01234","city":"Example City","taxCode":"EXAMPLE"}`)
-	case buddyBooksPrefix + "receipts.preview", buddyBooksPrefix + "receipts.register":
-		return json.RawMessage(`{"partyId":"22222222-2222-4222-8222-222222222222","number":"TEST-1","date":"2026-11-09","gross":350,"subject":"Example service","workFrom":"2026-11-02","workTo":"2026-11-06"}`)
-	case buddyBooksPrefix + "purchases.preview", buddyBooksPrefix + "purchases.register":
-		return json.RawMessage(`{"partyId":"22222222-2222-4222-8222-222222222222","number":"TEST-2","date":"2026-11-09","lines":[{"description":"Example service","quantity":1,"unitPrice":280,"taxCode":"FC"}]}`)
-	case buddyBooksPrefix + "us_purchases.preview", buddyBooksPrefix + "us_purchases.register":
-		return json.RawMessage(`{"partyId":"22222222-2222-4222-8222-222222222222","number":"TEST-3","date":"2026-11-09","total":280,"currency":"USD","description":"Example service"}`)
-	case buddyBooksPrefix + "receipts.signed.attach", buddyBooksPrefix + "purchases.pdf.attach":
-		return json.RawMessage(`{"documentId":"22222222-2222-4222-8222-222222222222","contentBase64":"JVBERi0xLjQK"}`)
-	}
 	if strings.HasPrefix(specification.Name, "social.slack_import.") {
 		arguments := map[string]any{}
 		for _, required := range specification.Required {
@@ -824,11 +806,6 @@ func conformanceArguments(specification OperationManifest) json.RawMessage {
 			}
 		}
 		switch specification.Name {
-		case "outreach.replio.apps.list", "outreach.replio.threads.list", "outreach.replio.threads.get", "outreach.replio.stats.overview":
-			delete(arguments, "organization_id")
-			if specification.Name == "outreach.replio.threads.get" {
-				arguments["thread_id"] = "11111111-1111-4111-8111-111111111111"
-			}
 		case "commerce.billingbear.project.stats", "commerce.billingbear.customers.stats", "commerce.billingbear.customers.history":
 			delete(arguments, "project_id")
 			if specification.Name != "commerce.billingbear.project.stats" {
@@ -913,9 +890,6 @@ func testInvocation(t *testing.T, manifest Manifest, operation domain.Operation,
 		configuration = json.RawMessage(`{"shop_domain":"snow-globe.myshopify.com","theme_writes_enabled":true}`)
 	} else if manifest.Provider == "gmail" {
 		configuration = json.RawMessage(`{"gmail_topic_name":"projects/openagent-test/topics/gmail-events"}`)
-	} else if manifest.Provider == "replio" {
-		configuration = json.RawMessage(`{"organization_id":"11111111-1111-4111-8111-111111111111"}`)
-		credentialValue = credentialWithSecret(t, "rpl_"+strings.Repeat("a", 48), "Authorization", "Bearer")
 	} else if manifest.Provider == "billingbear" {
 		configuration = json.RawMessage(`{"project_id":"project-test"}`)
 		credentialValue = credentialWithSecret(t, "sk_live_"+strings.Repeat("b", 32), "Authorization", "Bearer")
@@ -931,7 +905,7 @@ func testInvocation(t *testing.T, manifest Manifest, operation domain.Operation,
 	return domain.Invocation{
 		ID: "inv-1", Principal: domain.Principal{WorkspaceID: "ws-1", ActorID: "workspace-agent", Role: "agent"},
 		Connection: domain.Connection{ID: "conn-1", WorkspaceID: "ws-1", Capability: manifest.Capability, Provider: manifest.Provider, ExternalID: externalID, Config: configuration, Enabled: true, Scopes: scopes},
-		Credential: credentialValue, Operation: operation, Arguments: arguments, RequestedAt: time.Now().UTC(), Idempotency: "gp-test-idempotency",
+		Credential: credentialValue, Operation: operation, Arguments: arguments, RequestedAt: time.Now().UTC(), Idempotency: "test-idempotency",
 	}
 }
 

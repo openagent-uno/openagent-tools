@@ -78,7 +78,7 @@
       "packaged_entrypoint": true,
       "extra_provider_calls": 0
     },
-    "mac_jobs": "sequential under shared ics-local-build.lock; max pressure 2",
+    "mac_jobs": "sequential under a shared local build lock; max pressure 2",
     "runtime_platform_qualified": "darwin-arm64",
     "other_platforms": "JavaScript artifact; native browser execution not qualified on other operating systems in this release",
     "connector_catalog_changed": false,

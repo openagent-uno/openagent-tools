@@ -30,7 +30,7 @@ var (
 )
 
 func Manifests() []Manifest {
-	return []Manifest{shopifyManifest(), driveManifest(), gmailManifest(), postizManifest(), pipeboardManifest(), googleAnalyticsManifest(), replioManifest(), billingbearManifest(), buddyBooksManifest(), clickupManifest(), githubManifest(), notionManifest(), slackManifest(), atlassianManifest()}
+	return []Manifest{shopifyManifest(), driveManifest(), gmailManifest(), postizManifest(), pipeboardManifest(), googleAnalyticsManifest(), billingbearManifest(), clickupManifest(), githubManifest(), notionManifest(), slackManifest(), atlassianManifest()}
 }
 
 func shopifyManifest() Manifest {

@@ -35,13 +35,18 @@ async def runner_smoke(bundle, private, output, commit, manifest, expected_catal
         python = bundled_catalog()
         expected_python = [item for item in expected_catalog if not item.get("nativeKind")]
         assert catalog == expected_catalog and python == expected_python
-        binding = {"catalog_id": "replio", "allow_write": False,
-                   "principal": {"workspace_id": "wrong-tenant", "actor_id": "actor", "role": "owner"},
-                   "connection": {"id": "fixture", "workspace_id": "owner-tenant", "provider": "replio",
-                                  "capability": "outreach", "status": "connected"}}
+        binding = {"catalog_id": "billingbear", "allow_write": False,
+                   "principal": {"workspace_id": "owner-tenant", "actor_id": "actor", "role": "owner"},
+                   "connection": {"id": "fixture", "workspace_id": "owner-tenant", "provider": "billingbear",
+                                  "capability": "commerce", "enabled": True, "config": {"project_id": "fixture"}}}
+        project_stats = "commerce.billingbear.project.stats"
+        tools = await runner.call("tools", binding)
+        assert project_stats in {tool["name"] for tool in tools}
+        binding["principal"]["workspace_id"] = "wrong-tenant"
+        fixture_key = "sk_test_" + "a" * 32
         try:
-            await runner.call("invoke", {"binding": binding, "tool": "outreach.replio.apps.list",
-                              "arguments": {}, "credential": {"kind": "api_token", "secret": "fixture-only",
+            await runner.call("invoke", {"binding": binding, "tool": project_stats,
+                              "arguments": {}, "credential": {"kind": "api_token", "secret": fixture_key,
                               "header": "Authorization", "scheme": "Bearer"}, "invocation_id": "misdirected"})
         except ConnectorError as error:
             assert str(error) == "connector_request_failed"

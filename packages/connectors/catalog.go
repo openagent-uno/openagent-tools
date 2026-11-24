@@ -142,30 +142,10 @@ var catalogEntries = []CatalogEntry{
 		AgentTools: []string{"commerce.shopify.products.update", "commerce.shopify.orders.cancel"},
 	}},
 	{Item: Item{
-		ID: "replio", Name: "Replio", Description: "Read your organization's apps, conversations and support statistics.",
-		Category: "Communication", Auth: "token", Icon: "message-circle", Capability: "outreach", Provider: "replio",
-		ReadTools:  []string{"outreach.replio.apps.list", "outreach.replio.threads.list", "outreach.replio.threads.get", "outreach.replio.stats.overview"},
-		AgentTools: []string{},
-	}},
-	{Item: Item{
 		ID: "billingbear", Name: "BillingBear", Description: "Read project revenue and customer billing statistics and history.",
 		Category: "Commerce", Auth: "token", Icon: "credit-card", Capability: "commerce", Provider: "billingbear",
 		ReadTools:  []string{"commerce.billingbear.project.stats", "commerce.billingbear.customers.stats", "commerce.billingbear.customers.history"},
 		AgentTools: []string{},
-	}},
-	{Item: Item{
-		ID: "buddybooks", Name: "BuddyBooks", Description: "Read company accounting documents, preview receipts and purchases, and register approved accounting records.",
-		Category: "Commerce", Auth: "token", Icon: "receipt", Capability: "commerce", Provider: "buddybooks",
-		SetupURL: "https://os.spicysparks.com", SetupInstructions: "Use a company API key. Accounting actions require a matching company ID and an accounting grant configured by the host.",
-		ReadTools: []string{
-			"commerce.buddybooks.documents.list", "commerce.buddybooks.invoices.list", "commerce.buddybooks.parties.list",
-			"commerce.buddybooks.documents.status",
-			"commerce.buddybooks.receipts.preview", "commerce.buddybooks.purchases.preview", "commerce.buddybooks.us_purchases.preview",
-		},
-		AgentTools: []string{
-			"commerce.buddybooks.suppliers.upsert", "commerce.buddybooks.receipts.register", "commerce.buddybooks.receipts.signed.attach",
-			"commerce.buddybooks.purchases.register", "commerce.buddybooks.us_purchases.register", "commerce.buddybooks.purchases.pdf.attach",
-		},
 	}},
 	{Item: Item{
 		ID: "google-analytics", Name: "Google Analytics", Description: "Explore GA4 properties, reports and realtime analytics with read-only Google access.",

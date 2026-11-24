@@ -6,15 +6,15 @@
   "observation_context": {
     "session": "logged_out_public_browser",
     "locale": "Italian UI, original app display names preserved",
-    "method": "Rendered DOM card names on all sixteen category pages; duplicate anchors removed by pathname within each page. All named card occurrences retained in category order.",
-    "completeness": "All named cards rendered on the sixteen observed category pages at observation time. Not a claim of every regional, account-only, hidden or future ChatGPT integration.",
+    "method": "Rendered DOM card names on all sixteen category pages; duplicate anchors removed by pathname within each page. This maintained projection preserves category order for retained entries.",
+    "completeness": "The original observation covered all named cards rendered on the sixteen category pages at the time of observation. See directory_projection for the omissions in this file.",
     "identity_limit": "Exact display names group the status index. Distinct app IDs can share a name; category occurrences are retained, and only actually observed detail URLs are included. A unique display-name count is not a unique-app-ID count.",
     "transport_limit": "ChatGPT directory presence does not establish an independently accessible API, MCP, transferable OAuth registration, commercial permission or OpenAgent tool/UI parity."
   },
   "counts": {
     "category_pages": 16,
-    "card_occurrences": 4219,
-    "distinct_display_names": 4133,
+    "card_occurrences": 4217,
+    "distinct_display_names": 4131,
     "popular_cards": 50,
     "display_name_groups_with_primary_interface_findings": 32
   },
@@ -571,14 +571,6 @@
       "name": "Shopify",
       "status": "implemented_adapter",
       "note": "Adapter implemented; common enrollment off pending shared-store lifecycle and product privacy qualification.",
-      "included_in_current_sdk": "0.1.6",
-      "shared_library_public_version": "0.1.6"
-    },
-    {
-      "id": "replio",
-      "name": "Replio",
-      "status": "implemented_adapter",
-      "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance.",
       "included_in_current_sdk": "0.1.6",
       "shared_library_public_version": "0.1.6"
     },
@@ -2007,7 +1999,6 @@
         "Currents",
         "Hopper",
         "Youmake",
-        "Encore",
         "QueryHost",
         "Echo UI",
         "Raygun",
@@ -3241,7 +3232,6 @@
         "Eclat Institute",
         "QuizStage",
         "TTMNG Public",
-        "Replio",
         "Wayroc Career Coach",
         "Lucebra",
         "Powers Index",
@@ -26574,24 +26564,6 @@
       "directory_urls": [],
       "source_category_urls": [
         "https://chatgpt.com/plugins?category=education-and-research"
-      ],
-      "popular_order": null,
-      "openagent_status": "not_implemented_in_official_catalog",
-      "connector_id": null,
-      "chatgpt_feature_parity": "not_qualified",
-      "access_findings": [],
-      "access_status": "public_interface_not_established_by_this_audit",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
-    },
-    {
-      "name": "Encore",
-      "identity_kind": "directory_display_name_group",
-      "categories": [
-        "developer-tools"
-      ],
-      "directory_urls": [],
-      "source_category_urls": [
-        "https://chatgpt.com/plugins?category=developer-tools"
       ],
       "popular_order": null,
       "openagent_status": "not_implemented_in_official_catalog",
@@ -59898,24 +59870,6 @@
       "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
     },
     {
-      "name": "Replio",
-      "identity_kind": "directory_display_name_group",
-      "categories": [
-        "education-and-research"
-      ],
-      "directory_urls": [],
-      "source_category_urls": [
-        "https://chatgpt.com/plugins?category=education-and-research"
-      ],
-      "popular_order": null,
-      "openagent_status": "not_implemented_in_official_catalog",
-      "connector_id": null,
-      "chatgpt_feature_parity": "not_qualified",
-      "access_findings": [],
-      "access_status": "public_interface_not_established_by_this_audit",
-      "next_action": "Verify provider interface, terms, auth and operation scope; implement or qualify an explicit official integration."
-    },
-    {
       "name": "Replit",
       "identity_kind": "directory_display_name_group",
       "categories": [
@@ -82217,14 +82171,6 @@
         "shared_library_public_version": "0.1.6"
       },
       {
-        "id": "replio",
-        "name": "Replio",
-        "status": "implemented_adapter",
-        "note": "Source implementation is not full provider feature parity or public OAuth enrollment acceptance.",
-        "included_in_current_sdk": "0.1.6",
-        "shared_library_public_version": "0.1.6"
-      },
-      {
         "id": "billingbear",
         "name": "BillingBear",
         "status": "implemented_adapter",
@@ -82400,5 +82346,17 @@
         "historical_acceptance_checkpoint": "historical_sdk15_checkpoint.published_catalog"
       }
     }
+  },
+  "directory_projection": {
+    "kind": "maintained_projection",
+    "original_sha256": "40bb673a06ebcb68909639ac6be269e33832d95e950f1cde7f014a1934db3ef4",
+    "original_counts": {
+      "category_pages": 16,
+      "card_occurrences": 4219,
+      "distinct_display_names": 4133,
+      "popular_cards": 50,
+      "display_name_groups_with_primary_interface_findings": 32
+    },
+    "scope": "The original snapshot is preserved in version control. This projection omits retired host-specific catalog entries and two directory display names with unresolved identity."
   }
 }
