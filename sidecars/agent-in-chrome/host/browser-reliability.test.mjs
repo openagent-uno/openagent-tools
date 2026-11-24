@@ -327,7 +327,6 @@ test('supervised MCP waits for its exact profile without launching or closing a 
   server.listen(0, '127.0.0.1');
   await once(server, 'listening');
   const port = server.address().port;
-  endpoint = `ws://127.0.0.1:${port}${endpointPath}`;
   t.after(async () => {
     for (const socket of sockets.clients) socket.terminate();
     await new Promise((resolve) => sockets.close(resolve));
@@ -339,6 +338,7 @@ test('supervised MCP waits for its exact profile without launching or closing a 
   const marker = path.join(profile, 'DevToolsActivePort');
   const unavailable = await listTabs();
   assert.equal(unavailable.structuredContent?.error?.code, 'configured_browser_unavailable', JSON.stringify(unavailable));
+  endpoint = `ws://127.0.0.1:${port}${endpointPath}`;
   await writeFile(marker, `${port}\n/devtools/browser/different-profile\n`);
   const mismatched = await listTabs();
   assert.equal(mismatched.structuredContent?.error?.code, 'configured_browser_unavailable', JSON.stringify(mismatched));
@@ -357,6 +357,16 @@ test('supervised MCP waits for its exact profile without launching or closing a 
   const stale = await restarted.callTool({ name: 'get_page_text', arguments: { tabId: previous } });
   assert.equal(stale.structuredContent?.error?.code, 'tab_not_found', JSON.stringify(stale));
   assert.ok(!methods.includes('Target.attachToTarget'));
+
+  await rm(marker);
+  endpoint = undefined;
+  await Promise.all([...sockets.clients].map((socket) => {
+    const closed = once(socket, 'close');
+    socket.close(1001, 'supervised fixture stopped');
+    return closed;
+  }));
+  const stopped = await restarted.callTool({ name: 'tabs_context_mcp', arguments: {} });
+  assert.equal(stopped.structuredContent?.error?.code, 'configured_browser_unavailable', JSON.stringify(stopped));
   await restarted.close();
   assert.ok(!methods.includes('Browser.close'));
   await assert.rejects(access(path.join(profile, 'launch-attempt')), { code: 'ENOENT' });
