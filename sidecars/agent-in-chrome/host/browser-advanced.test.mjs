@@ -9,6 +9,7 @@ import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { setTimeout as delay } from 'node:timers/promises';
 import { createHmac, randomUUID } from 'node:crypto';
+import { WebSocketServer } from 'ws';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 import { CDPConnection } from './cdp.js';
@@ -96,6 +97,90 @@ test('browser registry rejects arbitrary/duplicate identities and invalid upload
   assert.throws(() => configuredBrowserSlots({ OPENAGENT_BROWSER_TARGETS: '[{"id":"dedicated"}]' }), /invalid_browser_registry/);
   assert.throws(() => configuredBrowserSlots({ OPENAGENT_BROWSER_TARGETS: '[{"id":"other","profile_dir":"relative","cdp_port":9222}]' }), /invalid_browser_registry/);
   assert.throws(() => new AdvancedBrowser({}, { id: 'test' }, { uploadRoots: '["relative"]' }), /invalid_upload_roots/);
+});
+
+async function permissionContextFixture(t, targetContextId, browserContexts) {
+  const server = new WebSocketServer({ host: '127.0.0.1', port: 0 });
+  await once(server, 'listening');
+  const changes = [];
+  let onContextInventory;
+  server.on('connection', (socket) => socket.on('message', (raw) => {
+    const { id, method, params } = JSON.parse(raw);
+    if (method === 'Target.getBrowserContexts') {
+      onContextInventory?.();
+      socket.send(JSON.stringify({ id, result: browserContexts }));
+    } else if (method === 'Browser.setPermission') {
+      changes.push(params);
+      if (params.browserContextId !== undefined && !browserContexts.browserContextIds.includes(params.browserContextId)) {
+        socket.send(JSON.stringify({ id, error: { code: -32602, message: 'Failed to find browser context for id ' + params.browserContextId } }));
+      } else {
+        socket.send(JSON.stringify({ id, result: {} }));
+      }
+    } else {
+      assert.fail('Unexpected CDP request: ' + method);
+    }
+  }));
+  const cdp = new CDPConnection(`ws://127.0.0.1:${server.address().port}`);
+  await cdp.connect();
+  t.after(async () => {
+    cdp.close();
+    for (const socket of server.clients) socket.terminate();
+    await new Promise((resolve) => server.close(resolve));
+  });
+  const origin = 'http://127.0.0.1:39001';
+  let url = origin + '/page';
+  const controller = { cdp, targetForTab: () => 'fixture-target' };
+  const browser = new AdvancedBrowser(controller, { id: 'dedicated' }, { secret, uploadRoots: '[]' });
+  browser.page = async (tabId) => ({
+    page: { url: () => url, isClosed: () => false },
+    tabId, target: 'fixture-target', contextId: targetContextId,
+  });
+  const args = { action: 'revoke', tabId: 1, origin, permissions: ['geolocation'] };
+  const decision = await browser.permissions({ ...args, action: 'request' });
+  args.request_id = decision.request_id;
+  return {
+    changes,
+    revoke: (meta = proof('revoke', args)) => browser.permissions(args, undefined, meta),
+    replaceConnectionAtInventory: () => { onContextInventory = () => { controller.cdp = null; }; },
+    navigateAtInventory: () => { onContextInventory = () => { url = 'http://127.0.0.1:39002/page'; }; },
+  };
+}
+
+test('fake CDP permission revoke omits the attested persistent default context ID', async (t) => {
+  const context = await permissionContextFixture(t, 'persistent-default', {
+    defaultBrowserContextId: 'persistent-default', browserContextIds: ['isolated-context'],
+  });
+  await assert.rejects(context.revoke({}), (error) => error.code === 'host_approval_invalid');
+  assert.deepEqual(context.changes, []);
+  assert.equal((await context.revoke()).ok, true);
+  assert.deepEqual(context.changes, [{
+    permission: { name: 'geolocation' }, setting: 'prompt', origin: 'http://127.0.0.1:39001',
+  }]);
+  await assert.rejects(context.revoke(), (error) => error.code === 'host_approval_required');
+  assert.equal(context.changes.length, 1);
+});
+
+test('fake CDP permission revoke keeps the exact isolated context and refuses an unknown one', async (t) => {
+  const known = await permissionContextFixture(t, 'isolated-context', { browserContextIds: ['isolated-context'] });
+  assert.equal((await known.revoke()).ok, true);
+  assert.equal(known.changes[0].browserContextId, 'isolated-context');
+
+  for (const contextId of ['unlisted-default', undefined]) {
+    const unknown = await permissionContextFixture(t, contextId, { browserContextIds: ['isolated-context'] });
+    await assert.rejects(unknown.revoke(), (error) => error.code === 'browser_context_unverified');
+    assert.deepEqual(unknown.changes, []);
+  }
+});
+
+test('fake CDP permission revoke stops if the connection or origin changes during inventory', async (t) => {
+  for (const change of ['replaceConnectionAtInventory', 'navigateAtInventory']) {
+    const context = await permissionContextFixture(t, 'persistent-default', {
+      defaultBrowserContextId: 'persistent-default', browserContextIds: [],
+    });
+    context[change]();
+    await assert.rejects(context.revoke(), (error) => error.code === 'browser_target_changed');
+    assert.deepEqual(context.changes, []);
+  }
 });
 
 

@@ -453,10 +453,29 @@ export class AdvancedBrowser {
     }, permissions), host_approval_required_for_changes: true };
     if (args.action === 'request') { const request = this.pending('permission', { ...args, permissions }); return { requires_user_action: true, ...request, expires_at_ms: request.expires }; }
     this.approval(args.action, { ...args, permissions }, meta);
-    if (args.action === 'grant') await page.page.context().grantPermissions(permissions, { origin });
-    else for (const name of permissions) await this.controller.cdp.send('Browser.setPermission', {
-      permission: { name }, setting: 'prompt', origin, ...(page.contextId ? { browserContextId: page.contextId } : {})
-    });
+    if (args.action === 'grant') {
+      await page.page.context().grantPermissions(permissions, { origin });
+    } else {
+      const connection = this.controller.cdp;
+      const { defaultBrowserContextId, browserContextIds } = await connection.send('Target.getBrowserContexts', {}, undefined, { signal });
+      const contextId = page.contextId;
+      if (!contextId || (contextId !== defaultBrowserContextId && !browserContextIds?.includes(contextId))) {
+        fail('browser_context_unverified', 'Could not verify the exact context for this tab.');
+      }
+      // The persistent default is identified separately by CDP and must be
+      // selected by omitting browserContextId. Other contexts keep their ID.
+      const scope = contextId === defaultBrowserContextId ? {} : { browserContextId: contextId };
+      for (const name of permissions) {
+        signal?.throwIfAborted();
+        this.assertAutomated();
+        if (this.controller.cdp !== connection || this.controller.targetForTab(page.tabId) !== page.target
+          || page.page.isClosed() || new URL(page.page.url()).origin !== origin) {
+          fail('browser_target_changed', 'The exact browser tab or its origin changed before permission revocation.');
+        }
+        await connection.send('Browser.setPermission', { permission: { name }, setting: 'prompt', origin, ...scope },
+          undefined, { signal });
+      }
+    }
     return { ok: true, action: args.action, origin, permissions };
   }
 }
