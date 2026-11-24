@@ -302,6 +302,18 @@ test('supervised MCP waits for its exact profile without launching or closing a 
       fs.writeFileSync(${JSON.stringify(path.join(profile, 'launch-attempt'))}, 'attempted to launch a browser');
       throw new Error('Browser launches are forbidden in this fixture');
     };
+    // Hold the JavaScript close notification after the socket is already
+    // closed. This makes the supervisor transition race reproducible.
+    const fixtureRequire = require('node:module').createRequire(${JSON.stringify(fileURLToPath(import.meta.url))});
+    const WebSocket = fixtureRequire('ws');
+    const emit = WebSocket.prototype.emit;
+    WebSocket.prototype.emit = function(event, ...args) {
+      if (event === 'close') {
+        setTimeout(() => emit.call(this, event, ...args), 1000);
+        return true;
+      }
+      return emit.call(this, event, ...args);
+    };
     require('node:module').syncBuiltinESMExports();
   `);
 

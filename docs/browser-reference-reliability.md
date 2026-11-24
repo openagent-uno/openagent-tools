@@ -87,6 +87,8 @@ the same MCP process after the exact marker appears, and rejects an old tab ID
 after restarting the controller. If the supervisor later stops and removes
 its marker, the MCP reports the endpoint as unavailable again. Closing
 either controller leaves the supervised endpoint untouched.
+The controller checks whether the WebSocket can actually send before reuse,
+including the interval before its close notification reaches the MCP process.
 
 ## Receiving products and remaining boundaries
 

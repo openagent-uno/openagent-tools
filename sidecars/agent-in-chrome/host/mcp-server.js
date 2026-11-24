@@ -40,6 +40,10 @@ function log(...a) {
   process.stderr.write("[agent-in-chrome] " + a.join(" ") + "\n");
 }
 
+function unavailableSupervisedBrowser() {
+  return new BrowserOperationError("configured_browser_unavailable", "Exact verified profile endpoint is unavailable.");
+}
+
 // ───────────────────────────────────────────────────────────────────────────
 // Browser controller — owns the CDP connection, tabs, and per-tab buffers.
 // ───────────────────────────────────────────────────────────────────────────
@@ -70,8 +74,9 @@ class BrowserController {
   // Lazy: launch/connect on first use; concurrent callers await one promise.
   async ensure(onProgress) {
     if (this.humanControl) throw new Error("human_control_active: automation is paused for human control");
-    if (this.cdp && !this.cdp.closed) return;
     if (this._ensuring) return this._ensuring;
+    if (this.cdp?.isOpen) return;
+    this.cdp?.close();
     this._ensuring = (async () => {
       const launched = this.supervised
         ? { wsUrl: await getProfileWsEndpoint(this.slot.profile_dir ?? profileDir(), this.slot.cdp_port ?? CDP_PORT),
@@ -79,33 +84,39 @@ class BrowserController {
         : await ensureBrowser({ onProgress });
       const { wsUrl, ownsBrowser, pid } = launched;
       if (!wsUrl) {
-        throw new BrowserOperationError("configured_browser_unavailable", "Exact verified profile endpoint is unavailable.");
+        throw unavailableSupervisedBrowser();
       }
       const cdp = new CDPConnection(wsUrl);
-      await cdp.connect();
-      cdp.onClose(() => {
-        if (this.cdp !== cdp) return;
-        log("browser CDP connection closed");
-        this.cdp = null;
-        this.sessions.clear();
-      });
-      this.cdp = cdp;
-      this.ownsBrowser = ownsBrowser;
-      this.browserPid = pid;
-      await cdp.send("Target.setDiscoverTargets", { discover: true });
-      cdp.on("Target.targetCreated", (p) => this._onTargetCreated(p.targetInfo));
-      cdp.on("Target.targetDestroyed", (p) => this._onTargetDestroyed(p.targetId));
-      // A tab that closes or crashes detaches its session — drop it so the next
-      // tool call re-attaches cleanly instead of using a dead sessionId.
-      cdp.on("Target.detachedFromTarget", (p) => {
-        for (const [tid, s] of this.sessions) {
-          if (s.sessionId === p.sessionId) {
-            s.dispose?.();
-            this.sessions.delete(tid);
+      try {
+        await cdp.connect();
+        cdp.onClose(() => {
+          if (this.cdp !== cdp) return;
+          log("browser CDP connection closed");
+          this.cdp = null;
+          this.sessions.clear();
+        });
+        this.cdp = cdp;
+        this.ownsBrowser = ownsBrowser;
+        this.browserPid = pid;
+        await cdp.send("Target.setDiscoverTargets", { discover: true });
+        cdp.on("Target.targetCreated", (p) => this._onTargetCreated(p.targetInfo));
+        cdp.on("Target.targetDestroyed", (p) => this._onTargetDestroyed(p.targetId));
+        // Drop detached sessions so the next call can attach the same target.
+        cdp.on("Target.detachedFromTarget", (p) => {
+          for (const [tid, s] of this.sessions) {
+            if (s.sessionId === p.sessionId) {
+              s.dispose?.();
+              this.sessions.delete(tid);
+            }
           }
-        }
-      });
-      await this.syncTargets();
+        });
+        await this.syncTargets();
+      } catch (error) {
+        const transportLost = !cdp.isOpen;
+        cdp.close();
+        if (this.supervised && transportLost) throw unavailableSupervisedBrowser();
+        throw error;
+      }
       log("controller ready");
     })();
     try {
@@ -146,7 +157,15 @@ class BrowserController {
   }
 
   async syncTargets() {
-    const { targetInfos } = await this.cdp.send("Target.getTargets");
+    const cdp = this.cdp;
+    if (!cdp) {
+      if (this.supervised) throw unavailableSupervisedBrowser();
+      throw new Error("Browser CDP connection is not open");
+    }
+    const { targetInfos } = await cdp.send("Target.getTargets").catch((error) => {
+      if (this.supervised && !cdp.isOpen) throw unavailableSupervisedBrowser();
+      throw error;
+    });
     const alivePages = new Set();
     for (const info of targetInfos) {
       if (this._isPage(info)) {

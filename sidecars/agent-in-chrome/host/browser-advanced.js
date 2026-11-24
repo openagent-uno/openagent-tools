@@ -77,7 +77,7 @@ export class AdvancedBrowser {
 
   support() {
     const pipe = process.env.OPENAGENT_CHROME_TRANSPORT === 'pipe' || typeof this.controller.cdp?.wsUrl === 'object';
-    return { browser_id: this.slot.id, backend: this.slot.backend, availability: this.controller.cdp && !this.controller.cdp.closed ? 'connected' : 'not_probed', semantic_locators: !pipe,
+    return { browser_id: this.slot.id, backend: this.slot.backend, availability: this.controller.cdp?.isOpen ? 'connected' : 'not_probed', semantic_locators: !pipe,
       bounded_waits: !pipe, cross_origin_frames: !pipe, file_upload_payloads: !pipe,
       file_upload_paths: !pipe && this.uploadRoots.length > 0, downloads: !pipe && this.slot.allow_downloads,
       file_chooser: !pipe, takeover: true, signed_host_decisions: Boolean(this.secret),
