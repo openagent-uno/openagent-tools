@@ -1,5 +1,12 @@
 # Browser reference and transport reliability
 
+Device-tools `1.0.0b20` packages the supervised-profile and stale-tab fixes
+along with [context-bound permission revocation](browser-advanced.md#human-control-and-permissions).
+The installed wheel's browser code is qualified on Linux with an isolated
+persistent Chromium profile and signed fixture permissions. Beta publication
+is a component release. A receiving host selects the exact wheel when
+rebuilding its distribution.
+
 Unreleased source work, 30 October 2026. This is a behavioral comparison against
 local client code, not a claim of complete Codex/browser-service parity.
 
