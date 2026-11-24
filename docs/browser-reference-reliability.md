@@ -32,6 +32,15 @@ are opaque strings and must be acquired through `find`/`read_page` in the curren
 document. They are not persistent selectors and cannot be imported from another
 tab or a restored document.
 
+Browser tab IDs remain positive integers and are opaque to callers. A new MCP
+controller assigns IDs from a fresh range even when the supervised browser and
+its profile stay open. If a tab tool returns `tab_not_found`, list the current
+tabs before starting a new operation. An existing controller can reconnect to
+the same exact Chromium target without carrying IDs into another profile.
+An external profile whose verified endpoint is unavailable returns
+`configured_browser_unavailable`; a browser on the same port does not
+authorize attachment by itself.
+
 Cancellation stops local waiting and subsequent dispatched work; CDP cannot undo
 an operation already accepted by Chrome. No mutation is automatically retried.
 Pointer/key release is cleanup against the same still-attached session, not a

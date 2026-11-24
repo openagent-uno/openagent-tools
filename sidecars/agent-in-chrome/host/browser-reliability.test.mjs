@@ -212,8 +212,7 @@ test('real Chromium find prioritizes actionable matches beyond matching containe
 });
 
 
-test('real MCP tools propagate cancellation and stale-ref errors without replacing the supervised browser', { skip: !binary }, async (t) => {
-  const { profile, port } = await browserFixture(t);
+async function supervisedBrowserMcp(profile, port) {
   const transport = new StdioClientTransport({
     command: process.execPath,
     args: [fileURLToPath(new URL('./mcp-server.js', import.meta.url))],
@@ -223,6 +222,12 @@ test('real MCP tools propagate cancellation and stale-ref errors without replaci
   });
   const client = new Client({ name: 'browser-reliability-test', version: '1' });
   await client.connect(transport);
+  return client;
+}
+
+test('real MCP tools propagate cancellation and stale-ref errors without replacing the supervised browser', { skip: !binary }, async (t) => {
+  const { profile, port } = await browserFixture(t);
+  const client = await supervisedBrowserMcp(profile, port);
   t.after(() => client.close());
   const created = await client.callTool({ name: 'tabs_create_mcp', arguments: {} });
   assert.equal(created.isError, undefined, JSON.stringify(created));
@@ -251,6 +256,52 @@ test('real MCP tools propagate cancellation and stale-ref errors without replaci
   assert.ok(Date.now() - started < 1000, 'explicit zero wait is preserved');
 });
 
+
+test('a restarted MCP controller requires rediscovery of tab handles in the retained profile', { skip: !binary }, async (t) => {
+  const { client: cdp, evaluate, profile, port, tab } = await browserFixture(t);
+  const listTabs = async (client) => {
+    const result = await client.callTool({ name: 'tabs_context_mcp', arguments: {} });
+    assert.equal(result.isError, undefined, JSON.stringify(result));
+    return JSON.parse(result.content[0].text.split('\n\n', 1)[0]).availableTabs;
+  };
+  const original = await supervisedBrowserMcp(profile, port);
+  t.after(() => original.close());
+  const originalTabs = await listTabs(original);
+  assert.equal(originalTabs.length, 1);
+  const oldHandle = originalTabs[0].tabId;
+  const { targetInfos } = await cdp.send('Target.getTargets');
+  const oldTarget = targetInfos.find((item) => item.type === 'page').targetId;
+  await original.close();
+
+  const replacement = await tab('<title>Replacement fixture</title><p>Retained profile, new page</p>');
+  assert.equal(await evaluate(replacement, 'document.title'), 'Replacement fixture');
+  await cdp.send('Target.closeTarget', { targetId: oldTarget });
+  const restarted = await supervisedBrowserMcp(profile, port);
+  t.after(() => restarted.close());
+  const stale = await restarted.callTool({ name: 'get_page_text', arguments: { tabId: oldHandle } });
+  assert.equal(stale.isError, true, 'the old handle must never resolve to the replacement page');
+  assert.equal(stale.structuredContent.error.code, 'tab_not_found');
+  const fresh = (await listTabs(restarted)).find((item) => item.title === 'Replacement fixture');
+  assert.ok(fresh);
+  assert.notEqual(fresh.tabId, oldHandle);
+  const read = await restarted.callTool({ name: 'get_page_text', arguments: { tabId: fresh.tabId } });
+  assert.equal(read.isError, undefined, JSON.stringify(read));
+  assert.match(read.content[0].text, /Retained profile, new page/);
+});
+
+test('an unavailable profile does not attach to a different browser on the configured port', { skip: !binary }, async (t) => {
+  const { profile, port } = await browserFixture(t);
+  const unbound = await supervisedBrowserMcp(path.join(profile, 'missing-profile'), port);
+  t.after(() => unbound.close());
+  const missing = await unbound.callTool({ name: 'tabs_context_mcp', arguments: {} });
+  assert.equal(missing.isError, true);
+  assert.equal(missing.structuredContent.error.code, 'configured_browser_unavailable');
+
+  const bound = await supervisedBrowserMcp(profile, port);
+  t.after(() => bound.close());
+  const connected = await bound.callTool({ name: 'tabs_context_mcp', arguments: {} });
+  assert.equal(connected.isError, undefined, JSON.stringify(connected));
+});
 
 test('real Chromium element coordinates reject an intercepted or disabled target', { skip: !binary }, async (t) => {
   const { tab, evaluate } = await browserFixture(t);

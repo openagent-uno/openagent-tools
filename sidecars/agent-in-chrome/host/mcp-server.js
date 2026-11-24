@@ -19,7 +19,7 @@ import os from "node:os";
 import fs from "node:fs";
 import path from "node:path";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { randomUUID } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { CDPConnection } from "./cdp.js";
@@ -30,7 +30,7 @@ import {
 } from "./browser.js";
 import { PAGE_SCRIPT } from "./page-script.js";
 import { navigationTarget } from "./navigation.js";
-import { AdvancedBrowser, configuredBrowserSlots, jsonToZod } from "./browser-advanced.js";
+import { AdvancedBrowser, BrowserOperationError, configuredBrowserSlots, jsonToZod } from "./browser-advanced.js";
 
 const MAX_BUFFER = 1000;
 const invocation = new AsyncLocalStorage();
@@ -52,7 +52,10 @@ class BrowserController {
     this.browserPid = null;
     this._ensuring = null;
 
-    this.nextTabId = 1;
+    // Old calls can outlive an MCP process. Allocate opaque safe integers
+    // from a fresh range for each controller so old IDs cannot predictably
+    // alias tabs in a replacement process or a different profile slot.
+    this.nextTabId = randomInt(2 ** 40, 2 ** 48);
     this.intByTarget = new Map(); // targetId -> int
     this.targetById = new Map(); // int -> targetId
     this.sessions = new Map(); // targetId -> { sessionId, injected, netEnabled }
@@ -72,7 +75,9 @@ class BrowserController {
         ? { wsUrl: await getProfileWsEndpoint(this.slot.profile_dir, this.slot.cdp_port), ownsBrowser: false, pid: null }
         : await ensureBrowser({ onProgress });
       const { wsUrl, ownsBrowser, pid } = launched;
-      if (!wsUrl) throw new Error("configured_browser_unavailable: exact verified profile endpoint is unavailable");
+      if (!wsUrl) {
+        throw new BrowserOperationError("configured_browser_unavailable", "Exact verified profile endpoint is unavailable.");
+      }
       const cdp = new CDPConnection(wsUrl);
       await cdp.connect();
       cdp.onClose(() => {
@@ -175,12 +180,14 @@ class BrowserController {
   }
 
   async ensureAttached(tabId) {
-    const targetId = this.targetForTab(tabId);
-    if (!targetId) {
+    let tid = this.targetForTab(tabId);
+    if (!tid) {
       await this.syncTargets();
-      if (!this.targetForTab(tabId)) throw new Error(`Tab ${tabId} does not exist. Call tabs_context_mcp first.`);
+      tid = this.targetForTab(tabId);
+      if (!tid) {
+        throw new BrowserOperationError("tab_not_found", "Exact tab is unavailable; call tabs_context_mcp again.");
+      }
     }
-    const tid = this.targetForTab(tabId);
     if (this.attaching.has(tid)) return this.attaching.get(tid);
     let sess = this.sessions.get(tid);
     if (sess && sess.sessionId) return sess;
@@ -840,7 +847,7 @@ const server = new McpServer(
 }
 
 const n = z.number().finite();
-const tabIdParam = z.number().int().positive().describe("Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.");
+const tabIdParam = z.number().int().positive().describe("Opaque tab ID from the current tabs_context_mcp result. List tabs again after a controller restart.");
 
 server.tool(
   "tabs_context_mcp",
