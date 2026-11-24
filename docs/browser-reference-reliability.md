@@ -73,6 +73,13 @@ Tests discover an installed Chromium binary (or
 cases explicitly skip; such a run does not reproduce this Mac's qualification.
 No browser is downloaded by the test or sidecar.
 
+The supervised profile regression also runs without Chromium. An isolated
+MCP subprocess uses a loopback HTTP/WebSocket CDP fixture and a process-launch
+guard. It checks a missing and then mismatched profile marker, reconnects on
+the same MCP process after the exact marker appears, and rejects an old tab ID
+after restarting the controller. Closing either controller leaves the
+supervised endpoint untouched.
+
 ## Receiving products and remaining boundaries
 
 The shared Agent-in-Chrome source is the upstream implementation consumed by

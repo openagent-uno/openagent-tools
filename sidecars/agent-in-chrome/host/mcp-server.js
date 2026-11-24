@@ -26,6 +26,7 @@ import { CDPConnection } from "./cdp.js";
 import {
   ensureBrowser, VIEWPORT, CDP_PORT,
   closeDedicatedBrowser, getProfileWsEndpoint,
+  profileDir,
   installExtension, removeManagedExtension, listManagedExtensions, getBrowserVersion,
 } from "./browser.js";
 import { PAGE_SCRIPT } from "./page-script.js";
@@ -45,6 +46,7 @@ function log(...a) {
 class BrowserController {
   constructor(slot = { id: "dedicated" }) {
     this.slot = slot;
+    this.supervised = slot.external || process.env.OPENAGENT_BROWSER_EXTERNAL === "1";
     this.humanControl = null;
     this.advanced = null;
     this.cdp = null;
@@ -71,8 +73,9 @@ class BrowserController {
     if (this.cdp && !this.cdp.closed) return;
     if (this._ensuring) return this._ensuring;
     this._ensuring = (async () => {
-      const launched = this.slot.external
-        ? { wsUrl: await getProfileWsEndpoint(this.slot.profile_dir, this.slot.cdp_port), ownsBrowser: false, pid: null }
+      const launched = this.supervised
+        ? { wsUrl: await getProfileWsEndpoint(this.slot.profile_dir ?? profileDir(), this.slot.cdp_port ?? CDP_PORT),
+            ownsBrowser: false, pid: null }
         : await ensureBrowser({ onProgress });
       const { wsUrl, ownsBrowser, pid } = launched;
       if (!wsUrl) {
@@ -342,7 +345,7 @@ class BrowserController {
 
   async shutdown() {
     await this.advanced?.close();
-    if (this.slot.external) { this.cdp?.close(); this.cdp = null; return; }
+    if (this.supervised) { this.cdp?.close(); this.cdp = null; return; }
     await closeDedicatedBrowser(this.cdp, {
       ownsBrowser: this.ownsBrowser,
       browserPid: this.browserPid,

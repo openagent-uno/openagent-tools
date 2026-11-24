@@ -26,7 +26,9 @@ const secret = 'local-fixture-control-key-' + randomUUID();
 async function chromeFixture(t) {
   const temporary = await mkdtemp(path.join(os.tmpdir(), 'openagent-browser-advanced-'));
   const profile = path.join(temporary, 'profile');
-  const child = spawn(chrome, ['--headless=new', '--no-first-run', '--no-default-browser-check', '--disable-background-networking', '--remote-debugging-port=0', '--site-per-process', `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' });
+  const child = spawn(chrome, ['--headless=new', '--no-first-run', '--no-default-browser-check',
+    '--password-store=basic', '--use-mock-keychain', '--disable-background-networking', '--remote-debugging-port=0',
+    '--site-per-process', `--user-data-dir=${profile}`, 'about:blank'], { stdio: 'ignore' });
   const closed = once(child, 'close');
   let endpoint, port;
   const deadline = Date.now() + 20000;

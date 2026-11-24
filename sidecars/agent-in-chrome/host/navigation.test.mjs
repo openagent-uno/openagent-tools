@@ -50,6 +50,7 @@ test('real MCP tools cannot read a local file through the browser', { skip: !bin
   const fileUrl = pathToFileURL(secretPath).href;
 
   const child = spawn(binary, ['--headless=new', '--no-first-run', '--no-default-browser-check',
+    '--password-store=basic', '--use-mock-keychain',
     '--disable-background-networking', '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'],
     { stdio: ['ignore', 'ignore', 'ignore'] });
   let client;
