@@ -49,7 +49,7 @@
           "$schema": "http://json-schema.org/draft-07/schema#",
           "properties": {
             "tabId": {
-              "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
+              "description": "Opaque tab ID from the current tabs_context_mcp result. List tabs again after a controller restart.",
               "exclusiveMinimum": 0,
               "maximum": 9007199254740991,
               "type": "integer"
@@ -156,7 +156,7 @@
               "type": "array"
             },
             "tabId": {
-              "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
+              "description": "Opaque tab ID from the current tabs_context_mcp result. List tabs again after a controller restart.",
               "exclusiveMinimum": 0,
               "maximum": 9007199254740991,
               "type": "integer"
@@ -186,7 +186,7 @@
               "type": "string"
             },
             "tabId": {
-              "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
+              "description": "Opaque tab ID from the current tabs_context_mcp result. List tabs again after a controller restart.",
               "exclusiveMinimum": 0,
               "maximum": 9007199254740991,
               "type": "integer"
@@ -211,7 +211,7 @@
               "type": "string"
             },
             "tabId": {
-              "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
+              "description": "Opaque tab ID from the current tabs_context_mcp result. List tabs again after a controller restart.",
               "exclusiveMinimum": 0,
               "maximum": 9007199254740991,
               "type": "integer"
@@ -241,7 +241,7 @@
           "$schema": "http://json-schema.org/draft-07/schema#",
           "properties": {
             "tabId": {
-              "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
+              "description": "Opaque tab ID from the current tabs_context_mcp result. List tabs again after a controller restart.",
               "exclusiveMinimum": 0,
               "maximum": 9007199254740991,
               "type": "integer"
@@ -285,7 +285,7 @@
               "type": "string"
             },
             "tabId": {
-              "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
+              "description": "Opaque tab ID from the current tabs_context_mcp result. List tabs again after a controller restart.",
               "exclusiveMinimum": 0,
               "maximum": 9007199254740991,
               "type": "integer"
@@ -310,7 +310,7 @@
               "type": "string"
             },
             "tabId": {
-              "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
+              "description": "Opaque tab ID from the current tabs_context_mcp result. List tabs again after a controller restart.",
               "exclusiveMinimum": 0,
               "maximum": 9007199254740991,
               "type": "integer"
@@ -354,7 +354,7 @@
               "type": "string"
             },
             "tabId": {
-              "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
+              "description": "Opaque tab ID from the current tabs_context_mcp result. List tabs again after a controller restart.",
               "exclusiveMinimum": 0,
               "maximum": 9007199254740991,
               "type": "integer"
@@ -384,7 +384,7 @@
               "type": "integer"
             },
             "tabId": {
-              "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
+              "description": "Opaque tab ID from the current tabs_context_mcp result. List tabs again after a controller restart.",
               "exclusiveMinimum": 0,
               "maximum": 9007199254740991,
               "type": "integer"
@@ -414,7 +414,7 @@
               "type": "integer"
             },
             "tabId": {
-              "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
+              "description": "Opaque tab ID from the current tabs_context_mcp result. List tabs again after a controller restart.",
               "exclusiveMinimum": 0,
               "maximum": 9007199254740991,
               "type": "integer"
@@ -454,7 +454,7 @@
               "type": "string"
             },
             "tabId": {
-              "description": "Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.",
+              "description": "Opaque tab ID from the current tabs_context_mcp result. List tabs again after a controller restart.",
               "exclusiveMinimum": 0,
               "maximum": 9007199254740991,
               "type": "integer"

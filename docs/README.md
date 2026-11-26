@@ -111,6 +111,12 @@ capability-host and standalone composition packages from their own release
 manifests. Do not mix earlier integration wheelhouses that contain packages with
 the same beta version but different builds.
 
+Tools beta 9 publishes filesystem `1.0.0b4`. Filesystem reads and attachments
+bound the bytes read from one open regular file and report a distinct macOS
+permission error. Device Tools beta 21 adds attachment delivery for downloads
+managed by the active browser session and includes the browser transport and
+permission fixes from beta 20.
+
 For this migration, the qualified independent Python wheel set is recorded in
 `../.migration/openagent-v1/artifacts/tools-final-2/manifest.json` relative to this
 repository. It contains exactly six wheels (protocol, filesystem, editor, shell,
