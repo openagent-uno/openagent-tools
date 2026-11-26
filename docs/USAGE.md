@@ -25,6 +25,12 @@ authentication: the host must authorize any operation exposed to an untrusted ca
 
 ## MCP stdio
 
+The filesystem tool `attach_file` reads one regular file from its configured
+roots and returns an embedded binary file to a runtime that supports session
+attachments. It allows up to 32 MiB. On macOS, an operating-system denial
+returns `filesystem_access_denied` and the resolved requested path. A native
+host can use that response to ask the user for access to the specific item.
+
 After installing the matching package, configure an MCP client to launch one of:
 
 | Capability | Console entry point |

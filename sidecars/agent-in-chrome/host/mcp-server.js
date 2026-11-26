@@ -821,6 +821,19 @@ async function callTool(name, args, extra = {}) {
       extra.signal?.throwIfAborted();
       if (advancedToolNames.has(name)) {
         const result = await callAdvanced(name, args || {}, extra);
+        if (name === "browser_downloads" && args?.action === "attach") {
+          const { blob, download_id, bytes, filename } = result;
+          const metadata = { download_id, bytes, filename };
+          return {
+            content: [
+              { type: "text", text: JSON.stringify(metadata) },
+              { type: "resource",
+                resource: { uri: "urn:openagent:browser-download:" + metadata.download_id, mimeType: "application/octet-stream", blob },
+                _meta: { "openagent/file-delivery": { filename: metadata.filename } } },
+            ],
+            structuredContent: metadata,
+          };
+        }
         return { content: [{ type: "text", text: JSON.stringify(result) }], structuredContent: result };
       }
       if (controller.humanControl && name !== "list_extensions") throw new Error("human_control_active: automation is paused for human control");

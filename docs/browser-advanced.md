@@ -24,7 +24,7 @@ reported as unsupported rather than silently substituted. See the official
 | `browser_locate` | Role/name, label, text, placeholder, test ID or CSS matching with bounded waits |
 | `browser_action` | Exact-element click/fill/check/uncheck/select/press/hover/focus/scroll |
 | `browser_upload` | Bounded inline files or host-authorized local file paths |
-| `browser_downloads` | Tab-bound inventory/status, chunked reads, cancellation and explicit release |
+| `browser_downloads` | Tab-bound inventory/status, completed-download attachment, chunked reads, cancellation and explicit release |
 | `browser_file_chooser` | Observe/wait for a real chooser and set/cancel its exact handle |
 | `browser_permissions` | Actual permission queries, pending requests and host-approved grant/revoke |
 
@@ -68,7 +68,18 @@ before removing its owned temporary artifact. Cleanup touches only the runtime's
 own temporary directories, and supervision/consent revocation closes the owned
 transport. The official [download API](https://playwright.dev/docs/api/class-download)
 defines the underlying browser lifecycle. Receiving hosts may export authorized
-bytes into their own durable artifact store before release.
+bytes into their own durable artifact store before release. With a compatible
+host, call `browser_downloads` with `action: attach` and the completed download
+ID. The browser sends one typed binary resource for the authorized session and
+keeps the temporary download until explicit release. The session's artifact
+reference lets the agent return the file without reading raw chunks into its
+context or looking for a file in the user's Downloads folder. The browser read
+can be retried on the same client after a transfer interruption. The session
+receives the attachment only after the whole result passes verification.
+
+For a file already on an authorized computer, the filesystem `attach_file`
+tool offers a regular file up to 32 MiB to the same session attachment service.
+It follows the existing filesystem roots and OS permissions.
 
 ## Human control and permissions
 

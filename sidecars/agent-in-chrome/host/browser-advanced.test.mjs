@@ -43,12 +43,12 @@ async function chromeFixture(t) {
   return { profile, port, endpoint, cdp, temporary };
 }
 
-async function fixture(t, { registry = false } = {}) {
+async function fixture(t, { registry = false, largeDownload = false } = {}) {
   const browser = await chromeFixture(t);
   let other;
   if (registry) other = await chromeFixture(t);
   let frameOrigin;
-  const payload = Buffer.from('fixture-download-content-é');
+  const payload = largeDownload ? Buffer.alloc(3 * 1024 * 1024, 0x65) : Buffer.from('fixture-download-content-é');
   const httpServer = http.createServer((request, response) => {
     response.setHeader('Content-Type','text/html');
     if (request.url === '/download') { response.writeHead(200, { 'Content-Type': 'application/octet-stream', 'Content-Disposition': 'attachment; filename="fixture.txt"' }); response.end(payload); return; }
@@ -234,12 +234,37 @@ test('actual MCP uploads, file chooser, bounded download lifecycle and wrong tar
   const rest = await f.call('browser_downloads', { tabId: f.tabId, action: 'read', download_id: download.download_id, offset: 5 });
   assert.deepEqual(Buffer.concat([Buffer.from(chunk.data_base64, 'base64'), Buffer.from(rest.data_base64, 'base64')]), f.payload);
   assert.equal(rest.eof, true);
+  const attached = await f.client.callTool({ name: 'browser_downloads',
+    arguments: { tabId: f.tabId, action: 'attach', download_id: download.download_id } });
+  assert.equal(attached.structuredContent.filename, 'fixture.txt');
+  assert.equal(attached.structuredContent.data_base64, undefined);
+  assert.equal(attached.content[1]._meta['openagent/file-delivery'].filename, 'fixture.txt');
+  assert.deepEqual(Buffer.from(attached.content[1].resource.blob, 'base64'), f.payload);
   const created = await f.call('tabs_create_mcp', {}); const otherTab = Number(created.match(/Tab ID: (\d+)/)[1]);
   await assert.rejects(f.call('browser_downloads', { tabId: otherTab, action: 'read', download_id: download.download_id }), (e) => e.code === 'wrong_download_target');
+  await assert.rejects(f.call('browser_downloads', { tabId: otherTab, action: 'attach', download_id: download.download_id }),
+    (e) => e.code === 'wrong_download_target');
   await f.call('browser_downloads', { tabId: f.tabId, action: 'release', download_id: download.download_id });
   await assert.rejects(f.call('browser_downloads', { tabId: f.tabId, action: 'read', download_id: download.download_id }), /download/i);
 });
 
+test('a managed multi-megabyte download attaches in one call', { skip: !chrome }, async (t) => {
+  const f = await fixture(t, { largeDownload: true });
+  await f.call('browser_action', { tabId: f.tabId, locator: { role: 'link', name: 'Download fixture' }, action: 'click' });
+  let download;
+  const deadline = Date.now() + 10000;
+  while (!download && Date.now() < deadline) {
+    const { downloads } = await f.call('browser_downloads', { tabId: f.tabId, action: 'list' });
+    download = downloads.find(entry => entry.state === 'completed');
+    if (!download) await delay(30);
+  }
+  assert.ok(download, f.stderr());
+  const result = await f.client.callTool({ name: 'browser_downloads',
+    arguments: { tabId: f.tabId, action: 'attach', download_id: download.download_id } });
+  assert.equal(result.structuredContent.bytes, f.payload.length);
+  assert.ok(result.content[0].text.length < 256);
+  assert.deepEqual(Buffer.from(result.content[1].resource.blob, 'base64'), f.payload);
+});
 
 test('actual MCP takeover/permissions require one-use host approval; explicit browser selection stays isolated', { skip: !chrome }, async (t) => {
   const f = await fixture(t, { registry: true });

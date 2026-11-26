@@ -8,6 +8,7 @@ import base64
 
 import pytest
 from openagent_filesystem.server import FilesystemServer
+from openagent_tool_protocol.types import HostError
 
 PNG = b"\x89PNG\r\n\x1a\n" + b"\x00" * 32
 SAMPLES = {
@@ -52,3 +53,34 @@ async def test_a_known_extension_still_wins(tmp_path):
     path.write_bytes(PNG)
     result = await FilesystemServer(tmp_path).call("read_media_file", {"path": str(path)})
     assert result.to_wire()["content"][0]["mimeType"] == "image/png"
+
+
+@pytest.mark.asyncio
+async def test_file_attachment_is_binary_and_stays_within_the_selected_root(tmp_path):
+    path = tmp_path / "archive.zip"
+    content = bytes(range(256)) * (4096 * 3)
+    path.write_bytes(content)
+    server = FilesystemServer(tmp_path, allowed_roots=[tmp_path])
+    result = await server.call("attach_file", {"path": path.name})
+    block = result.to_wire()["content"][0]
+    assert block["type"] == "resource"
+    assert block["_meta"]["openagent/file-delivery"] == {"filename": "archive.zip"}
+    assert base64.b64decode(block["resource"]["blob"]) == content
+    assert str(tmp_path) not in block["resource"]["uri"]
+    with pytest.raises(HostError, match="outside allowed roots"):
+        await server.call("attach_file", {"path": "../another-root/archive.zip"})
+    with pytest.raises(HostError, match="regular file"):
+        await server.call("attach_file", {"path": "."})
+
+
+@pytest.mark.asyncio
+async def test_macos_read_denial_has_picker_recovery(tmp_path, monkeypatch):
+    path = tmp_path / "protected.txt"
+    path.write_text("fixture")
+    monkeypatch.setattr("openagent_filesystem.server.sys.platform", "darwin")
+    def deny(*args, **kwargs):
+        raise PermissionError("fixture denial")
+    monkeypatch.setattr(type(path), "read_text", deny)
+    with pytest.raises(HostError, match="attachment picker") as result:
+        await FilesystemServer(tmp_path).call("read_text_file", {"path": path.name})
+    assert result.value.code == "filesystem_access_denied"

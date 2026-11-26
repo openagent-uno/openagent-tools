@@ -849,12 +849,13 @@
         "classification": "mutating",
         "classification_by_argument": {
           "action": {
+            "attach": "read_only",
             "list": "read_only",
             "read": "read_only",
             "status": "read_only"
           }
         },
-        "description": "Inspect, read bounded base64 chunks, cancel or explicitly release downloads belonging to one tab. No arbitrary host path is exposed or accepted.",
+        "description": "Inspect or release tab-bound downloads, read bounded chunks, or use attach to add a completed download to the current session. Use its download_id; no host path is available.",
         "input_schema": {
           "$schema": "http://json-schema.org/draft-07/schema#",
           "properties": {
@@ -863,6 +864,7 @@
                 "list",
                 "status",
                 "read",
+                "attach",
                 "cancel",
                 "release"
               ],

@@ -1,5 +1,6 @@
 import { chromium } from 'playwright-core';
 import { createHmac, randomUUID, timingSafeEqual } from 'node:crypto';
+import { constants } from 'node:fs';
 import { mkdtemp, mkdir, readFile, realpath, open, stat, unlink, rm } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
@@ -372,11 +373,12 @@ export class AdvancedBrowser {
     finally { finished(); }
   }
   async download(args, signal) {
-    await this.page(args.tabId, signal);
+    const page = await this.page(args.tabId, signal);
     const view = (r) => ({ download_id: r.download_id, tabId: r.page.tabId, filename: r.filename, url: r.url, state: r.state, bytes: r.bytes, error: r.error });
-    if (args.action === 'list') return { downloads: [...this.downloads.values()].filter((r) => r.page.tabId === args.tabId).map(view) };
+    const belongsToPage = (record) => record?.page.target === page.target;
+    if (args.action === 'list') return { downloads: [...this.downloads.values()].filter(belongsToPage).map(view) };
     const record = this.downloads.get(args.download_id);
-    if (!record || record.page.tabId !== args.tabId) fail('wrong_download_target', 'Download belongs to another tab/browser or was released.');
+    if (!belongsToPage(record)) fail('wrong_download_target', 'Download belongs to another tab/browser or was released.');
     if (args.action === 'status') return view(record);
     if (args.action === 'cancel') { if (record.state === 'completed') return view(record); await record.download.cancel(); record.state = 'cancelled'; return view(record); }
     if (args.action === 'release') {
@@ -387,6 +389,33 @@ export class AdvancedBrowser {
       this.downloads.delete(record.download_id); return { released: true, download_id: record.download_id };
     }
     if (record.state !== 'completed') fail('download_not_complete', 'Download is not complete.', view(record));
+    if (args.action === 'attach') {
+      let file;
+      try {
+        file = await open(record.file, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
+        const info = await file.stat();
+        if (!info.isFile() || info.size !== record.bytes || info.size > MAX_FILE_BYTES) {
+          fail('download_changed', 'The completed download is no longer available.');
+        }
+        const contents = Buffer.allocUnsafe(info.size + 1);
+        let length = 0;
+        while (length < contents.length) {
+          signal?.throwIfAborted();
+          const result = await file.read(contents, length, Math.min(contents.length - length, 256 * 1024), null);
+          if (!result.bytesRead) break;
+          length += result.bytesRead;
+        }
+        signal?.throwIfAborted();
+        if (length !== record.bytes || this.downloads.get(record.download_id) !== record) {
+          fail('download_changed', 'Download changed or was released during the read.');
+        }
+        return { ...view(record), blob: contents.subarray(0, length).toString('base64') };
+      } catch (error) {
+        signal?.throwIfAborted();
+        if (error instanceof BrowserOperationError) throw error;
+        fail('download_unavailable', 'The completed download could not be read.');
+      } finally { await file?.close(); }
+    }
     const offset = args.offset ?? 0; const maximum = args.max_bytes ?? 65536;
     const file = await open(record.file, 'r');
     try {

@@ -10,7 +10,10 @@ import json
 import mimetypes
 import os
 import shutil
+import stat
 import string
+import sys
+from uuid import uuid4
 from pathlib import Path
 from typing import Any
 
@@ -25,6 +28,15 @@ from openagent_tool_protocol.util import integer_arg, json_result, require_strin
 
 _OBJECT = {"type": "object", "additionalProperties": False}
 _MAX_INLINE_BYTES = 25 * 1024 * 1024
+_MAX_ATTACHMENT_BYTES = 32 * 1024 * 1024
+
+
+def _read_error(path: Path, error: OSError | UnicodeError) -> HostError:
+    if sys.platform == "darwin" and isinstance(error, PermissionError):
+        return HostError("filesystem_access_denied",
+            "macOS denied this read. An interactive Desktop client can ask the user for one-time access. "
+            "The user can also select the file in the chat attachment picker.", {"path": str(path)})
+    return HostError("filesystem_error", f"cannot read {path}: {error}")
 
 
 def _sniff_media_mime(data: bytes) -> str | None:
@@ -84,6 +96,12 @@ class FilesystemServer:
                 "read_media_file",
                 "Read a local image or audio file as an MCP media content block; the type comes from the extension or, without one, from the file content.",
                 _schema({"path": {"type": "string"}}, ["path"]),
+            ),
+            ToolManifest(
+                "attach_file",
+                "Add an accessible file from this exact computer to the current session as a binary attachment, up to 32 MiB.",
+                _schema({"path": {"type": "string"}}, ["path"]),
+                ToolClassification.READ_ONLY,
             ),
             ToolManifest(
                 "read_multiple_files",
@@ -244,7 +262,7 @@ class FilesystemServer:
         try:
             text = path.read_text(encoding="utf-8")
         except (OSError, UnicodeError) as exc:
-            raise HostError("filesystem_error", f"cannot read {path}: {exc}") from exc
+            raise _read_error(path, exc) from exc
         if "head" in args:
             count = integer_arg(args, "head", 1, minimum=1, maximum=1_000_000)
             text = "\n".join(text.splitlines()[:count])
@@ -259,7 +277,7 @@ class FilesystemServer:
         try:
             data = path.read_bytes()
         except OSError as exc:
-            raise HostError("filesystem_error", f"cannot read {path}: {exc}") from exc
+            raise _read_error(path, exc) from exc
         mime = mimetypes.guess_type(path.name)[0] or _sniff_media_mime(data) or "application/octet-stream"
         if mime.startswith("image/"):
             block_type = "image"
@@ -280,6 +298,33 @@ class FilesystemServer:
             ],
             meta={"path": str(path), "size": len(data)},
         )
+
+    def _tool_attach_file(self, args: dict[str, Any]) -> ToolResult:
+        path = self._path(require_string(args, "path"))
+        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+        try:
+            fd = os.open(path, flags)
+            try:
+                metadata = os.fstat(fd)
+                if not stat.S_ISREG(metadata.st_mode):
+                    raise HostError("invalid_arguments", "Attachment source must be a regular file")
+                if metadata.st_size > _MAX_ATTACHMENT_BYTES:
+                    raise HostError("result_too_large", "File attachment exceeds 32 MiB")
+                with os.fdopen(fd, "rb", closefd=False) as file:
+                    content = file.read(metadata.st_size + 1)
+                if len(content) != metadata.st_size:
+                    raise HostError("file_changed", "File size changed during attachment read")
+            finally:
+                os.close(fd)
+        except OSError as exc:
+            raise _read_error(path, exc) from exc
+        mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
+        return ToolResult(content=[{
+            "type": "resource",
+            "resource": {"uri": f"urn:openagent:file:{uuid4()}", "mimeType": mime,
+                         "blob": base64.b64encode(content).decode("ascii")},
+            "_meta": {"openagent/file-delivery": {"filename": path.name}},
+        }])
 
     def _tool_read_multiple_files(self, args: dict[str, Any]) -> ToolResult:
         raw_paths = args.get("paths")
@@ -366,7 +411,7 @@ class FilesystemServer:
         try:
             entries = sorted(path.iterdir(), key=lambda item: item.name.lower())
         except OSError as exc:
-            raise HostError("filesystem_error", f"cannot list {path}: {exc}") from exc
+            raise _read_error(path, exc) from exc
         lines = [f"[{'DIR' if item.is_dir() else 'FILE'}] {item.name}" for item in entries]
         return ToolResult.text("\n".join(lines), structured={"path": str(path), "entries": lines})
 
@@ -502,7 +547,7 @@ class FilesystemServer:
         try:
             size = path.stat().st_size
         except OSError as exc:
-            raise HostError("filesystem_error", f"cannot stat {path}: {exc}") from exc
+            raise _read_error(path, exc) from exc
         if size > _MAX_INLINE_BYTES:
             raise HostError(
                 "result_too_large",
