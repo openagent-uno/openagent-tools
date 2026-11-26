@@ -29,6 +29,10 @@ export class CDPConnection {
     this._closeHandlers = [];
   }
 
+  get isOpen() {
+    return !this.closed && this.ws?.readyState === WebSocket.OPEN;
+  }
+
   connect() {
     if (this.ws || this.closed) return Promise.reject(new Error("CDP connection cannot be reopened"));
     return new Promise((resolve, reject) => {
@@ -138,7 +142,7 @@ export class CDPConnection {
    */
   send(method, params = {}, sessionId = undefined, { signal } = {}) {
     if (signal?.aborted) return Promise.reject(signal.reason || new DOMException("CDP command cancelled", "AbortError"));
-    if (this.closed || !this.ws || this.ws.readyState !== WebSocket.OPEN) {
+    if (!this.isOpen) {
       return Promise.reject(new Error("CDP connection is not open"));
     }
     const id = ++this.nextId;

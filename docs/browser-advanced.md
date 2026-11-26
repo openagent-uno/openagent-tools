@@ -99,6 +99,15 @@ The control plane assumes its local main-process/shim is trusted, consistent
 with the existing unrestricted local-tools consent boundary; it is not an OS
 sandbox against other fully authorized code running as the same OS user.
 
+When revoking a permission, the controller verifies the tab's context using
+the browser's current CDP inventory. It omits the context argument only when
+the browser identifies the tab's context as its persistent default. A verified
+non-default context keeps its exact ID. If the browser cannot identify the
+context, or the connection or page origin changes during verification, the
+controller refuses revocation before dispatching a permission change.
+[Chromium CDP context inventory](https://chromedevtools.github.io/devtools-protocol/tot/Target/#method-getBrowserContexts)
+and [permission command](https://chromedevtools.github.io/devtools-protocol/tot/Browser/#method-setPermission).
+
 ## Verification and dependency qualification
 
 ```console

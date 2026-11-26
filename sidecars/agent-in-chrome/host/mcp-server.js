@@ -19,18 +19,19 @@ import os from "node:os";
 import fs from "node:fs";
 import path from "node:path";
 import { AsyncLocalStorage } from "node:async_hooks";
-import { randomUUID } from "node:crypto";
+import { randomInt, randomUUID } from "node:crypto";
 import { setTimeout as delay } from "node:timers/promises";
 
 import { CDPConnection } from "./cdp.js";
 import {
   ensureBrowser, VIEWPORT, CDP_PORT,
   closeDedicatedBrowser, getProfileWsEndpoint,
+  profileDir,
   installExtension, removeManagedExtension, listManagedExtensions, getBrowserVersion,
 } from "./browser.js";
 import { PAGE_SCRIPT } from "./page-script.js";
 import { navigationTarget } from "./navigation.js";
-import { AdvancedBrowser, configuredBrowserSlots, jsonToZod } from "./browser-advanced.js";
+import { AdvancedBrowser, BrowserOperationError, configuredBrowserSlots, jsonToZod } from "./browser-advanced.js";
 
 const MAX_BUFFER = 1000;
 const invocation = new AsyncLocalStorage();
@@ -39,12 +40,17 @@ function log(...a) {
   process.stderr.write("[agent-in-chrome] " + a.join(" ") + "\n");
 }
 
+function unavailableSupervisedBrowser() {
+  return new BrowserOperationError("configured_browser_unavailable", "Exact verified profile endpoint is unavailable.");
+}
+
 // ───────────────────────────────────────────────────────────────────────────
 // Browser controller — owns the CDP connection, tabs, and per-tab buffers.
 // ───────────────────────────────────────────────────────────────────────────
 class BrowserController {
   constructor(slot = { id: "dedicated" }) {
     this.slot = slot;
+    this.supervised = slot.external || process.env.OPENAGENT_BROWSER_EXTERNAL === "1";
     this.humanControl = null;
     this.advanced = null;
     this.cdp = null;
@@ -52,7 +58,10 @@ class BrowserController {
     this.browserPid = null;
     this._ensuring = null;
 
-    this.nextTabId = 1;
+    // Old calls can outlive an MCP process. Allocate opaque safe integers
+    // from a fresh range for each controller so old IDs cannot predictably
+    // alias tabs in a replacement process or a different profile slot.
+    this.nextTabId = randomInt(2 ** 40, 2 ** 48);
     this.intByTarget = new Map(); // targetId -> int
     this.targetById = new Map(); // int -> targetId
     this.sessions = new Map(); // targetId -> { sessionId, injected, netEnabled }
@@ -65,39 +74,49 @@ class BrowserController {
   // Lazy: launch/connect on first use; concurrent callers await one promise.
   async ensure(onProgress) {
     if (this.humanControl) throw new Error("human_control_active: automation is paused for human control");
-    if (this.cdp && !this.cdp.closed) return;
     if (this._ensuring) return this._ensuring;
+    if (this.cdp?.isOpen) return;
+    this.cdp?.close();
     this._ensuring = (async () => {
-      const launched = this.slot.external
-        ? { wsUrl: await getProfileWsEndpoint(this.slot.profile_dir, this.slot.cdp_port), ownsBrowser: false, pid: null }
+      const launched = this.supervised
+        ? { wsUrl: await getProfileWsEndpoint(this.slot.profile_dir ?? profileDir(), this.slot.cdp_port ?? CDP_PORT),
+            ownsBrowser: false, pid: null }
         : await ensureBrowser({ onProgress });
       const { wsUrl, ownsBrowser, pid } = launched;
-      if (!wsUrl) throw new Error("configured_browser_unavailable: exact verified profile endpoint is unavailable");
+      if (!wsUrl) {
+        throw unavailableSupervisedBrowser();
+      }
       const cdp = new CDPConnection(wsUrl);
-      await cdp.connect();
-      cdp.onClose(() => {
-        if (this.cdp !== cdp) return;
-        log("browser CDP connection closed");
-        this.cdp = null;
-        this.sessions.clear();
-      });
-      this.cdp = cdp;
-      this.ownsBrowser = ownsBrowser;
-      this.browserPid = pid;
-      await cdp.send("Target.setDiscoverTargets", { discover: true });
-      cdp.on("Target.targetCreated", (p) => this._onTargetCreated(p.targetInfo));
-      cdp.on("Target.targetDestroyed", (p) => this._onTargetDestroyed(p.targetId));
-      // A tab that closes or crashes detaches its session — drop it so the next
-      // tool call re-attaches cleanly instead of using a dead sessionId.
-      cdp.on("Target.detachedFromTarget", (p) => {
-        for (const [tid, s] of this.sessions) {
-          if (s.sessionId === p.sessionId) {
-            s.dispose?.();
-            this.sessions.delete(tid);
+      try {
+        await cdp.connect();
+        cdp.onClose(() => {
+          if (this.cdp !== cdp) return;
+          log("browser CDP connection closed");
+          this.cdp = null;
+          this.sessions.clear();
+        });
+        this.cdp = cdp;
+        this.ownsBrowser = ownsBrowser;
+        this.browserPid = pid;
+        await cdp.send("Target.setDiscoverTargets", { discover: true });
+        cdp.on("Target.targetCreated", (p) => this._onTargetCreated(p.targetInfo));
+        cdp.on("Target.targetDestroyed", (p) => this._onTargetDestroyed(p.targetId));
+        // Drop detached sessions so the next call can attach the same target.
+        cdp.on("Target.detachedFromTarget", (p) => {
+          for (const [tid, s] of this.sessions) {
+            if (s.sessionId === p.sessionId) {
+              s.dispose?.();
+              this.sessions.delete(tid);
+            }
           }
-        }
-      });
-      await this.syncTargets();
+        });
+        await this.syncTargets();
+      } catch (error) {
+        const transportLost = !cdp.isOpen;
+        cdp.close();
+        if (this.supervised && transportLost) throw unavailableSupervisedBrowser();
+        throw error;
+      }
       log("controller ready");
     })();
     try {
@@ -138,7 +157,15 @@ class BrowserController {
   }
 
   async syncTargets() {
-    const { targetInfos } = await this.cdp.send("Target.getTargets");
+    const cdp = this.cdp;
+    if (!cdp) {
+      if (this.supervised) throw unavailableSupervisedBrowser();
+      throw new Error("Browser CDP connection is not open");
+    }
+    const { targetInfos } = await cdp.send("Target.getTargets").catch((error) => {
+      if (this.supervised && !cdp.isOpen) throw unavailableSupervisedBrowser();
+      throw error;
+    });
     const alivePages = new Set();
     for (const info of targetInfos) {
       if (this._isPage(info)) {
@@ -175,12 +202,14 @@ class BrowserController {
   }
 
   async ensureAttached(tabId) {
-    const targetId = this.targetForTab(tabId);
-    if (!targetId) {
+    let tid = this.targetForTab(tabId);
+    if (!tid) {
       await this.syncTargets();
-      if (!this.targetForTab(tabId)) throw new Error(`Tab ${tabId} does not exist. Call tabs_context_mcp first.`);
+      tid = this.targetForTab(tabId);
+      if (!tid) {
+        throw new BrowserOperationError("tab_not_found", "Exact tab is unavailable; call tabs_context_mcp again.");
+      }
     }
-    const tid = this.targetForTab(tabId);
     if (this.attaching.has(tid)) return this.attaching.get(tid);
     let sess = this.sessions.get(tid);
     if (sess && sess.sessionId) return sess;
@@ -335,7 +364,7 @@ class BrowserController {
 
   async shutdown() {
     await this.advanced?.close();
-    if (this.slot.external) { this.cdp?.close(); this.cdp = null; return; }
+    if (this.supervised) { this.cdp?.close(); this.cdp = null; return; }
     await closeDedicatedBrowser(this.cdp, {
       ownsBrowser: this.ownsBrowser,
       browserPid: this.browserPid,
@@ -840,7 +869,7 @@ const server = new McpServer(
 }
 
 const n = z.number().finite();
-const tabIdParam = z.number().int().positive().describe("Tab ID from tabs_context_mcp. Call tabs_context_mcp first if you don't have one.");
+const tabIdParam = z.number().int().positive().describe("Opaque tab ID from the current tabs_context_mcp result. List tabs again after a controller restart.");
 
 server.tool(
   "tabs_context_mcp",

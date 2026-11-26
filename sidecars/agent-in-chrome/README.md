@@ -86,9 +86,10 @@ installs policy or authorizes a host; the host must review the declared resource
 - `OPENAGENT_CHROME_CLOSE_GRACE_MS` (default 10000) — after `Browser.close`, how
   long a launched browser may take to flush cookies and release its profile lock
   before its process group is killed.
-- `OPENAGENT_BROWSER_EXTERNAL=1` — when the server attaches to an independently
-  supervised Chrome using a verified profile marker, disconnect the MCP without
-  closing that browser. The normal sidecar-owned browser still closes on exit.
+- `OPENAGENT_BROWSER_EXTERNAL=1` — attach to an independently supervised Chrome
+  using its verified profile marker. The MCP reports
+  `configured_browser_unavailable` until that exact endpoint is available and
+  disconnects without closing it. A sidecar-owned browser still closes on exit.
 - `OPENAGENT_CHROME_PROXY` — egress proxy for page traffic: `http://`, `https://`
   or `socks5://` URL. Loopback is always bypassed and WebRTC is limited to
   proxied UDP so it cannot reveal the host address. Credentials in the URL

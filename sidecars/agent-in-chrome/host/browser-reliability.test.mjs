@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
 import test from 'node:test';
 import { once } from 'node:events';
-import { mkdtemp, readFile, rm, access } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, access, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
@@ -111,6 +112,7 @@ async function browserFixture(t) {
   const temporary = await mkdtemp(path.join(tmpdir(), 'openagent-browser-reliability-'));
   const profile = path.join(temporary, 'profile');
   const child = spawn(binary, ['--headless=new', '--no-first-run', '--no-default-browser-check',
+    '--password-store=basic', '--use-mock-keychain',
     '--disable-background-networking', '--remote-debugging-port=0', `--user-data-dir=${profile}`, 'about:blank'],
     { stdio: ['ignore', 'ignore', 'ignore'] });
   let client;
@@ -212,17 +214,22 @@ test('real Chromium find prioritizes actionable matches beyond matching containe
 });
 
 
-test('real MCP tools propagate cancellation and stale-ref errors without replacing the supervised browser', { skip: !binary }, async (t) => {
-  const { profile, port } = await browserFixture(t);
+async function supervisedBrowserMcp(profile, port, nodeArgs = []) {
   const transport = new StdioClientTransport({
     command: process.execPath,
-    args: [fileURLToPath(new URL('./mcp-server.js', import.meta.url))],
+    args: [...nodeArgs, fileURLToPath(new URL('./mcp-server.js', import.meta.url))],
     env: { ...process.env, OPENAGENT_CHROME_PROFILE_DIR: profile,
       OPENAGENT_CHROME_CDP_PORT: String(port), OPENAGENT_BROWSER_EXTERNAL: '1' },
     stderr: 'pipe',
   });
   const client = new Client({ name: 'browser-reliability-test', version: '1' });
   await client.connect(transport);
+  return client;
+}
+
+test('real MCP tools propagate cancellation and stale-ref errors without replacing the supervised browser', { skip: !binary }, async (t) => {
+  const { profile, port } = await browserFixture(t);
+  const client = await supervisedBrowserMcp(profile, port);
   t.after(() => client.close());
   const created = await client.callTool({ name: 'tabs_create_mcp', arguments: {} });
   assert.equal(created.isError, undefined, JSON.stringify(created));
@@ -251,6 +258,131 @@ test('real MCP tools propagate cancellation and stale-ref errors without replaci
   assert.ok(Date.now() - started < 1000, 'explicit zero wait is preserved');
 });
 
+
+test('a restarted MCP controller requires rediscovery of tab handles in the retained profile', { skip: !binary }, async (t) => {
+  const { client: cdp, evaluate, profile, port, tab } = await browserFixture(t);
+  const listTabs = async (client) => {
+    const result = await client.callTool({ name: 'tabs_context_mcp', arguments: {} });
+    assert.equal(result.isError, undefined, JSON.stringify(result));
+    return JSON.parse(result.content[0].text.split('\n\n', 1)[0]).availableTabs;
+  };
+  const original = await supervisedBrowserMcp(profile, port);
+  t.after(() => original.close());
+  const originalTabs = await listTabs(original);
+  assert.equal(originalTabs.length, 1);
+  const oldHandle = originalTabs[0].tabId;
+  const { targetInfos } = await cdp.send('Target.getTargets');
+  const oldTarget = targetInfos.find((item) => item.type === 'page').targetId;
+  await original.close();
+
+  const replacement = await tab('<title>Replacement fixture</title><p>Retained profile, new page</p>');
+  assert.equal(await evaluate(replacement, 'document.title'), 'Replacement fixture');
+  await cdp.send('Target.closeTarget', { targetId: oldTarget });
+  const restarted = await supervisedBrowserMcp(profile, port);
+  t.after(() => restarted.close());
+  const stale = await restarted.callTool({ name: 'get_page_text', arguments: { tabId: oldHandle } });
+  assert.equal(stale.isError, true, 'the old handle must never resolve to the replacement page');
+  assert.equal(stale.structuredContent.error.code, 'tab_not_found');
+  const fresh = (await listTabs(restarted)).find((item) => item.title === 'Replacement fixture');
+  assert.ok(fresh);
+  assert.notEqual(fresh.tabId, oldHandle);
+  const read = await restarted.callTool({ name: 'get_page_text', arguments: { tabId: fresh.tabId } });
+  assert.equal(read.isError, undefined, JSON.stringify(read));
+  assert.match(read.content[0].text, /Retained profile, new page/);
+});
+
+test('supervised MCP waits for its exact profile without launching or closing a browser', async (t) => {
+  const profile = await mkdtemp(path.join(tmpdir(), 'openagent-browser-supervision-'));
+  t.after(() => rm(profile, { recursive: true, force: true }));
+  const spawnGuard = path.join(profile, 'block-child-process.cjs');
+  await writeFile(spawnGuard, `
+    const fs = require('node:fs');
+    const childProcess = require('node:child_process');
+    childProcess.spawn = () => {
+      fs.writeFileSync(${JSON.stringify(path.join(profile, 'launch-attempt'))}, 'attempted to launch a browser');
+      throw new Error('Browser launches are forbidden in this fixture');
+    };
+    // Hold the JavaScript close notification after the socket is already
+    // closed. This makes the supervisor transition race reproducible.
+    const fixtureRequire = require('node:module').createRequire(${JSON.stringify(fileURLToPath(import.meta.url))});
+    const WebSocket = fixtureRequire('ws');
+    const emit = WebSocket.prototype.emit;
+    WebSocket.prototype.emit = function(event, ...args) {
+      if (event === 'close') {
+        setTimeout(() => emit.call(this, event, ...args), 1000);
+        return true;
+      }
+      return emit.call(this, event, ...args);
+    };
+    require('node:module').syncBuiltinESMExports();
+  `);
+
+  const endpointPath = '/devtools/browser/supervised-fixture';
+  let endpoint;
+  const server = createServer((request, response) => {
+    assert.equal(request.url, '/json/version');
+    response.setHeader('Content-Type', 'application/json');
+    response.end(JSON.stringify({ Browser: 'fixture-browser', webSocketDebuggerUrl: endpoint }));
+  });
+  const sockets = new WebSocketServer({ server, path: endpointPath });
+  const methods = [];
+  sockets.on('connection', (socket) => {
+    socket.on('message', (raw) => {
+      const { id, method } = JSON.parse(raw);
+      methods.push(method);
+      const result = method === 'Target.getTargets'
+        ? { targetInfos: [{ targetId: 'fixture-page', type: 'page', title: 'Exact fixture profile', url: 'about:blank' }] }
+        : {};
+      socket.send(JSON.stringify({ id, result }));
+    });
+  });
+  server.listen(0, '127.0.0.1');
+  await once(server, 'listening');
+  const port = server.address().port;
+  t.after(async () => {
+    for (const socket of sockets.clients) socket.terminate();
+    await new Promise((resolve) => sockets.close(resolve));
+    await new Promise((resolve) => server.close(resolve));
+  });
+  const client = await supervisedBrowserMcp(profile, port, ['--require', spawnGuard]);
+  t.after(() => client.close());
+  const listTabs = () => client.callTool({ name: 'tabs_context_mcp', arguments: {} });
+  const marker = path.join(profile, 'DevToolsActivePort');
+  const unavailable = await listTabs();
+  assert.equal(unavailable.structuredContent?.error?.code, 'configured_browser_unavailable', JSON.stringify(unavailable));
+  endpoint = `ws://127.0.0.1:${port}${endpointPath}`;
+  await writeFile(marker, `${port}\n/devtools/browser/different-profile\n`);
+  const mismatched = await listTabs();
+  assert.equal(mismatched.structuredContent?.error?.code, 'configured_browser_unavailable', JSON.stringify(mismatched));
+  assert.deepEqual(methods, []);
+
+  await writeFile(marker, `${port}\n${endpointPath}\n`);
+  const recovered = await listTabs();
+  assert.equal(recovered.isError, undefined, JSON.stringify(recovered));
+  assert.match(recovered.content[0].text, /Exact fixture profile/);
+  const previous = JSON.parse(recovered.content[0].text.split('\n\n', 1)[0]).availableTabs[0].tabId;
+  await client.close();
+  assert.ok(methods.includes('Target.getTargets'));
+
+  const restarted = await supervisedBrowserMcp(profile, port, ['--require', spawnGuard]);
+  t.after(() => restarted.close());
+  const stale = await restarted.callTool({ name: 'get_page_text', arguments: { tabId: previous } });
+  assert.equal(stale.structuredContent?.error?.code, 'tab_not_found', JSON.stringify(stale));
+  assert.ok(!methods.includes('Target.attachToTarget'));
+
+  await rm(marker);
+  endpoint = undefined;
+  await Promise.all([...sockets.clients].map((socket) => {
+    const closed = once(socket, 'close');
+    socket.close(1001, 'supervised fixture stopped');
+    return closed;
+  }));
+  const stopped = await restarted.callTool({ name: 'tabs_context_mcp', arguments: {} });
+  assert.equal(stopped.structuredContent?.error?.code, 'configured_browser_unavailable', JSON.stringify(stopped));
+  await restarted.close();
+  assert.ok(!methods.includes('Browser.close'));
+  await assert.rejects(access(path.join(profile, 'launch-attempt')), { code: 'ENOENT' });
+});
 
 test('real Chromium element coordinates reject an intercepted or disabled target', { skip: !binary }, async (t) => {
   const { tab, evaluate } = await browserFixture(t);

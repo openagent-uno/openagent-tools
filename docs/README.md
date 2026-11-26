@@ -1,5 +1,9 @@
 # Independent OpenAgent tools
 
+- [Browser lifecycle and permission verification](browser-reference-reliability.md)
+  covers exact supervised endpoint recovery, tab handle retirement and
+  context-bound revocation in device-tools b20.
+
 - [Bounded model-free DOM reads](browser-read.md) — device-tools b19 source contract,
   explicit URLs/selectors, existing profile ownership and stop conditions.
 
