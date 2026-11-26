@@ -39,6 +39,38 @@ def _read_error(path: Path, error: OSError | UnicodeError) -> HostError:
     return HostError("filesystem_error", f"cannot read {path}: {error}")
 
 
+def _read_regular_file(path: Path, limit: int) -> bytes:
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0)
+    flags |= getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+    try:
+        fd = os.open(path, flags)
+        try:
+            before = os.fstat(fd)
+            if not stat.S_ISREG(before.st_mode):
+                raise HostError("invalid_arguments", "Read source must be a regular file")
+            if before.st_size > limit:
+                raise HostError("result_too_large", f"File exceeds the {limit}-byte limit",
+                    {"path": str(path), "size": before.st_size, "limit": limit})
+            with os.fdopen(fd, "rb", closefd=False) as file:
+                content = file.read(before.st_size + 1)
+            after = os.fstat(fd)
+            if (len(content) != before.st_size or before.st_mtime_ns != after.st_mtime_ns
+                    or before.st_ctime_ns != after.st_ctime_ns):
+                raise HostError("file_changed", "File changed during the read")
+            return content
+        finally:
+            os.close(fd)
+    except OSError as exc:
+        raise _read_error(path, exc) from exc
+
+
+def _read_text(path: Path) -> str:
+    try:
+        return _read_regular_file(path, _MAX_INLINE_BYTES).decode("utf-8").replace("\r\n", "\n").replace("\r", "\n")
+    except UnicodeError as exc:
+        raise _read_error(path, exc) from exc
+
+
 def _sniff_media_mime(data: bytes) -> str | None:
     """Media type from the leading bytes, for names without an extension.
 
@@ -255,29 +287,20 @@ class FilesystemServer:
         return None
 
     def _tool_read_text_file(self, args: dict[str, Any]) -> ToolResult:
-        path = self._path(require_string(args, "path"))
         if "head" in args and "tail" in args:
             raise HostError("invalid_arguments", "head and tail are mutually exclusive")
-        self._ensure_inline_size(path)
-        try:
-            text = path.read_text(encoding="utf-8")
-        except (OSError, UnicodeError) as exc:
-            raise _read_error(path, exc) from exc
-        if "head" in args:
-            count = integer_arg(args, "head", 1, minimum=1, maximum=1_000_000)
-            text = "\n".join(text.splitlines()[:count])
-        elif "tail" in args:
-            count = integer_arg(args, "tail", 1, minimum=1, maximum=1_000_000)
-            text = "\n".join(text.splitlines()[-count:])
+        bound = "head" if "head" in args else "tail" if "tail" in args else None
+        count = integer_arg(args, bound, 1, minimum=1, maximum=1_000_000) if bound else None
+        path = self._path(require_string(args, "path"))
+        text = _read_text(path)
+        if count is not None:
+            lines = text.splitlines()
+            text = "\n".join(lines[:count] if bound == "head" else lines[-count:])
         return ToolResult.text(text, meta={"path": str(path)})
 
     def _tool_read_media_file(self, args: dict[str, Any]) -> ToolResult:
         path = self._path(require_string(args, "path"))
-        self._ensure_inline_size(path)
-        try:
-            data = path.read_bytes()
-        except OSError as exc:
-            raise _read_error(path, exc) from exc
+        data = _read_regular_file(path, _MAX_INLINE_BYTES)
         mime = mimetypes.guess_type(path.name)[0] or _sniff_media_mime(data) or "application/octet-stream"
         if mime.startswith("image/"):
             block_type = "image"
@@ -301,23 +324,7 @@ class FilesystemServer:
 
     def _tool_attach_file(self, args: dict[str, Any]) -> ToolResult:
         path = self._path(require_string(args, "path"))
-        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
-        try:
-            fd = os.open(path, flags)
-            try:
-                metadata = os.fstat(fd)
-                if not stat.S_ISREG(metadata.st_mode):
-                    raise HostError("invalid_arguments", "Attachment source must be a regular file")
-                if metadata.st_size > _MAX_ATTACHMENT_BYTES:
-                    raise HostError("result_too_large", "File attachment exceeds 32 MiB")
-                with os.fdopen(fd, "rb", closefd=False) as file:
-                    content = file.read(metadata.st_size + 1)
-                if len(content) != metadata.st_size:
-                    raise HostError("file_changed", "File size changed during attachment read")
-            finally:
-                os.close(fd)
-        except OSError as exc:
-            raise _read_error(path, exc) from exc
+        content = _read_regular_file(path, _MAX_ATTACHMENT_BYTES)
         mime = mimetypes.guess_type(path.name)[0] or "application/octet-stream"
         return ToolResult(content=[{
             "type": "resource",
@@ -336,9 +343,8 @@ class FilesystemServer:
         for raw in raw_paths:
             path = self._path(raw)
             try:
-                self._ensure_inline_size(path)
-                values.append({"path": str(path), "content": path.read_text(encoding="utf-8")})
-            except (HostError, OSError, UnicodeError) as exc:
+                values.append({"path": str(path), "content": _read_text(path)})
+            except HostError as exc:
                 values.append({"path": str(path), "error": str(exc)})
         return json_result({"files": values})
 
@@ -541,16 +547,3 @@ class FilesystemServer:
         else:
             roots = ["/"]
         return json_result({"unrestricted": True, "roots": roots})
-
-    @staticmethod
-    def _ensure_inline_size(path: Path) -> None:
-        try:
-            size = path.stat().st_size
-        except OSError as exc:
-            raise _read_error(path, exc) from exc
-        if size > _MAX_INLINE_BYTES:
-            raise HostError(
-                "result_too_large",
-                f"{path} is {size} bytes; inline reads are limited to {_MAX_INLINE_BYTES}",
-                {"path": str(path), "size": size, "limit": _MAX_INLINE_BYTES},
-            )

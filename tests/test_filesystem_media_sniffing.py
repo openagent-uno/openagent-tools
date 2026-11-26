@@ -5,6 +5,7 @@ keep no extension, so a PNG used to come back as base64 text labelled
 application/octet-stream and the model never saw the image.
 """
 import base64
+import os
 
 import pytest
 from openagent_filesystem.server import FilesystemServer
@@ -80,7 +81,38 @@ async def test_macos_read_denial_has_picker_recovery(tmp_path, monkeypatch):
     monkeypatch.setattr("openagent_filesystem.server.sys.platform", "darwin")
     def deny(*args, **kwargs):
         raise PermissionError("fixture denial")
-    monkeypatch.setattr(type(path), "read_text", deny)
+    monkeypatch.setattr("openagent_filesystem.server.os.open", deny)
     with pytest.raises(HostError, match="attachment picker") as result:
         await FilesystemServer(tmp_path).call("read_text_file", {"path": path.name})
     assert result.value.code == "filesystem_access_denied"
+    assert result.value.data["path"] == str(path.resolve())
+    with pytest.raises(HostError, match="head must be an integer") as invalid:
+        await FilesystemServer(tmp_path).call("read_text_file", {"path": path.name, "head": True})
+    assert invalid.value.code == "invalid_arguments"
+
+
+@pytest.mark.asyncio
+async def test_text_and_media_readers_reject_nonregular_sources(tmp_path, monkeypatch):
+    if not hasattr(os, "mkfifo"):
+        pytest.skip("POSIX FIFO required")
+    path = tmp_path / "named-pipe"
+    os.mkfifo(path)
+    server = FilesystemServer(tmp_path)
+    def reject_unbounded_read(*args, **kwargs):
+        pytest.fail("Use the bounded regular-file reader before opening a FIFO")
+
+    # Fail promptly on regressions to a blocking pathlib read.
+    monkeypatch.setattr(type(path), "read_text", reject_unbounded_read)
+    monkeypatch.setattr(type(path), "read_bytes", reject_unbounded_read)
+    open_file = os.open
+
+    def require_nonblocking(name, flags, *args, **kwargs):
+        assert flags & os.O_NONBLOCK
+        return open_file(name, flags, *args, **kwargs)
+
+    monkeypatch.setattr("openagent_filesystem.server.os.open", require_nonblocking)
+    for tool in ("read_text_file", "read_media_file", "attach_file"):
+        with pytest.raises(HostError, match="regular file"):
+            await server.call(tool, {"path": path.name})
+    result = await server.call("read_multiple_files", {"paths": [path.name]})
+    assert "regular file" in result.content[0]["text"]

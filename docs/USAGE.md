@@ -30,6 +30,8 @@ roots and returns an embedded binary file to a runtime that supports session
 attachments. It allows up to 32 MiB. On macOS, an operating-system denial
 returns `filesystem_access_denied` and the resolved requested path. A native
 host can use that response to ask the user for access to the specific item.
+Text, media and attachment reads check that the source is a regular file and
+stays stable while it is read. Named pipes and other special files are rejected.
 
 After installing the matching package, configure an MCP client to launch one of:
 
